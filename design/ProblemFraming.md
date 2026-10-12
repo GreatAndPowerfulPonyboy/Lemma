@@ -99,46 +99,50 @@ A learner coming back after three weeks will see a handful of topics to explain,
 ### Concept Specifications
 
 ```
-concept PasswordAuthenticating[User]
-
-purpose
-  let someone return to work they created earlier and be treated as the same person who created it; prevent anyone else from reading or changing it
-principle
-  a person registers with a username and a password; later they return and supply that same username and password, and are recognized as the same person, with everything they made still theirs; someone who supplies a different password is not recognized and sees none of it.
-state
-  a set of Users with
-    a unique username String
-    a password String
-actions
-  register (username: String, password: String) : return (user: User)
-  where username and password are well formed and no User has this username
-  then
-    create a new User with this username and password
-    return user
-  where username or password is not well formed
-  then
-    refuse INVALID_CREDENTIALS "The username or password is not well formed."
-  where some User already has this username
-  then
-    refuse USERNAME_TAKEN "That username is already in use."
-
-  authenticate (username: String, password: String) : return (user: User)
-    where some User has this username and this password
-    then return that user
-    where no User matches
-    then refuse BAD_CREDENTIALS "No account matches that username and password."
-
-  changePassword (user: User, password: String)
-    where password is well formed and user has a password
-    then set user's password to password
-
+concept UserAuthenticating[User]
+  purpose let someone return to work they created earlier and be treated as the same person who created it;
+    prevent anyone else from reading or changing it
+  principle
+    a person registers with a username and a password;
+    later they return and supply that same username and password,
+    and are recognized as the same person, with everything they made still theirs;
+    someone who supplies a different password is not recognized and sees none of it.
+  state
+    a set of Users with
+      a unique username String
+      a password String
+  actions
+    register (username: String, password: String) : return (user: User)
+      where username and password are well formed and username is not already in use
+      then
+        create a new user with the given username and password
+        return user
+      where username or password is not well formed
+      then
+        refuse INVALID_CREDENTIALS "The username or password is not well formed."
+      where username and password are well formed and username is already in use
+      then
+        refuse USERNAME_TAKEN "The username is already in use."
+    authenticate (username: String, password: String) : return (user: User)
+      where some user has the given username and password
+      then return that user
+      where no user has the given username and password
+      then refuse BAD_CREDENTIALS "No account matches that username and password."
+    changePassword (user: User, newPassword: String)
+      where user exists and newPassword is well formed
+      then set password of user to newPassword
+```
+```
 concept Prompting [User]
 
 purpose
   record something a user wants to be able to produce from memory, and hold an expected answer for it once it has proved hard to produce; prevent the cost of writing out an answer from being paid before there is any evidence it is needed.
 
 principle
-  A user names a topic they want to be able to produce from memory, and notes it as a point. In the future, if they find that they keep forgetting a crucial detail, they can promote it to a prompt with a question and answer. From then on, they can be asked the question tied to the note directly, and compare it to their answer.
+  A user names a topic they want to be able to produce from memory, and notes it as a point.
+  They can review that point in the future by confirming their answer from memory.
+  In the future, if they find that they keep forgetting a crucial detail, they can promote it to a prompt with a question and answer.
+  From then on, they can be asked the question tied to the note directly, and compare it to their answer.
 
 state
 a set of Points with
@@ -175,7 +179,7 @@ actions
 
   discard (point: Point)
     where point is in the set of points
-    then delete point
+    then remove point
 
 Queries
   _question (point: Point) : optional (question: String)
@@ -187,8 +191,8 @@ Queries
   _unpromoted (owner: User) : many (point: Point)
   Returns a point for each of the owner's points that has no question yet.
   The order of the rows is unspecified.
-
-Concept RecallChecking [Item]
+````
+Concept RecallChecking [User, Item]
 
 purpose
   find out which of the things a learner meant to cover they failed to say from memory; prevent a learner confusing recognition for recall
