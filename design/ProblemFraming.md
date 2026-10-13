@@ -132,6 +132,7 @@ concept UserAuthenticating[User]
       where user exists and newPassword is well formed
       then set password of user to newPassword
 ```
+
 ```
 concept Prompting [User]
 
@@ -191,7 +192,9 @@ Queries
   _unpromoted (owner: User) : many (point: Point)
   Returns a point for each of the owner's points that has no question yet.
   The order of the rows is unspecified.
-````
+```
+
+```
 Concept RecallChecking [User, Item]
 
 purpose
@@ -249,7 +252,10 @@ Queries
   _mentioned (check: Check) : many (item: Item)
   Returns an item for each item in the check's mentioned set, or no rows if there are none.
   The order of the rows is unspecified.
-  
+
+```
+
+```
 concept SpacedRepetition [Item]
 
 purpose
@@ -358,8 +364,9 @@ Queries
   _tagsOf (item: Item) : many (tag: Tag)
   Returns a tag for each tag the item is affixed to, or no rows if it has none.
   The order of the rows is unspecified.
-  
-```
+
+````
+
 ### Reactions
 
 ```
@@ -390,9 +397,8 @@ reaction advanceOnConfirm
 reaction lapseOnMiss
   when Prompting.miss (point)
   then SpacedRepetition.lapse (item: point)
-  
-  
-```
+
+````
 
 ### How they tie together
 
