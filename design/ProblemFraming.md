@@ -403,7 +403,7 @@ SpacedRepetition decides when these prompts come back, and lapses on points can 
 The distinctive behavior of this app is that the primary driver of card creation and scheduling advancement are omissions during free recall.
 
 ### UI Sketches
-![Set of UI Sketches for Lemma](../img/sketches(1).svg)
+![Set of UI Sketches for Lemma](../img/UISketches.pdf)
 ### User Journey
 Victor (That's me) is a third-year studying linear algebra. He's been making Anki cards for a while based on the proofs in class. Each card prompts him to rederive the proof, and he's added a hint ladder for when he stalls. By the time the exam rolls around, he's pretty confident about his upcoming performance.
 Unfortunately for him, the exam gives him variants he hasn't seen, and while he can recognize some techniques and their use cases, he can't assemble them with enough fluency to get past a C+. From this, he almost concludes that he's just not built for that level of abstract math, but he powers through the uncertainty and instead analyzes his review system.
