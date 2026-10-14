@@ -19,7 +19,7 @@
     "generate": "sync-engine artifacts pin",
     "check": "sync-engine check && sync-engine artifacts check && tsc --noEmit",
     "start": "bun src/main.ts",
-    "check:design": "sync-engine check-design design/concepts/*.md design/types.md design/compositions/*.md",
+    "check:design": "sync-engine check-design design/concepts/*.md design/types.md design/compositions/reusable/*.md",
     "dev": "bun run db:up && bun run --parallel dev:backend dev:frontend",
     "dev:backend": "bun --watch src/main.ts",
     "dev:frontend": "bun --watch web/server.ts",
@@ -30,5 +30,5 @@
     "db:shell": "docker compose exec mongo mongosh -u dev -p dev",
     "db:logs": "docker compose logs mongo",
     "db:reset": "docker compose down -v"
-  },
+  }
 }
