@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted } from "vue";
 import PasswordForm from "./reusable/PasswordForm.vue";
 import SignIn from "./reusable/SignIn.vue";
 import { useSession } from "./reusable/session.ts";
@@ -8,15 +8,7 @@ import Icon from "./reusable/ui/Icon.vue";
 import Menu from "./reusable/ui/Menu.vue";
 
 const { me, checked, load, signOut } = useSession();
-const returningFromLemma = ref(window.location.pathname === "/auth/lemma/callback");
-onMounted(() => {
-  if (!returningFromLemma.value) load();
-});
-
-function finishedLemma() {
-  returningFromLemma.value = false;
-  if (!checked.value) load();
-}
+onMounted(load);
 </script>
 
 <template>
@@ -28,12 +20,9 @@ function finishedLemma() {
       <button type="button" @click="signOut">Sign out</button>
     </Menu>
   </header>
-  <main v-if="returningFromLemma" class="content">
-    <LemmaCallback @done="finishedLemma" />
-  </main>
-  <main v-else-if="checked" class="content">
-    <BoxPage v-if="me" />
-    <SignIn v-else icon="box" lead="Heighten your understand with free recall">
+  <main v-if="checked" class="content">
+    <p v-if="me">Signed in. Your points will appear here.</p>
+    <SignIn v-else icon="box" lead="Heighten your understanding with free recall">
       <PasswordForm />
     </SignIn>
   </main>

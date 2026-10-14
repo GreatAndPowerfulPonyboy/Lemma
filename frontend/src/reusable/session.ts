@@ -10,9 +10,15 @@ const checked = ref(false);
 const error = ref<string | null>(null);
 
 async function load() {
-  const result = await api.auth.me();
-  me.value = "error" in result ? null : result;
-  checked.value = true;
+  try {
+    const result = await api.auth.me();
+    me.value = "error" in result ? null : result;
+  } catch {
+    // The server didn't answer (it may still be starting), so show the sign-in screen instead of nothing.
+    me.value = null;
+  } finally {
+    checked.value = true;
+  }
 }
 
 /**

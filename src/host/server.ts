@@ -1,12 +1,8 @@
 /**
  * The HTTP server: the API under /api, a health check, and the built Vue app.
  *
- * Settings come from the environment: PORT, PUBLIC_ORIGIN (the origin browsers use),
- * COMMONS_ORIGIN (the Commons people sign in with; https://class.mit-sdg.dev unless set),
- * MONGODB_URI, and the bucket's S3_ENDPOINT, S3_PUBLIC_ENDPOINT, S3_BUCKET, S3_REGION,
- * S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY. With GEMINI_API_KEY (and optionally GEMINI_MODEL),
- * the agent sends each upload of a person who turned describing on to Gemini for a description and
- * labels; without it, the agent writes them from each file's name.
+ * Settings come from the environment: PORT, PUBLIC_ORIGIN (the origin browsers use), and
+ * MONGODB_URI (without it, data is kept in an in-memory MongoDB and lost when the server stops).
  */
 import { createHttpHandler } from "@mit-sdg/sync-engine-http/handler";
 import { createGateway } from "@mit-sdg/sync-engine/boundary";

@@ -22,8 +22,6 @@
     "start": "bun src/host/server.ts",
     "check:design": "sync-engine check-design design/concepts/*.md design/types.md design/compositions/reusable/*.md",
     "dev": "PUBLIC_ORIGIN=http://localhost:5173 bun --watch src/host/server.ts",
-    "dev:backend": "bun --watch src/main.ts",
-    "dev:frontend": "bun --watch web/server.ts",
     "up": "docker compose up -d --build && bun scripts/check-api.ts http://127.0.0.1:8080 --wait",
     "down": "docker compose down",
     "logs": "docker compose logs backend frontend",
