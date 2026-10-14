@@ -1,93 +1,78 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from "vue";
-import Icon from "./Icon.vue";
+import { ref, useId } from "vue";
 
-defineProps<{ label: string }>();
+/** A "?" button that shows a tip under it. The tip starts at the button's left edge; set `centered` when that would run off a phone's screen. */
+defineProps<{ label: string; centered?: boolean }>();
 const open = ref(false);
-const root = ref<HTMLElement | null>(null);
-const button = ref<HTMLButtonElement | null>(null);
+const id = useId();
 
-/** Closes the menu when I click or move the focus outside it. */
-function closeIfOutside(event: Event) {
-  const target = event instanceof FocusEvent ? event.relatedTarget : event.target;
-  if (target instanceof Node && !root.value?.contains(target)) close();
-}
-
-/** Pressing Escape closes the menu and moves the focus back to the menu button. */
-function escape() {
-  close();
-  button.value?.focus();
-}
-
-function toggle() {
-  open.value = !open.value;
-  if (open.value) document.addEventListener("click", closeIfOutside);
-  else document.removeEventListener("click", closeIfOutside);
-}
-
-function close() {
+/** Pressing Escape closes an open tip. The keydown default is prevented, so a dialog around the tip stays open. */
+function escape(event: KeyboardEvent) {
+  if (!open.value) return;
+  event.preventDefault();
   open.value = false;
-  document.removeEventListener("click", closeIfOutside);
 }
-
-onUnmounted(close);
 </script>
 
 <template>
-  <div ref="root" class="menu" @keydown.escape="escape" @focusout="closeIfOutside">
-    <button ref="button" type="button" class="icon-button" :aria-label="label" :aria-expanded="open" @click="toggle">
-      <slot name="button"><Icon name="more" /></slot>
+  <span class="help" @mouseenter="open = true" @mouseleave="open = false">
+    <button
+      type="button"
+      class="mark"
+      :aria-label="label"
+      :aria-describedby="open ? id : undefined"
+      :aria-expanded="open"
+      @click="open = true"
+      @focus="open = true"
+      @blur="open = false"
+      @keydown.escape="escape"
+    >
+      ?
     </button>
-    <div v-if="open" class="items" @click="close">
-      <slot />
-    </div>
-  </div>
+    <span v-if="open" :id="id" role="tooltip" class="tip" :class="{ centered }"><slot /></span>
+  </span>
 </template>
 
 <style scoped>
-.menu {
+.help {
   position: relative;
+  display: inline-flex;
 }
-.icon-button[aria-expanded="true"] {
-  color: var(--color-text);
-  background: var(--color-line);
-}
-.items {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  width: max-content;
-  min-width: 200px;
-  max-width: 280px;
-  padding: 6px;
-  border-radius: var(--radius-md);
+.mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: 50%;
   background: var(--color-surface);
-  box-shadow: var(--shadow-popover);
-}
-/* Each item is a button with an icon and a label, and an optional `.detail` line under the label. */
-.items :slotted(button) {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  text-align: left;
-}
-.items :slotted(button:hover) {
-  background: var(--color-page);
-}
-.items :slotted(svg) {
-  flex: none;
-  margin-top: 2px;
-}
-.items :slotted(.detail) {
-  display: block;
-  font-size: var(--text-xs);
   color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.mark:hover,
+.mark[aria-expanded="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -8px;
+  z-index: 20;
+  width: max-content;
+  max-width: min(290px, 70vw);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-tip);
+  color: #f3f4f9;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: 1.45;
+}
+.tip.centered {
+  left: 50%;
+  translate: -50% 0;
 }
 </style>
