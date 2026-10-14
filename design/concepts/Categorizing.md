@@ -24,8 +24,7 @@ external Item
 
 ## State
 
-```state
-a set of Categories with
+```stateINVALID_CATEGORY a set of Categories with
   an owner User
   a name String
   unique owner and name
@@ -42,7 +41,7 @@ Rule: a category's name is stored trimmed, and is never blank or longer than 80 
 create(owner: User, name: String) : returns (category: Category)
   where name is blank or longer than 80 characters once trimmed
   then
-    refuses INVALID_NAME "A category name must have 1 to 80 characters."
+    refuses INVALID_CATEGORY  "A category name must have 1 to 80 characters."
   where owner already has a category with the trimmed name
   then
     refuses CATEGORY_EXISTS "You already have a category with that name."
@@ -57,7 +56,7 @@ rename(category: Category, name: String) : returns (category: Category)
     refuses CATEGORY_NOT_FOUND "There is no such category."
   where category is in Categories and name is blank or longer than 80 characters once trimmed
   then
-    refuses INVALID_NAME "A category name must have 1 to 80 characters."
+    refuses INVALID_CATEGORY  "A category name must have 1 to 80 characters."
   where category is in Categories and name is accepted and its owner has another category with the trimmed name
   then
     refuses CATEGORY_EXISTS "You already have a category with that name."
@@ -90,7 +89,7 @@ place(item: Item, category: Category) : returns (item: Item)
 unplace(item: Item) : returns (item: Item)
   where item is not placed in any category
   then
-    refuses NOT_PLACED "That topic is not in a category."
+    refuses NOT_PLACED "That item is not in a category."
   where item is placed in some category
   then
     remove item from Items
