@@ -1,9 +1,12 @@
 import { assemble } from "@mit-sdg/sync-engine/assembly";
+import type { Db } from "mongodb";
 import { applicationConceptSet } from "./concepts.ts";
-
-export function assembleApplication() {
+import {composition as accounts} from "./compositions/reusable/accounts.ts"
+import {composition as passwords} from "./compositions/reusable/passwords.ts"
+export function assembleApplication(resources: {database: Db}) {
   return assemble({
     conceptSet: applicationConceptSet,
-    composition: {reusable: {accounts, password}},
+    instances:applicationConceptSet.implementations("mongo",resources),
+    composition: {reusable: {accounts, passwords}},
   });
 }
