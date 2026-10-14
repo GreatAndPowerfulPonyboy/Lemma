@@ -7,6 +7,10 @@ instantiate Authenticating with
   User is Registering.User
 instantiate Sessioning with
   Subject is Registering.User
+````
+Not registered yet:
+
+```text
 instantiate Cueing with
   User is Registering.User
 instantiate Categorizing with
