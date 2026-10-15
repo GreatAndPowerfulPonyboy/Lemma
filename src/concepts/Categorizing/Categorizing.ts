@@ -28,7 +28,7 @@ export class CategorizingConcept<User extends string, Item extends string> {
     this.items = database.collection(`${name.toLowerCase()}.items`);
   }
 
-  /** Creates the unique index once. It makes MongoDB refuse the same category twice on one item, even when two  requests arrive at once. If creating it fails, the next action tries again. */
+  /** Creates the unique index once. It makes MongoDB refuse a second category with the same name for one owner, even when two requests arrive at once. If creating it fails, the next action tries again. */
 
   #ready() {
     this.indexes ??= this.categories
@@ -42,7 +42,7 @@ export class CategorizingConcept<User extends string, Item extends string> {
 
   async create({owner, name}: {owner: User, name: string}) {
     const trimmed = name.trim();
-    if (!(trimmed.length <= 80 && trimmed.length >= 1)) throw new InvalidCategory("A category name must be between 1 and 80 characters.");
+    if (!(trimmed.length <= 80 && trimmed.length >= 1)) throw new InvalidCategory("A category name must have 1 to 80 characters.");
     const category = crypto.randomUUID() as Category;
     await this.#ready();
     try {
@@ -59,21 +59,26 @@ export class CategorizingConcept<User extends string, Item extends string> {
   async rename({category, name}: {category: Category, name: string}) {
     await this.#ready();
     const existingCategory = await this.categories.findOne({_id: category});
-    if (existingCategory === null) throw new CategoryNotFound ("There is no such category");
+    if (existingCategory === null) throw new CategoryNotFound ("There is no such category.");
     const trimmed = name.trim();
-    if (!(trimmed.length <= 80 && trimmed.length >= 1)) throw new InvalidCategory("A category name must be between 1 and 80 characters.")
+    if (!(trimmed.length <= 80 && trimmed.length >= 1)) throw new InvalidCategory("A category name must have 1 to 80 characters.")
     try {
       await this.categories.updateOne({_id: existingCategory._id},
                     {$set: {name: trimmed}})
     } catch (error) {
       if (isDuplicate(error)) {
-        throw new CategoryExists ("You already have a category with that name");
+        throw new CategoryExists ("You already have a category with that name.");
       }
       throw error;
     }
     return {category};
   }
 
+  /**
+   * The emptiness check and the delete are separate steps. That is safe because the engine runs one action at a
+   * time per concept instance in a single process; with several server processes, a place between the two steps
+   * could leave an item in a deleted category, and a transaction would be needed.
+   */
   async delete({category} : {category: Category}) {
     await this.#ready();
     const existingCategory = await this.categories.findOne({_id: category})
@@ -101,8 +106,28 @@ export class CategorizingConcept<User extends string, Item extends string> {
     const {deletedCount} = await this.items.deleteOne({_id: item});
     if (deletedCount === 0) throw new NotPlaced("That item is not in a category.");
     return {item};
-    }
+  }
 
+  async _categories({ owner }: { owner: User }) {
+    const found = await this.categories.find({ owner }).sort({ name: 1 }).toArray();
+    return found.map(({ _id, name }) => ({ category: _id, name }));
+  }
+
+  async _get({ category }: { category: Category }) {
+    const found = await this.categories.findOne({ _id: category });
+    return found === null ? [] : [{ owner: found.owner, name: found.name }];
+  }
+
+  async _items({ category }: { category: Category }) {
+    // MongoDB returns documents in insertion order without a sort, which is the order items were first placed.
+    const found = await this.items.find({ category }).toArray();
+    return found.map(({ _id }) => ({ item: _id }));
+  }
+
+  async _category({ item }: { item: Item }) {
+    const found = await this.items.findOne({ _id: item });
+    return found === null ? [] : [{ category: found.category }];
+  }
 }
 
 

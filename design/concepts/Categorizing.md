@@ -24,7 +24,8 @@ external Item
 
 ## State
 
-```stateINVALID_CATEGORY a set of Categories with
+```state
+a set of Categories with
   an owner User
   a name String
   unique owner and name
