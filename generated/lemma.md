@@ -29,6 +29,31 @@ Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
 - `Authenticating` — instance of `Authenticating` — [Lemma types](../design/types.md), line 6.
   - `User` is `Registering.User` — [Lemma types](../design/types.md), line 7.
 
+### Cueing
+
+Defined in [Cueing](../design/concepts/Cueing.md), line 1.
+
+#### Actions
+
+- `create(owner: User, name: String) : returns (cue: Cue)`
+  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+- `rename(cue: Cue, name: String) : returns (cue: Cue)`
+  - Refuses `CUE_NOT_FOUND`: Cue does not exist.
+  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+- `delete(cue: Cue) : returns (cue: Cue)`
+  - Refuses `CUE_NOT_FOUND`: Cue does not exist.
+
+#### Queries
+
+- `_cues(owner: User) : many (cue: Cue, name: String)`
+- `_search(owner: User, text: String) : many (cue: Cue, name: String)`
+- `_get(cue: Cue) : optional (owner: User, name: String)`
+
+#### Instances
+
+- `Cueing` — instance of `Cueing` — [Lemma types](../design/types.md), line 10.
+  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 11.
+
 ### Registering
 
 Defined in [Registering](../design/concepts/Registering.md), line 1.

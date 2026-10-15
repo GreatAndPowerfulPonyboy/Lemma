@@ -7,12 +7,12 @@ instantiate Authenticating with
   User is Registering.User
 instantiate Sessioning with
   Subject is Registering.User
+instantiate Cueing with
+  User is Registering.User
 ````
 Not registered yet:
 
 ```text
-instantiate Cueing with
-  User is Registering.User
 instantiate Categorizing with
   User is Registering.User
   Item is Cueing.Cue
