@@ -54,6 +54,104 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "PASSWORD_SET" | "USERNAME_TAKEN" };
   };
+  "/checks/abandon": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["check"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "ALREADY_CLOSED" | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/checks/close": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>[0], ["check"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_GRADED" | "NOT_SIGNED_IN" };
+  };
+  "/checks/include": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["check"]>]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "ALREADY_INCLUDED" | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_OPEN" | "NOT_SIGNED_IN" };
+  };
+  "/checks/mention": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["check"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_GRADED" | "NOT_OMITTED" | "NOT_SIGNED_IN" };
+  };
+  "/checks/omit": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["check"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_GRADED" | "NOT_MENTIONED" | "NOT_SIGNED_IN" };
+  };
+  "/checks/open": {
+    input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["open"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["open"]>>, ["check"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_NAME" | "NOT_SIGNED_IN" };
+  };
+  "/checks/show": {
+    input: {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "result": {
+        "mentioned": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+        "omitted": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "points": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["status"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/checks/submit": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["submit"]>[0], ["check"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["submit"]>[0], ["check"]>>;
+    };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "EMPTY_CHECK" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_OPEN" | "NOT_SIGNED_IN" };
+  };
   "/cues/create": {
     input: {
       "category": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>]>>;
@@ -181,6 +279,96 @@ export type LemmaWireHttp = {
       "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" };
+  };
+  "/checks/abandon": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["check"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/close": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>[0], ["check"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/include": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["check"]>]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["item"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["include"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/mention": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["check"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["item"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markMentioned"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/omit": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["check"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["item"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["markOmitted"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/open": {
+    input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["open"]>[0], ["name"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["open"]>>, ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/checks/show": {
+    input: {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>]>>;
+    };
+    output: {
+      "result": {
+        "mentioned": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+        "omitted": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "points": {
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>]>>;
+          "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+        }[];
+        "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["status"]>>;
+      }[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/checks/submit": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["submit"]>[0], ["check"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["submit"]>[0], ["check"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/cues/create": {
     input: {

@@ -37,7 +37,7 @@ a set of Checks with
 
 Rule: an OPEN check has no mentioned or omitted items; in any other check, mentioned and omitted partition subject.
 Rule: credit is between 0 and 1, and is 0 until the check is rated.
-Rule: the account given in submit is never stored.
+Rule: RecallChecking never receives or stores the account itself; whoever reads the account marks the items it mentioned before the check closes.
 ```
 
 ## Actions
@@ -67,7 +67,7 @@ include(check: Check, item: Item) : returns (check: Check)
     add item to the subject of check
     returns check
 
-submit(check: Check, account: String) : returns (check: Check)
+submit(check: Check) : returns (check: Check)
   where check is not in Checks
   then
     refuses CHECK_NOT_FOUND "There is no such check."
@@ -79,7 +79,7 @@ submit(check: Check, account: String) : returns (check: Check)
     refuses EMPTY_CHECK "Choose at least one item before submitting."
   where check is OPEN and its subject is not empty
   then
-    put each item of the subject that the account covers into mentioned, and every other item into omitted
+    put every item of the subject into omitted, and none into mentioned
     set the status of check to GRADED
     returns check
 

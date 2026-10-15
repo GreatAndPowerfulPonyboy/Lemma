@@ -5,7 +5,7 @@
 import { view, where } from "@mit-sdg/sync-engine/language";
 import { concepts } from "../concepts.ts";
 
-const { Categorizing, Cueing } = concepts;
+const { Categorizing, Cueing, RecallChecking } = concepts;
 
 /** A topic belongs to whoever created it. */
 export const ownsTopic = view("(user) owns topic (category)", ({ user, category }) =>
@@ -17,6 +17,11 @@ export const ownsCue = view("(user) owns point (cue)", ({ user, cue }) =>
   where(Cueing._get({ cue }).is({ owner: user })),
 ).holds();
 
+/** A recall check belongs to whoever opened it. */
+export const ownsCheck = view("(user) owns check (check)", ({ user, check }) =>
+  where(RecallChecking._get({ check }).is({ owner: user })),
+).holds();
+
 export const composition = {
-  permissions: { ownsTopic, ownsCue },
+  permissions: { ownsTopic, ownsCue, ownsCheck },
 };
