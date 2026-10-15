@@ -8,6 +8,10 @@ Lemma is my personal project for 6.1040 (Fall 2026). It is built from concepts o
 
 ### MVP
 
+
+![Demo]https://github.com/user-attachments/assets/a9c7ca5e-59b3-4811-a1d0-b7be43f28d43
+
+
 - [User journey: Matthew's journey with Lemma](DesignNotebook/UserJourney.md). This is the current version, matching the MVP.
 - [Concept specifications](design/concepts/). These are the current versions; each is linked in [Concepts](#concepts).
 - [How the concepts are instantiated](design/types.md)
