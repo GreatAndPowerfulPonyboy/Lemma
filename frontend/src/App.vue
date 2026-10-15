@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import PasswordForm from "./reusable/PasswordForm.vue";
 import SignIn from "./reusable/SignIn.vue";
 import { useSession } from "./reusable/session.ts";
 import Avatar from "./reusable/ui/Avatar.vue";
 import Icon from "./reusable/ui/Icon.vue";
 import Menu from "./reusable/ui/Menu.vue";
+import HomePage from "./lemma/HomePage.vue";
+import RecallCheck from "./lemma/RecallCheck.vue";
+import type { Topic } from "./lemma/useHome.ts";
 
 const { me, checked, load, signOut } = useSession();
 onMounted(load);
+/** The topic being recalled, or null on the main page. */
+const recalling = ref<Topic | null>(null);
 </script>
 
 <template>
@@ -21,7 +26,10 @@ onMounted(load);
     </Menu>
   </header>
   <main v-if="checked" class="content">
-    <p v-if="me">Signed in. Your points will appear here.</p>
+    <template v-if="me">
+      <RecallCheck v-if="recalling" :topic="recalling" @done="recalling = null" />
+      <HomePage v-else @recall="recalling = $event" />
+    </template>
     <SignIn v-else icon="box" lead="Heighten your understanding with free recall">
       <PasswordForm />
     </SignIn>

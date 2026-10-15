@@ -35,7 +35,8 @@ async function renamePoint(point: Point) {
 }
 
 async function movePoint(point: Point, event: Event) {
-  const category = (event.target as HTMLSelectElement).value;
+  // The options are the user's own topics, so the selected value is one of their category ids.
+  const category = (event.target as HTMLSelectElement).value as Topic["category"];
   await change("/cues/move", api.cues.move({ cue: point.cue, category }));
 }
 
