@@ -15,5 +15,7 @@ instantiate Categorizing with
 instantiate RecallChecking with
   User is Registering.User
   Item is Cueing.Cue
+instantiate SpacedRepetition with
+  Item is Cueing.Cue
 ````
 

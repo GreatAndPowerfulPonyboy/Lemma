@@ -72,7 +72,7 @@ export type LemmaWire = {
     output: {
       "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>[0], ["check"]>>;
     };
-    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_GRADED" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_CREDIT" | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_GRADED" | "NOT_SIGNED_IN" };
   };
   "/checks/include": {
     input: {
@@ -161,7 +161,7 @@ export type LemmaWire = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
     };
-    error: { error: AppWideError | "CATEGORY_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "ALREADY_ENROLLED" | "CATEGORY_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/cues/delete": {
     input: {
@@ -171,7 +171,7 @@ export type LemmaWire = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
     };
-    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
   };
   "/cues/move": {
     input: {
@@ -201,14 +201,15 @@ export type LemmaWire = {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
-      "topics": {
+      "topics": ({
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["name"]>>;
-        "points": {
-          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_items"]>>>, ["item"]>]>>;
+        "points": ({
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_items"]>>>, ["item"]>]>>;
+          "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>> | null;
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
-        }[];
-      }[];
+        })[];
+      })[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
@@ -378,7 +379,7 @@ export type LemmaWireHttp = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
     };
-    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/cues/delete": {
     input: {
@@ -413,14 +414,15 @@ export type LemmaWireHttp = {
   "/home": {
     input: Record<string, never>;
     output: {
-      "topics": {
+      "topics": ({
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["name"]>>;
-        "points": {
-          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_items"]>>>, ["item"]>]>>;
+        "points": ({
+          "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_items"]>>>, ["item"]>]>>;
+          "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>> | null;
           "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
-        }[];
-      }[];
+        })[];
+      })[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };

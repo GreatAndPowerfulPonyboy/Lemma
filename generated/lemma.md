@@ -172,6 +172,33 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 - `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 8.
   - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 9.
 
+### SpacedRepetition
+
+Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
+
+#### Actions
+
+- `enroll(item: Item) : returns (item: Item)`
+  - Refuses `ALREADY_ENROLLED`: That item is already scheduled.
+- `advance(item: Item, credit: Number) : returns (item: Item, due: DateTime)`
+  - Refuses `NOT_ENROLLED`: That item isn't scheduled.
+  - Refuses `INVALID_CREDIT`: Credit must be between 0 and 1.
+- `lapse(item: Item) : returns (item: Item, due: DateTime)`
+  - Refuses `NOT_ENROLLED`: That item isn't scheduled.
+- `drop(item: Item) : returns (item: Item)`
+  - Refuses `NOT_ENROLLED`: That item isn't scheduled.
+
+#### Queries
+
+- `_due(before: DateTime) : many (item: Item, due: DateTime)`
+- `_entry(item: Item) : optional (due: DateTime, interval: Number, lapses: Number)`
+- `_lapsed(atLeast: Number) : many (item: Item, lapses: Number, lastLapse: DateTime)`
+
+#### Instances
+
+- `SpacedRepetition` — instance of `SpacedRepetition` — [Lemma types](../design/types.md), line 18.
+  - `Item` is `Cueing.Cue` — [Lemma types](../design/types.md), line 19.
+
 ## Views
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
@@ -245,15 +272,17 @@ Authored path: `home.showing.myTopics`.
 - Covered by [Home](../design/compositions/home.md), line 3.
 
 ```former
-Former "the topics of (user) with their points" — inputs (user); bindings (category, name, cue, cueName); promises exactly one record — forms:
+Former "the topics of (user) with their points" — inputs (user); bindings (category, name, cue, cueName, due); promises exactly one record — forms:
   each Categorizing._categories (owner: user) has (category, name)
     form a record of
       category
       name
       points: each Categorizing._items (category) has (item: cue)
         where Cueing._get (cue) has (name: cueName)
+        where whether SpacedRepetition._entry (item: cue) has (due)
         form a record of
           cue
+          due
           name: cueName
 ```
 
@@ -1181,6 +1210,59 @@ where
   no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
+```
+
+### scheduling.results.AdvanceMentioned
+
+Authored path: `scheduling.results.AdvanceMentioned`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when RecallChecking.close (check)
+where
+  RecallChecking._mentioned (check) has (item)
+  RecallChecking._get (check) has (credit)
+  SpacedRepetition._entry (item)
+then
+  SpacedRepetition.advance (credit, item)
+```
+
+### scheduling.results.LapseOmitted
+
+Authored path: `scheduling.results.LapseOmitted`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when RecallChecking.close (check)
+where
+  RecallChecking._omitted (check) has (item)
+  SpacedRepetition._entry (item)
+then
+  SpacedRepetition.lapse (item)
+```
+
+### scheduling.starting.ScheduleNewCue
+
+Authored path: `scheduling.starting.ScheduleNewCue`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 5.
+
+```reaction
+when Cueing.create (cue)
+then
+  SpacedRepetition.enroll (item: cue)
+```
+
+### scheduling.starting.UnscheduleDeleted
+
+Authored path: `scheduling.starting.UnscheduleDeleted`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 5.
+
+```reaction
+when Cueing.delete (cue)
+where
+  SpacedRepetition._entry (item: cue)
+then
+  SpacedRepetition.drop (item: cue)
 ```
 
 ### topics.managing.CreateTopic

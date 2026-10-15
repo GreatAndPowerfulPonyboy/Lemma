@@ -11,6 +11,15 @@ const newPoint = ref<Record<string, string>>({});
 
 onMounted(refresh);
 
+/** A point is due when its scheduled review time has come. Points with no schedule are never due. */
+function isDue(point: Point): boolean {
+  return point.due !== null && new Date(point.due).getTime() <= Date.now();
+}
+
+function dueCount(topic: Topic): number {
+  return topic.points.filter(isDue).length;
+}
+
 async function createTopic() {
   if (await change("/topics/create", api.topics.create({ name: newTopic.value }))) newTopic.value = "";
 }
@@ -60,7 +69,7 @@ async function deletePoint(point: Point) {
 
     <article v-for="topic in topics ?? []" :key="topic.category" class="topic">
       <header class="topic-head">
-        <h2>{{ topic.name }}</h2>
+        <h2>{{ topic.name }} <span v-if="dueCount(topic) > 0" class="due">{{ dueCount(topic) }} due</span></h2>
         <div class="actions">
           <button class="button primary" :disabled="working || topic.points.length === 0" @click="emit('recall', topic)">
             Recall
@@ -72,7 +81,7 @@ async function deletePoint(point: Point) {
 
       <ul class="points">
         <li v-for="point in topic.points" :key="point.cue" class="point">
-          <span class="point-name">{{ point.name }}</span>
+          <span class="point-name">{{ point.name }} <span v-if="isDue(point)" class="due">due</span></span>
           <select
             v-if="(topics ?? []).length > 1"
             :value="topic.category"
@@ -112,4 +121,5 @@ async function deletePoint(point: Point) {
 .points { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--space-1); }
 .point { display: flex; align-items: center; gap: var(--space-2); }
 .point-name { flex: 1; }
+.due { font-size: var(--text-sm); font-weight: 600; color: var(--color-accent); margin-left: 6px; }
 </style>

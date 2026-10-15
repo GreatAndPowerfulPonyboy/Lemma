@@ -16,7 +16,9 @@ const { call } = useHome();
 /** commit: choose points; recall: give the account; results: correct and close. */
 const step = ref<"commit" | "recall" | "results">("commit");
 const name = ref(`${props.topic.name}, ${new Date().toLocaleDateString()}`);
-const chosen = ref<Set<Cue>>(new Set(props.topic.points.map((point) => point.cue)));
+/** The due points start ticked; if none is due, every point does. */
+const duePoints = props.topic.points.filter((point) => point.due !== null && new Date(point.due).getTime() <= Date.now());
+const chosen = ref<Set<Cue>>(new Set((duePoints.length > 0 ? duePoints : props.topic.points).map((point) => point.cue)));
 const account = ref("");
 const check = ref<Check | null>(null);
 const result = ref<Result | null>(null);

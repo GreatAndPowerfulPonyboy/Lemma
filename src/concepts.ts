@@ -5,6 +5,7 @@ import {sessioning} from "./concepts/Sessioning/registry.ts";
 import { cueing } from "./concepts/Cueing/registry.ts";
 import { categorizing } from "./concepts/Categorizing/registry.ts";
 import { recallChecking } from "./concepts/RecallChecking/registry.ts";
+import { spacedRepetition } from "./concepts/SpacedRepetition/registry.ts";
 export const applicationConceptSet = conceptSet({
   Registering: registering,
   Authenticating: authenticating,
@@ -12,5 +13,6 @@ export const applicationConceptSet = conceptSet({
   Cueing: cueing,
   Categorizing: categorizing,
   RecallChecking: recallChecking,
+  SpacedRepetition: spacedRepetition,
 });
 export const { concepts } = applicationConceptSet;

@@ -11,7 +11,9 @@ describe("Matthew's journey", () => {
     const { cue: symmetric } = ok(await api.cues.create({ session, category, name: "real symmetric matrices" }));
     const { cue: induction } = ok(await api.cues.create({ session, category, name: "induction on dimension" }));
     const home = ok(await api.home({ session }));
-    expect(home.topics).toEqual([
+    // A new point is due at once.
+    for (const point of home.topics[0]?.points ?? []) expect(new Date(point.due ?? 0).getTime()).toBeLessThanOrEqual(Date.now());
+    expect(home.topics).toMatchObject([
       {
         category,
         name: "Proof of the spectral theorem",
@@ -45,6 +47,12 @@ describe("Matthew's journey", () => {
         omitted: [{ cue: induction, name: "induction on dimension" }],
       },
     ]);
+
+    // Closing the check moved both points' next review out of today: the missed one lapsed, the covered one was held.
+    await eventually(async () => {
+      const after = ok(await api.home({ session }));
+      for (const point of after.topics[0]?.points ?? []) expect(new Date(point.due ?? 0).getTime()).toBeGreaterThan(Date.now());
+    });
   });
 
   test("a topic with points can't be deleted until its points are deleted, which also takes them out of it", async () => {

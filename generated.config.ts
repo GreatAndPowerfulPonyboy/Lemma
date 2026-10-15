@@ -16,6 +16,7 @@ export default {
     new URL("./design/compositions/cues.md", import.meta.url),
     new URL("./design/compositions/home.md", import.meta.url),
     new URL("./design/compositions/checks.md", import.meta.url),
+    new URL("./design/compositions/scheduling.md", import.meta.url),
   ] },
     projections: [httpWire({ policy: lemmaPolicy("http://localhost:3000"), name: "LemmaWireHttp" })],
 };
