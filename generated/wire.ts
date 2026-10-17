@@ -53,6 +53,80 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "PASSWORD_SET" | "USERNAME_TAKEN" };
   };
+  "/point/create": {
+    input: {
+      "category": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>]>>;
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "CATEGORY_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/point/delete": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
+    };
+    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
+  };
+  "/point/move": {
+    input: {
+      "cue": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>]>>;
+      "incidentCategory": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "CATEGORY_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/point/rename": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
+    };
+    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/topic/create": {
+    input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["create"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["create"]>>, ["category"]>>;
+    };
+    error: { error: AppWideError | "CATEGORY_EXISTS" | "INVALID_CATEGORY" | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
+  "/topic/delete": {
+    input: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["delete"]>[0], ["category"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["delete"]>[0], ["category"]>>;
+    };
+    error: { error: AppWideError | "CATEGORY_NOT_EMPTY" | "CATEGORY_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/topic/rename": {
+    input: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["category"]>>;
+      "newName": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["category"]>>;
+    };
+    error: { error: AppWideError | "CATEGORY_EXISTS" | "CATEGORY_NOT_FOUND" | "INVALID_CATEGORY" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
 };
 
 export type HttpAppWideError = never;
@@ -89,5 +163,72 @@ export type LemmaWireHttp = {
       "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" };
+  };
+  "/point/create": {
+    input: {
+      "category": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>]>>;
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/point/delete": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/point/move": {
+    input: {
+      "cue": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>]>>;
+      "incidentCategory": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/point/rename": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["name"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/topic/create": {
+    input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["create"]>[0], ["name"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["create"]>>, ["category"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/topic/delete": {
+    input: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["delete"]>[0], ["category"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["delete"]>[0], ["category"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/topic/rename": {
+    input: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["category"]>>;
+      "newName": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["name"]>>;
+    };
+    output: {
+      "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["category"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
 };

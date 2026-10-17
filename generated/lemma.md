@@ -132,6 +132,9 @@ _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
 Authored path: `access.permissions.ownsPoint`.
 - Covered by [Access](../design/compositions/access.md), line 3.
+- Covered by [Points](../design/compositions/points.md), line 9.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 23.
 
 ```view
 (user) owns point (cue) — inputs (user, cue); outputs (); bindings ()
@@ -142,6 +145,9 @@ Authored path: `access.permissions.ownsPoint`.
 
 Authored path: `access.permissions.ownsTopic`.
 - Covered by [Access](../design/compositions/access.md), line 3.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Topics](../design/compositions/topics.md), line 10.
+- Covered by [Topics](../design/compositions/topics.md), line 16.
 
 ```view
 (user) owns topic (category) — inputs (user, category); outputs (); bindings ()
@@ -168,6 +174,275 @@ where
   earlier, RequestBoundary.request (requestId)
 then
   RequestBoundary.respond (error: message, requestId)
+```
+
+### points.creating.CreatePoint
+
+Authored path: `points.creating.CreatePoint`.
+- Covered by [Points](../design/compositions/points.md), line 4.
+- Covered by [Points](../design/compositions/points.md), line 7.
+
+```reaction
+when RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.creating.CreatePoint:creator#2
+
+Authored path: `points.creating.CreatePoint`.
+- Covered by [Points](../design/compositions/points.md), line 4.
+- Covered by [Points](../design/compositions/points.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.creating.CreatePoint
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+  view "(user) owns topic (category)" with (category, user)
+then
+  Cueing.create (creator: user, name)
+```
+
+### points.creating.CreatePoint:creator#3
+
+Authored path: `points.creating.CreatePoint`.
+- Covered by [Points](../design/compositions/points.md), line 4.
+- Covered by [Points](../design/compositions/points.md), line 7.
+
+```reaction
+when Cueing.create (creator: user, name, cue), asked by points.creating.CreatePoint:creator#2
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+then
+  Categorizing.place (category, item: cue)
+```
+
+### points.creating.CreatePoint:creator#4
+
+Authored path: `points.creating.CreatePoint`.
+- Covered by [Points](../design/compositions/points.md), line 4.
+- Covered by [Points](../design/compositions/points.md), line 7.
+
+```reaction
+when Categorizing.place (category, item: cue), asked by points.creating.CreatePoint:creator#3
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.creating.CreatePoint:refused#2
+
+Authored path: `points.creating.CreatePoint`.
+- Covered by [Points](../design/compositions/points.md), line 4.
+- Covered by [Points](../design/compositions/points.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.creating.CreatePoint
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+  no view "(user) owns topic (category)" with (category, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.deleting.DeletePoint
+
+Authored path: `points.deleting.DeletePoint`.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 20.
+
+```reaction
+when RequestBoundary.request (cue, path: "/point/delete", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.deleting.DeletePoint:creator#2
+
+Authored path: `points.deleting.DeletePoint`.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.deleting.DeletePoint
+where
+  earlier, RequestBoundary.request (cue, path: "/point/delete", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Cueing.delete (cue)
+```
+
+### points.deleting.DeletePoint:creator#3
+
+Authored path: `points.deleting.DeletePoint`.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 20.
+
+```reaction
+when Cueing.delete (cue), asked by points.deleting.DeletePoint:creator#2
+where
+  earlier, RequestBoundary.request (cue, path: "/point/delete", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.deleting.DeletePoint:refused#2
+
+Authored path: `points.deleting.DeletePoint`.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.deleting.DeletePoint
+where
+  earlier, RequestBoundary.request (cue, path: "/point/delete", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.deleting.UnplaceDeleted
+
+Authored path: `points.deleting.UnplaceDeleted`.
+- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Topics](../design/compositions/topics.md), line 22.
+
+```reaction
+when Cueing.delete (cue)
+where
+  Categorizing._category (item: cue)
+then
+  Categorizing.unplace (item: cue)
+```
+
+### points.moving.MovePoint
+
+Authored path: `points.moving.MovePoint`.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 26.
+
+```reaction
+when RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.moving.MovePoint:creator#2
+
+Authored path: `points.moving.MovePoint`.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 26.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
+where
+  earlier, RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+  view "(user) owns topic (category)" with (category: incidentCategory, user)
+then
+  Categorizing.place (category: incidentCategory, item: cue)
+```
+
+### points.moving.MovePoint:creator#3
+
+Authored path: `points.moving.MovePoint`.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 26.
+
+```reaction
+when Categorizing.place (category: incidentCategory, item: cue), asked by points.moving.MovePoint:creator#2
+where
+  earlier, RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.moving.MovePoint:no-point#2
+
+Authored path: `points.moving.MovePoint`.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 26.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
+where
+  earlier, RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.moving.MovePoint:no-topic#2
+
+Authored path: `points.moving.MovePoint`.
+- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 26.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
+where
+  earlier, RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+  no view "(user) owns topic (category)" with (category: incidentCategory, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.renaming.RenamePoint
+
+Authored path: `points.renaming.RenamePoint`.
+- Covered by [Points](../design/compositions/points.md), line 9.
+- Covered by [Points](../design/compositions/points.md), line 12.
+
+```reaction
+when RequestBoundary.request (cue, name, path: "/point/rename", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.renaming.RenamePoint:creator#2
+
+Authored path: `points.renaming.RenamePoint`.
+- Covered by [Points](../design/compositions/points.md), line 9.
+- Covered by [Points](../design/compositions/points.md), line 12.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.renaming.RenamePoint
+where
+  earlier, RequestBoundary.request (cue, name, path: "/point/rename", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Cueing.rename (cue, name)
+```
+
+### points.renaming.RenamePoint:creator#3
+
+Authored path: `points.renaming.RenamePoint`.
+- Covered by [Points](../design/compositions/points.md), line 9.
+- Covered by [Points](../design/compositions/points.md), line 12.
+
+```reaction
+when Cueing.rename (cue, name), asked by points.renaming.RenamePoint:creator#2
+where
+  earlier, RequestBoundary.request (cue, name, path: "/point/rename", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.renaming.RenamePoint:refused#2
+
+Authored path: `points.renaming.RenamePoint`.
+- Covered by [Points](../design/compositions/points.md), line 9.
+- Covered by [Points](../design/compositions/points.md), line 12.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.renaming.RenamePoint
+where
+  earlier, RequestBoundary.request (cue, name, path: "/point/rename", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
 ### reusable.accounts.identifying.Me
@@ -345,6 +620,158 @@ then
   RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
 ```
 
+### topics.creating.CreateTopic
+
+Authored path: `topics.creating.CreateTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 4.
+- Covered by [Topics](../design/compositions/topics.md), line 7.
+
+```reaction
+when RequestBoundary.request (name, path: "/topic/create", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### topics.creating.CreateTopic#2
+
+Authored path: `topics.creating.CreateTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 4.
+- Covered by [Topics](../design/compositions/topics.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by topics.creating.CreateTopic
+where
+  earlier, RequestBoundary.request (name, path: "/topic/create", requestId, session)
+then
+  Categorizing.create (creator: user, name)
+```
+
+### topics.creating.CreateTopic#3
+
+Authored path: `topics.creating.CreateTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 4.
+- Covered by [Topics](../design/compositions/topics.md), line 7.
+
+```reaction
+when Categorizing.create (creator: user, name, category), asked by topics.creating.CreateTopic#2
+where
+  earlier, RequestBoundary.request (name, path: "/topic/create", requestId, session)
+then
+  RequestBoundary.respond (category, requestId)
+```
+
+### topics.deleting.DeleteTopic
+
+Authored path: `topics.deleting.DeleteTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 16.
+- Covered by [Topics](../design/compositions/topics.md), line 19.
+
+```reaction
+when RequestBoundary.request (category, path: "/topic/delete", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### topics.deleting.DeleteTopic:creator#2
+
+Authored path: `topics.deleting.DeleteTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 16.
+- Covered by [Topics](../design/compositions/topics.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by topics.deleting.DeleteTopic
+where
+  earlier, RequestBoundary.request (category, path: "/topic/delete", requestId, session)
+  view "(user) owns topic (category)" with (category, user)
+then
+  Categorizing.delete (category)
+```
+
+### topics.deleting.DeleteTopic:creator#3
+
+Authored path: `topics.deleting.DeleteTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 16.
+- Covered by [Topics](../design/compositions/topics.md), line 19.
+
+```reaction
+when Categorizing.delete (category), asked by topics.deleting.DeleteTopic:creator#2
+where
+  earlier, RequestBoundary.request (category, path: "/topic/delete", requestId, session)
+then
+  RequestBoundary.respond (category, requestId)
+```
+
+### topics.deleting.DeleteTopic:refused#2
+
+Authored path: `topics.deleting.DeleteTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 16.
+- Covered by [Topics](../design/compositions/topics.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by topics.deleting.DeleteTopic
+where
+  earlier, RequestBoundary.request (category, path: "/topic/delete", requestId, session)
+  no view "(user) owns topic (category)" with (category, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### topics.renaming.RenameTopic
+
+Authored path: `topics.renaming.RenameTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 10.
+- Covered by [Topics](../design/compositions/topics.md), line 13.
+
+```reaction
+when RequestBoundary.request (category, newName, path: "/topic/rename", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### topics.renaming.RenameTopic:creator#2
+
+Authored path: `topics.renaming.RenameTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 10.
+- Covered by [Topics](../design/compositions/topics.md), line 13.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by topics.renaming.RenameTopic
+where
+  earlier, RequestBoundary.request (category, newName, path: "/topic/rename", requestId, session)
+  view "(user) owns topic (category)" with (category, user)
+then
+  Categorizing.rename (category, name: newName)
+```
+
+### topics.renaming.RenameTopic:creator#3
+
+Authored path: `topics.renaming.RenameTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 10.
+- Covered by [Topics](../design/compositions/topics.md), line 13.
+
+```reaction
+when Categorizing.rename (category, name: newName), asked by topics.renaming.RenameTopic:creator#2
+where
+  earlier, RequestBoundary.request (category, newName, path: "/topic/rename", requestId, session)
+then
+  RequestBoundary.respond (category, requestId)
+```
+
+### topics.renaming.RenameTopic:refused#2
+
+Authored path: `topics.renaming.RenameTopic`.
+- Covered by [Topics](../design/compositions/topics.md), line 10.
+- Covered by [Topics](../design/compositions/topics.md), line 13.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by topics.renaming.RenameTopic
+where
+  earlier, RequestBoundary.request (category, newName, path: "/topic/rename", requestId, session)
+  no view "(user) owns topic (category)" with (category, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
 ## Endpoint input contracts
 
 Before recording an action ask, the boundary rejects a body that is not an
@@ -356,3 +783,10 @@ not listed here have no explicit input contract.
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
+- `/point/create` — requires `category`, `name`, `session`
+- `/point/delete` — requires `cue`, `session`
+- `/point/move` — requires `cue`, `incidentCategory`, `session`
+- `/point/rename` — requires `cue`, `name`, `session`
+- `/topic/create` — requires `name`, `session`
+- `/topic/delete` — requires `category`, `session`
+- `/topic/rename` — requires `category`, `newName`, `session`

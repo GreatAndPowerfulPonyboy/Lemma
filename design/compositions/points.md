@@ -19,3 +19,9 @@ For those who do not own a point, the rename and delete endpoints respond with `
 ```endpoints
 points.deleting.DeletePoint at /point/delete
 ```
+
+In order to move a point from one topic to another, a user must [own](view:access.permissions.ownsPoint) the point and [own](view:access.permissions.ownsTopic) both the previous and incident topic, the [move endpoint](reaction:points.moving.MovePoint) moves it from one topic to another via `Categorizing.place` and `Categorizing.unplace`.
+
+```endpoints
+points.moving.MovePoint at /point/move
+```
