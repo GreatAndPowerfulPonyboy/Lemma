@@ -1,5 +1,5 @@
-import {registerConcept} from "@mit-sdg/sync-engine/aseembly";
-import spec from "@design/concepts/Cueing.md" with {type: "text"};
+import {registerConcept} from "@mit-sdg/sync-engine/assembly";
+import spec from "@design/concepts/Categorizing.md" with {type: "text"};
 import type {Db} from "mongodb";
 import type {User} from "../Registering/Registering.ts";
 import type {Cue} from "../Cueing/Cueing.ts";
@@ -19,5 +19,5 @@ export const categorizing = registerConcept({
     CATEGORY_NOT_EMPTY: CategoryNotEmpty,
     NOT_PLACED: NotPlaced,
   },
-  floors: {mongo: ({database}: {database: Db},name: string } => new Categorizing(database, name));
+  floors: { mongo: ({ database }: { database: Db }, name: string) => new Categorizing(database, name) },
 })

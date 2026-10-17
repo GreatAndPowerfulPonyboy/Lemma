@@ -3,10 +3,13 @@ import {authenticating} from "./concepts/Authenticating/registry.ts";
 import {registering} from "./concepts/Registering/registry.ts";
 import {sessioning} from "./concepts/Sessioning/registry.ts";
 import {cueing} from "./concepts/Cueing/registry.ts";
+import {categorizing} from "./concepts/Categorizing/registry.ts";
 export const applicationConceptSet = conceptSet({
   Registering: registering,
   Authenticating: authenticating,
   Sessioning: sessioning,
-  Cueing: cueing
+  Cueing: cueing,
+  Categorizing: categorizing
+  
 });
 export const { concepts } = applicationConceptSet;

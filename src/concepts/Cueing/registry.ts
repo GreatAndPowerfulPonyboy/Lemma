@@ -15,6 +15,6 @@ export const cueing = registerConcept( {
     INVALID_NAME : InvalidCue,
     CUE_NOT_FOUND: CueNotFound,
       },
-  floors: {mongo: ({database}: {database: Db},name: string } => new Cueing(database, name));
+  floors: { mongo: ({ database }: { database: Db }, name: string) => new Cueing(database, name) },
 })
 

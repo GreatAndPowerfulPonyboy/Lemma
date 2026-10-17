@@ -4,7 +4,7 @@ export class CueNotFound  extends Error {};
 
 export type Cue = string & {readonly __brand: "Cue"}
 function isValidName(name: string) : boolean {
-  return (name.length >= 100 && name.length <= 1);
+  return (name.length <=  100 && name.length >= 1);
 }
 
 interface CueDocument<User>
@@ -20,7 +20,7 @@ export class CueingConcept<User extends string>
   private indexes: Promise<unknown> | undefined;
 
   public constructor(database: Db, name = "Cues") {
-    this.cues = database.collection(`{name.toLowerCase()}.cues`);
+    this.cues = database.collection(`${name.toLowerCase()}.cues`);
     
   }
 
@@ -39,7 +39,7 @@ export class CueingConcept<User extends string>
       throw new InvalidCue("A name must have 1 to 100 characters."); 
     }
     await this.#ready();
-    const cue = crypto.randomUUID() as Cue;
+    const cue = new ObjectId().toHexString() as Cue;
     await this.cues.insertOne({_id: cue, owner: owner,name: trimmed});
     return {cue};     
     }
@@ -65,8 +65,8 @@ export class CueingConcept<User extends string>
   }
 
   async _cues({owner}: {owner: User}) {
-    const found = await this.cues.find({owner}).toArray();
-    return found.map(({_id}) => ({cue: _id}));
+    const found = await this.cues.find({owner}).sort({_id : -1}).toArray();
+    return found.map(({_id, name}) => ({cue: _id, name}));
   }
 
   async _search({owner, text}: {owner: User, text: string}) {
@@ -78,14 +78,22 @@ export class CueingConcept<User extends string>
     return found.map(({_id}) => ({cue: _id}));
   }
   async _get({cue}: {cue : Cue}) {
-    const found = await this.cues.findOne({cue});
+    const found = await this.cues.findOne({_id: cue});
     return found === null ? [] : [{owner: found.owner, name: found.name}];
   }
   
+
+  async _search({owner, text}: {owner: User, text: string}) {
+    const trimmed = text.trim();
+    const filter = (words === "" ? {owner} : {owner, name : {$regex: escapeRegExp(trimmed)}}, $options: "i");
+    const found = await this.cues.find(filter).sort({_id: -1}).toArray();
+    return found.map(({_id, name}) => ({cue: _id, name}));
+  }
+  function escapeRegExp(text: string) : string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
   
                         
     
       
-  }
-  
 }

@@ -97,12 +97,31 @@ export class CategorizingConcept<User extends string, Item extends string> {
     return {item};
   }
 
-  async unplace({item}: {item: Item}) {
+  async unplace({item}:  {item: Item}) {
     const {deletedCount} = await this.items.deleteOne({_id: item});
     if (deletedCount === 0) throw new NotPlaced("That item is not in a category.");
     return {item};
     }
 
+  async _categories({owner}: {owner: User}) {
+    const found = await this.categories.find({owner}).sort( {name: 1}).toArray()
+    return found.map(({_id, name}) => ({category: _id, name: name}));
+  }
+
+  async _get({category}:  {category: Category}) {
+    const found = await this.categories.findOne({_id: category});
+    return found === null ? [] : [{owner: found.owner, name: found.name}];
+  }
+
+  async _items({category}: {category: Category}) {
+    const found = await this.items.findOne({_id: category}).toArray();
+    return found.map(({_id}) => ({item: _id}));
+  }
+
+  async _category({item}: {item: Item}) {
+    const found = await this.items.findOne({_id: item});
+    return found === null ? [] : [{category: found.category}];
+  }
 }
 
 
