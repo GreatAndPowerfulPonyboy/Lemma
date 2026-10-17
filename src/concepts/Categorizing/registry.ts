@@ -1,12 +1,12 @@
 import {registerConcept} from "@mit-sdg/sync-engine/aseembly";
 import spec from "@design/concepts/Cueing.md" with {type: "text"};
 import type {Db} from "mongodb";
-import type {User} from "../Authenticating/Authenticating.ts";
+import type {User} from "../Registering/Registering.ts";
 import type {Cue} from "../Cueing/Cueing.ts";
 import {InvalidCategory, NotPlaced, CategoryNotFound, CategoryExists, CategoryNotEmpty, CategorizingConcept} from "./Categorizing.ts";
 
 
-/** Users from Registering own categories, and the items placed in them are Cuein's cues. */
+/** Users from Registering own categories, and the items placed in them are Cueing's cues. */
 class Categorizing extends CategorizingConcept<User, Cue> {}
 
 export const categorizing = registerConcept({
