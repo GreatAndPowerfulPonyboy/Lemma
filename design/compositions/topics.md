@@ -19,6 +19,6 @@ Every point must be attached to some topic at all times, because a point outside
 topics.deleting.DeleteTopic at /topic/delete
 ```
 
-The invariant is also kept from the points side: a point is placed in a topic when it is created, and when a point is deleted, it is [removed from its topic](reaction:topics.deleting.UnplaceDeleted).
+The invariant is also kept from the points side: a point is placed in a topic when it is created, and when a point is deleted, it is [removed from its topic](reaction:cues.deleting.UnplaceDeleted).
 
 For those who do not own a topic, the rename and delete endpoints respond with `NOT_FOUND`. A topic that does not exist has no owner, so it gets the same response; this way a person cannot tell another user's topic apart from one that does not exist, and Categorizing's `CATEGORY_NOT_FOUND` never reaches them.
