@@ -26,8 +26,67 @@ Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
 
 #### Instances
 
-- `Authenticating` — instance of `Authenticating` — [Lemma types](../design/types.md), line 6.
-  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 7.
+- `Authenticating` — instance of `Authenticating` — [Lemma types](../design/types.md), line 19.
+  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 20.
+
+### Categorizing
+
+Defined in [Categorizing](../design/concepts/Categorizing.md), line 1.
+
+#### Actions
+
+- `create(owner: User, name: String) : returns (category: Category)`
+  - Refuses `INVALID_CATEGORY`: A category name must have 1 to 80 characters.
+  - Refuses `CATEGORY_EXISTS`: You already have a category with that name.
+- `rename(category: Category, name: String) : returns (category: Category)`
+  - Refuses `CATEGORY_NOT_FOUND`: There is no such category.
+  - Refuses `INVALID_CATEGORY`: A category name must have 1 to 80 characters.
+  - Refuses `CATEGORY_EXISTS`: You already have a category with that name.
+- `delete(category: Category) : returns (category: Category)`
+  - Refuses `CATEGORY_NOT_FOUND`: There is no such category.
+  - Refuses `CATEGORY_NOT_EMPTY`: Move or delete this category's items before deleting it.
+- `place(item: Item, category: Category) : returns (item: Item)`
+  - Refuses `CATEGORY_NOT_FOUND`: There is no such category.
+- `unplace(item: Item) : returns (item: Item)`
+  - Refuses `NOT_PLACED`: That item is not in a category.
+
+#### Queries
+
+- `_categories(owner: User) : many (category: Category, name: String)`
+- `_get(category: Category) : optional (owner: User, name: String)`
+- `_items(category: Category) : many (item: Item)`
+- `_category(item: Item) : optional (category: Category)`
+
+#### Instances
+
+- `Categorizing` — instance of `Categorizing` — [Lemma types](../design/types.md), line 15.
+  - `Item` is `Cueing.Cue` — [Lemma types](../design/types.md), line 17.
+  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 16.
+
+### Cueing
+
+Defined in [Cueing](../design/concepts/Cueing.md), line 1.
+
+#### Actions
+
+- `create(owner: User, name: String) : returns (cue: Cue)`
+  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+- `rename(cue: Cue, name: String) : returns (cue: Cue)`
+  - Refuses `CUE_NOT_FOUND`: Cue does not exist.
+  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+- `delete(cue: Cue) : returns (cue: Cue)`
+  - Refuses `CUE_NOT_FOUND`: Cue does not exist.
+
+#### Queries
+
+- `_cues(owner: User) : many (cue: Cue, name: String)`
+- `_search(owner: User, text: String) : many (cue: Cue, name: String)`
+- `_get(cue: Cue) : optional (owner: User, name: String)`
+
+#### Instances
+
+- `Cueing` — instance of `Cueing` — [Lemma types](../design/types.md), line 12.
+  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 13.
 
 ### Registering
 
@@ -46,7 +105,7 @@ Defined in [Registering](../design/concepts/Registering.md), line 1.
 
 #### Instances
 
-- `Registering` — instance of `Registering` — [Lemma types](../design/types.md), line 5.
+- `Registering` — instance of `Registering` — [Lemma types](../design/types.md), line 10.
 
 ### Sessioning
 
@@ -62,8 +121,8 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 
 #### Instances
 
-- `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 8.
-  - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 9.
+- `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 22.
+  - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 23.
 
 ## Reactions
 

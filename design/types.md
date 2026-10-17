@@ -14,7 +14,7 @@ instantiate Cueing with
   
 instantiate Categorizing with
   User is Registering.User
-  Item is Cueing.cue
+  Item is Cueing.Cue
   
 instantiate Authenticating with
   User is Registering.User

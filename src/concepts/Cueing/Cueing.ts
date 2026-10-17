@@ -1,4 +1,4 @@
-import {type Collection, type Db} from "mongodb";
+import {type Collection, type Db, ObjectId} from "mongodb";
 export class InvalidCue extends Error {};
 export class CueNotFound  extends Error {};
 
@@ -26,7 +26,7 @@ export class CueingConcept<User extends string>
 
   #ready() {
     this.indexes ??= this.cues
-          .createIndex({owner: 1, name: 1}, {unique: true})
+          .createIndex({owner: 1, name: 1})
           .catch((error: unknown) => {
             this.indexes = undefined;
             throw error;
@@ -69,14 +69,6 @@ export class CueingConcept<User extends string>
     return found.map(({_id, name}) => ({cue: _id, name}));
   }
 
-  async _search({owner, text}: {owner: User, text: string}) {
-    const trimmed = text.trim();
-    const found = await this.cues.find({
-      owner: owner,
-      name: trimmed
-    }).toArray();
-    return found.map(({_id}) => ({cue: _id}));
-  }
   async _get({cue}: {cue : Cue}) {
     const found = await this.cues.findOne({_id: cue});
     return found === null ? [] : [{owner: found.owner, name: found.name}];
@@ -85,15 +77,15 @@ export class CueingConcept<User extends string>
 
   async _search({owner, text}: {owner: User, text: string}) {
     const trimmed = text.trim();
-    const filter = (words === "" ? {owner} : {owner, name : {$regex: escapeRegExp(trimmed)}}, $options: "i");
+    const filter = (trimmed === "" ? {owner} : {owner, name : {$regex: escapeRegExp(trimmed), $options: "i"}});
     const found = await this.cues.find(filter).sort({_id: -1}).toArray();
     return found.map(({_id, name}) => ({cue: _id, name}));
   }
-  function escapeRegExp(text: string) : string {
-    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
+  
+}
   
                         
     
-      
-}
+function escapeRegExp(text: string) : string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  } 

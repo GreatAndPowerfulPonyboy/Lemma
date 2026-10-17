@@ -114,7 +114,7 @@ export class CategorizingConcept<User extends string, Item extends string> {
   }
 
   async _items({category}: {category: Category}) {
-    const found = await this.items.findOne({_id: category}).toArray();
+    const found = await this.items.find({category}).toArray();
     return found.map(({_id}) => ({item: _id}));
   }
 
