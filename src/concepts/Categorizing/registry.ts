@@ -1,0 +1,23 @@
+import {registerConcept} from "@mit-sdg/sync-engine/aseembly";
+import spec from "@design/concepts/Cueing.md" with {type: "text"};
+import type {Db} from "mongodb";
+import type {User} from "../Authenticating/Authenticating.ts";
+import type {Cue} from "../Cueing/Cueing.ts";
+import {InvalidCategory, NotPlaced, CategoryNotFound, CategoryExists, CategoryNotEmpty, CategorizingConcept} from "./Categorizing.ts";
+
+
+/** Users from Registering own categories, and the items placed in them are Cuein's cues. */
+class Categorizing extends CategorizingConcept<User, Cue> {}
+
+export const categorizing = registerConcept({
+  class: Categorizing,
+  spec,
+  refusals: {
+    INVALID_CATEGORY: InvalidCategory,
+    CATEGORY_EXISTS: CategoryExists,
+    CATEGORY_NOT_FOUND: CategoryNotFound,
+    CATEGORY_NOT_EMPTY: CategoryNotEmpty,
+    NOT_PLACED: NotPlaced,
+  },
+  floors: {mongo: ({database}: {database: Db},name: string } => new Categorizing(database, name));
+})
