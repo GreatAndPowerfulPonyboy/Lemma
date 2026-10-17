@@ -124,6 +124,30 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 - `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 22.
   - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 23.
 
+## Views
+
+_Views name reusable conditions. Multiple `where` blocks are alternatives._
+
+### (user) owns point (cue)
+
+Authored path: `access.permissions.ownsPoint`.
+- Covered by [Access](../design/compositions/access.md), line 3.
+
+```view
+(user) owns point (cue) — inputs (user, cue); outputs (); bindings ()
+  where Cueing._get (cue) has (creator: user)
+```
+
+### (user) owns topic (category)
+
+Authored path: `access.permissions.ownsTopic`.
+- Covered by [Access](../design/compositions/access.md), line 3.
+
+```view
+(user) owns topic (category) — inputs (user, category); outputs (); bindings ()
+  where Categorizing._get (category) has (creator: user)
+```
+
 ## Reactions
 
 ### DeliverFaultToAsker

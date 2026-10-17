@@ -10,7 +10,8 @@ export default {
   design: { version: 1, documents: [
     new URL("./design/types.md", import.meta.url),
     new URL("./design/compositions/reusable/passwords.md", import.meta.url),
-    new URL("./design/compositions/reusable/accounts.md", import.meta.url)    
+    new URL("./design/compositions/reusable/accounts.md", import.meta.url),
+    new URL("./design/compositions/access.md", import.meta.url)    
   ] },
     projections: [httpWire({ policy: lemmaPolicy("http://localhost:3000"), name: "LemmaWireHttp" })],
 };
