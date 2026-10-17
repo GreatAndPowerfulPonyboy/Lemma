@@ -8,7 +8,7 @@ Scheduling of retrieval of items based on how many times an item is missed, such
 
 ## Principle
 
-After an item is enrolled, it is due at once. Each time it is retrieved successfully, it comes back after a longer gap than the last. When it is failed, its lapse count rises and it comes back the next day, and later successes lengthen its gaps more slowly than before. At any moment, the items that are due are the ones closest to being forgotten.
+After an item is enrolled, it is due at once. Each time it is reviewed with credit of at least one half, it comes back after a longer gap than the last, longer the higher the credit. When it is reviewed with less, its lapse count rises and it comes back the next day, and later successes lengthen its gaps more slowly than before. At any moment, the items that are due are the ones closest to being forgotten.
 
 ## Types
 
@@ -42,27 +42,22 @@ enroll(item: Item) : returns (item: Item)
     add a new entry for item with interval 1, no lapses, and due now
     returns item
 
-advance(item: Item, credit: Number) : returns (item: Item, due: DateTime)
+review(item: Item, credit: Number) : returns (item: Item, due: DateTime)
   where no entry has item
   then
     refuses NOT_ENROLLED "That item isn't scheduled."
   where some entry has item and credit is not between 0 and 1
   then
     refuses INVALID_CREDIT "Credit must be between 0 and 1."
-  where some entry has item and credit is between 0 and 1
+  where some entry has item and credit is less than one half
+  then
+    set the entry's interval to 1, add one to its lapses, and set its lastLapse to now
+    set the entry's due to now plus its interval
+    returns item, due
+  where some entry has item and credit is between one half and 1
   then
     let growth be 2.5 less 0.2 for each lapse of the entry, but never less than 1.3
     multiply the entry's interval by 1 plus credit times (growth minus 1)
-    set the entry's due to now plus its interval
-    returns item, due
-
-lapse(item: Item) : returns (item: Item, due: DateTime)
-  where no entry has item
-  then
-    refuses NOT_ENROLLED "That item isn't scheduled."
-  where some entry has item
-  then
-    set the entry's interval to 1, add one to its lapses, and set its lastLapse to now
     set the entry's due to now plus its interval
     returns item, due
 

@@ -24,4 +24,11 @@ instantiate Sessioning with
 
 instantiate Flashcarding with
   Item is Cueing.Cue
+
+instantiate RecallChecking with
+  User is Registering.User
+  Item is Cueing.Cue
+
+instantiate SpacedRepetition with
+  Item is RecallChecking.Check
 ````

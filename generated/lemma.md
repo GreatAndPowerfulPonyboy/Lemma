@@ -112,6 +112,70 @@ Defined in [Flashcarding](../design/concepts/Flashcarding.md), line 1.
 - `Flashcarding` — instance of `Flashcarding` — [Lemma types](../design/types.md), line 25.
   - `Item` is `Cueing.Cue` — [Lemma types](../design/types.md), line 26.
 
+### RecallChecking
+
+Defined in [RecallChecking](../design/concepts/RecallChecking.md), line 1.
+
+#### Actions
+
+- `open(owner: User, name: String) : returns (check: Check)`
+  - Refuses `INVALID_NAME`: A check name must have 1 to 80 characters.
+- `rename(check: Check, name: String) : returns (check: Check)`
+  - Refuses `CHECK_NOT_FOUND`: There is no such check.
+  - Refuses `INVALID_NAME`: A check name must have 1 to 80 characters.
+- `include(check: Check, item: Item) : returns (check: Check)`
+  - Refuses `CHECK_NOT_FOUND`: There is no such check.
+  - Refuses `ALREADY_INCLUDED`: That item is already in this check.
+- `exclude(check: Check, item: Item) : returns (check: Check)`
+  - Refuses `CHECK_NOT_FOUND`: There is no such check.
+  - Refuses `NOT_INCLUDED`: That item isn't in this check.
+- `delete(check: Check) : returns (check: Check)`
+  - Refuses `CHECK_NOT_FOUND`: There is no such check.
+- `attempt(check: Check) : returns (attempt: Attempt)`
+  - Refuses `CHECK_NOT_FOUND`: There is no such check.
+  - Refuses `ATTEMPT_IN_PROGRESS`: Finish or abandon the current attempt first.
+- `submit(attempt: Attempt) : returns (attempt: Attempt)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `NOT_OPEN`: This attempt has already been submitted.
+- `mention(attempt: Attempt, item: Item) : returns (attempt: Attempt)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `NOT_GRADED`: This attempt can't be corrected now.
+  - Refuses `NOT_IN_SUBJECT`: That item isn't part of this attempt.
+- `omit(attempt: Attempt, item: Item) : returns (attempt: Attempt)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `NOT_GRADED`: This attempt can't be corrected now.
+  - Refuses `NOT_IN_SUBJECT`: That item isn't part of this attempt.
+- `rate(attempt: Attempt, rating: Number) : returns (attempt: Attempt)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `NOT_GRADED`: This attempt can't be corrected now.
+  - Refuses `INVALID_RATING`: A rating must be between 0 and 1.
+- `close(attempt: Attempt) : returns (attempt: Attempt, check: Check, credit: Number)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `NOT_GRADED`: This attempt can't be closed now.
+  - Refuses `UNRATED`: Rate an attempt with no items before closing it.
+- `abandon(attempt: Attempt) : returns (attempt: Attempt)`
+  - Refuses `ATTEMPT_NOT_FOUND`: There is no such attempt.
+  - Refuses `FINISHED`: This attempt is already finished.
+
+#### Queries
+
+- `_checks(owner: User) : many (check: Check, name: String)`
+- `_get(check: Check) : optional (owner: User, name: String)`
+- `_subject(check: Check) : many (item: Item)`
+- `_including(item: Item) : many (check: Check)`
+- `_attempts(check: Check) : many (attempt: Attempt, status: AttemptStatus, credit: Number)`
+- `_current(check: Check) : optional (attempt: Attempt, status: AttemptStatus)`
+- `_attempt(attempt: Attempt) : optional (check: Check, status: AttemptStatus, credit: Number)`
+- `_attemptSubject(attempt: Attempt) : many (item: Item)`
+- `_mentioned(attempt: Attempt) : many (item: Item)`
+- `_omitted(attempt: Attempt) : many (item: Item)`
+
+#### Instances
+
+- `RecallChecking` — instance of `RecallChecking` — [Lemma types](../design/types.md), line 28.
+  - `Item` is `Cueing.Cue` — [Lemma types](../design/types.md), line 30.
+  - `User` is `Registering.User` — [Lemma types](../design/types.md), line 29.
+
 ### Registering
 
 Defined in [Registering](../design/concepts/Registering.md), line 1.
@@ -147,6 +211,31 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 
 - `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 22.
   - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 23.
+
+### SpacedRepetition
+
+Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
+
+#### Actions
+
+- `enroll(item: Item) : returns (item: Item)`
+  - Refuses `ALREADY_ENROLLED`: That item is already scheduled.
+- `review(item: Item, credit: Number) : returns (item: Item, due: DateTime)`
+  - Refuses `NOT_ENROLLED`: That item isn't scheduled.
+  - Refuses `INVALID_CREDIT`: Credit must be between 0 and 1.
+- `drop(item: Item) : returns (item: Item)`
+  - Refuses `NOT_ENROLLED`: That item isn't scheduled.
+
+#### Queries
+
+- `_due(before: DateTime) : many (item: Item, due: DateTime)`
+- `_entry(item: Item) : optional (due: DateTime, interval: Number, lapses: Number)`
+- `_lapsed(atLeast: Number) : many (item: Item, lapses: Number, lastLapse: DateTime)`
+
+#### Instances
+
+- `SpacedRepetition` — instance of `SpacedRepetition` — [Lemma types](../design/types.md), line 32.
+  - `Item` is `RecallChecking.Check` — [Lemma types](../design/types.md), line 33.
 
 ## Views
 
