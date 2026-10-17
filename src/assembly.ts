@@ -7,10 +7,11 @@ import {composition as access} from "./compositions/access.ts";
 import {composition as topics} from "./compositions/topics.ts";
 import {composition as points} from "./compositions/points.ts";
 import {composition as home} from "./compositions/home.ts";
+import {composition as cards} from "./compositions/cards.ts";
 export function assembleApplication(resources: {database: Db}) {
   return assemble({
     conceptSet: applicationConceptSet,
     instances:applicationConceptSet.implementations("mongo",resources),
-    composition: {reusable: {accounts, passwords}, access, topics, points, home}
+    composition: {reusable: {accounts, passwords}, access, topics, points, home, cards}
   });
 }

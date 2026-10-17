@@ -2,14 +2,13 @@
 
 ## Purpose
 
-Allows testing of understanding by comparing a recalled answer from an answer made in advance.
+Keep an answer for an item, written once a person has found they need one, so that later attempts at the item can be checked against it.
 
-*Prevents*: Inability to discover a gap in knowledge due to lack of self-testing.
+*Prevents*: Writing answers for everything up front, before knowing which items need them; going back through one's notes every time an item that was missed before is checked again.
 
 ## Principle
 
-After a user writes an answer for an item, they can test their understanding of that item at a later date by comparing a recalled answer to the answer they stored.
-To reflect a change in understanding, they can revise their answer and future reviews will show the revised answer.
+After a person fails to recall an item, they write an answer for it while their notes are open. The next time they recall the item, they check what they produced against that answer instead of their notes. When their understanding changes, they revise the answer, and later checks use the revised one. Once they remove the answer, the item has none again.
 
 ## Types
 
@@ -22,7 +21,7 @@ external Item
 
 ```state
 a set of Items with
-  an optional answer String
+  an answer String
 
 Rule: an answer is never blank or longer than 5000 characters.
 ```
@@ -45,7 +44,7 @@ write(item: Item, answer: String) : returns (item: Item)
 revise(item: Item, answer: String) : returns (item: Item)
   where item has no answer
   then
-    refuses NO_ANSWER "Answer does not exist for item."
+    refuses NO_ANSWER "That item has no answer."
   where item has an answer and answer is blank or longer than 5000 characters
   then
     refuses INVALID_ANSWER "An answer must have 1 to 5000 characters."
@@ -54,26 +53,10 @@ revise(item: Item, answer: String) : returns (item: Item)
     set the answer of item to answer
     returns item
 
-confirm(item: Item) : returns (item: Item)
-  where item has no answer
-  then
-    refuses NO_ANSWER "Answer does not exist for item."
-  where item has an answer
-  then
-    returns item
-
-miss(item: Item) : returns (item: Item)
-  where item has no answer
-  then
-    refuses NO_ANSWER "Answer does not exist for item."
-  where item has an answer
-  then
-    returns item
-
 remove(item: Item) : returns (item: Item)
   where item has no answer
   then
-    refuses NO_ANSWER "Answer does not exist for item."
+    refuses NO_ANSWER "That item has no answer."
   where item has an answer
   then
     remove item from Items
@@ -85,5 +68,4 @@ remove(item: Item) : returns (item: Item)
 ```queries
 _answer(item: Item) : optional (answer: String)
   Returns the item's answer, or no row when it has none.
-
 ```

@@ -54,6 +54,51 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "PASSWORD_SET" | "USERNAME_TAKEN" };
   };
+  "/card/remove": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["remove"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["remove"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "NO_ANSWER" };
+  };
+  "/card/revise": {
+    input: {
+      "answer": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["answer"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_ANSWER" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "NO_ANSWER" };
+  };
+  "/card/show": {
+    input: {
+      "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "card": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+      })[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/card/write": {
+    input: {
+      "answer": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["answer"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "ALREADY_ANSWERED" | "INVALID_ANSWER" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
   "/home": {
     input: {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
@@ -101,7 +146,7 @@ export type LemmaWire = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
     };
-    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" | "NO_ANSWER" };
   };
   "/point/move": {
     input: {
@@ -205,6 +250,47 @@ export type LemmaWireHttp = {
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" };
   };
+  "/card/remove": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["remove"]>[0], ["item"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["remove"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/card/revise": {
+    input: {
+      "answer": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["answer"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["item"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["revise"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/card/show": {
+    input: {
+      "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>]>>;
+    };
+    output: {
+      "card": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
+      })[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/card/write": {
+    input: {
+      "answer": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["answer"]>>;
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["item"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["write"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/home": {
     input: Record<string, never>;
     output: {
@@ -247,7 +333,7 @@ export type LemmaWireHttp = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
     };
-    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/point/move": {
     input: {

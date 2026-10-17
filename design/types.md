@@ -21,4 +21,7 @@ instantiate Authenticating with
 
 instantiate Sessioning with
   Subject is Registering.User
+
+instantiate Flashcarding with
+  Item is Cueing.Cue
 ````

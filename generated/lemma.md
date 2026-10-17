@@ -88,6 +88,30 @@ Defined in [Cueing](../design/concepts/Cueing.md), line 1.
 - `Cueing` — instance of `Cueing` — [Lemma types](../design/types.md), line 12.
   - `User` is `Registering.User` — [Lemma types](../design/types.md), line 13.
 
+### Flashcarding
+
+Defined in [Flashcarding](../design/concepts/Flashcarding.md), line 1.
+
+#### Actions
+
+- `write(item: Item, answer: String) : returns (item: Item)`
+  - Refuses `INVALID_ANSWER`: An answer must have 1 to 5000 characters.
+  - Refuses `ALREADY_ANSWERED`: That item already has an answer.
+- `revise(item: Item, answer: String) : returns (item: Item)`
+  - Refuses `NO_ANSWER`: That item has no answer.
+  - Refuses `INVALID_ANSWER`: An answer must have 1 to 5000 characters.
+- `remove(item: Item) : returns (item: Item)`
+  - Refuses `NO_ANSWER`: That item has no answer.
+
+#### Queries
+
+- `_answer(item: Item) : optional (answer: String)`
+
+#### Instances
+
+- `Flashcarding` — instance of `Flashcarding` — [Lemma types](../design/types.md), line 25.
+  - `Item` is `Cueing.Cue` — [Lemma types](../design/types.md), line 26.
+
 ### Registering
 
 Defined in [Registering](../design/concepts/Registering.md), line 1.
@@ -132,6 +156,7 @@ _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
 Authored path: `access.permissions.ownsPoint`.
 - Covered by [Access](../design/compositions/access.md), line 3.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
 - Covered by [Home](../design/compositions/home.md), line 2.
 - Covered by [Points](../design/compositions/points.md), line 10.
 - Covered by [Points](../design/compositions/points.md), line 16.
@@ -162,6 +187,20 @@ Authored path: `access.permissions.ownsTopic`.
 
 _Formers name result shapes evaluated when asked. The source former owns_
 _the authored explanation; this section records the generated shape._
+
+### the card of (cue)
+
+Authored path: `cards.showing.cardOf`.
+- Covered by [Cards](../design/compositions/cards.md), line 17.
+
+```former
+Former "the card of (cue)" — inputs (cue); bindings (name, answer); promises exactly one record — forms:
+  each Cueing._get (cue) has (name)
+    where whether Flashcarding._answer (item: cue) has (answer)
+    form a record of
+      answer
+      name
+```
 
 ### the points (user) owns
 
@@ -214,6 +253,229 @@ where
   earlier, RequestBoundary.request (requestId)
 then
   RequestBoundary.respond (error: message, requestId)
+```
+
+### cards.answering.RemoveAnswer
+
+Authored path: `cards.answering.RemoveAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 12.
+
+```reaction
+when RequestBoundary.request (cue, path: "/card/remove", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### cards.answering.RemoveAnswer:creator#2
+
+Authored path: `cards.answering.RemoveAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 12.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.RemoveAnswer
+where
+  earlier, RequestBoundary.request (cue, path: "/card/remove", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Flashcarding.remove (item: cue)
+```
+
+### cards.answering.RemoveAnswer:creator#3
+
+Authored path: `cards.answering.RemoveAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 12.
+
+```reaction
+when Flashcarding.remove (item: cue), asked by cards.answering.RemoveAnswer:creator#2
+where
+  earlier, RequestBoundary.request (cue, path: "/card/remove", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### cards.answering.RemoveAnswer:refused#2
+
+Authored path: `cards.answering.RemoveAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 12.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.RemoveAnswer
+where
+  earlier, RequestBoundary.request (cue, path: "/card/remove", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### cards.answering.ReviseAnswer
+
+Authored path: `cards.answering.ReviseAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 11.
+
+```reaction
+when RequestBoundary.request (answer, cue, path: "/card/revise", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### cards.answering.ReviseAnswer:creator#2
+
+Authored path: `cards.answering.ReviseAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 11.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.ReviseAnswer
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/revise", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Flashcarding.revise (answer, item: cue)
+```
+
+### cards.answering.ReviseAnswer:creator#3
+
+Authored path: `cards.answering.ReviseAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 11.
+
+```reaction
+when Flashcarding.revise (answer, item: cue), asked by cards.answering.ReviseAnswer:creator#2
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/revise", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### cards.answering.ReviseAnswer:refused#2
+
+Authored path: `cards.answering.ReviseAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 11.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.ReviseAnswer
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/revise", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### cards.answering.WriteAnswer
+
+Authored path: `cards.answering.WriteAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 10.
+
+```reaction
+when RequestBoundary.request (answer, cue, path: "/card/write", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### cards.answering.WriteAnswer:creator#2
+
+Authored path: `cards.answering.WriteAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.WriteAnswer
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/write", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Flashcarding.write (answer, item: cue)
+```
+
+### cards.answering.WriteAnswer:creator#3
+
+Authored path: `cards.answering.WriteAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 10.
+
+```reaction
+when Flashcarding.write (answer, item: cue), asked by cards.answering.WriteAnswer:creator#2
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/write", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### cards.answering.WriteAnswer:refused#2
+
+Authored path: `cards.answering.WriteAnswer`.
+- Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Cards](../design/compositions/cards.md), line 10.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.answering.WriteAnswer
+where
+  earlier, RequestBoundary.request (answer, cue, path: "/card/write", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### cards.deleting.RemoveAnswerOfDeleted
+
+Authored path: `cards.deleting.RemoveAnswerOfDeleted`.
+- Covered by [Cards](../design/compositions/cards.md), line 27.
+
+```reaction
+when Cueing.delete (cue)
+where
+  Flashcarding._answer (item: cue)
+then
+  Flashcarding.remove (item: cue)
+```
+
+### cards.showing.ShowCard
+
+Authored path: `cards.showing.ShowCard`.
+- Covered by [Cards](../design/compositions/cards.md), line 17.
+- Covered by [Cards](../design/compositions/cards.md), line 20.
+
+```reaction
+when RequestBoundary.request (cue, path: "/card/show", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### cards.showing.ShowCard:creator#2
+
+Authored path: `cards.showing.ShowCard`.
+- Covered by [Cards](../design/compositions/cards.md), line 17.
+- Covered by [Cards](../design/compositions/cards.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.showing.ShowCard
+where
+  earlier, RequestBoundary.request (cue, path: "/card/show", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (card: former "the card of (cue)" with (cue), requestId)
+```
+
+### cards.showing.ShowCard:refused#2
+
+Authored path: `cards.showing.ShowCard`.
+- Covered by [Cards](../design/compositions/cards.md), line 17.
+- Covered by [Cards](../design/compositions/cards.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by cards.showing.ShowCard
+where
+  earlier, RequestBoundary.request (cue, path: "/card/show", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
 ### home.showing.ShowHome
@@ -962,6 +1224,10 @@ not listed here have no explicit input contract.
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
+- `/card/remove` — requires `cue`, `session`
+- `/card/revise` — requires `answer`, `cue`, `session`
+- `/card/show` — requires `cue`, `session`
+- `/card/write` — requires `answer`, `cue`, `session`
 - `/home` — requires `session`
 - `/point/create` — requires `name`, `session`
 - `/point/createIn` — requires `category`, `name`, `session`
