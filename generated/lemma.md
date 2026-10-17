@@ -35,7 +35,7 @@ Defined in [Categorizing](../design/concepts/Categorizing.md), line 1.
 
 #### Actions
 
-- `create(owner: User, name: String) : returns (category: Category)`
+- `create(creator: User, name: String) : returns (category: Category)`
   - Refuses `INVALID_CATEGORY`: A category name must have 1 to 80 characters.
   - Refuses `CATEGORY_EXISTS`: You already have a category with that name.
 - `rename(category: Category, name: String) : returns (category: Category)`
@@ -52,8 +52,8 @@ Defined in [Categorizing](../design/concepts/Categorizing.md), line 1.
 
 #### Queries
 
-- `_categories(owner: User) : many (category: Category, name: String)`
-- `_get(category: Category) : optional (owner: User, name: String)`
+- `_categories(creator: User) : many (category: Category, name: String)`
+- `_get(category: Category) : optional (creator: User, name: String)`
 - `_items(category: Category) : many (item: Item)`
 - `_category(item: Item) : optional (category: Category)`
 
@@ -69,7 +69,7 @@ Defined in [Cueing](../design/concepts/Cueing.md), line 1.
 
 #### Actions
 
-- `create(owner: User, name: String) : returns (cue: Cue)`
+- `create(creator: User, name: String) : returns (cue: Cue)`
   - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
 - `rename(cue: Cue, name: String) : returns (cue: Cue)`
   - Refuses `CUE_NOT_FOUND`: Cue does not exist.
@@ -79,9 +79,9 @@ Defined in [Cueing](../design/concepts/Cueing.md), line 1.
 
 #### Queries
 
-- `_cues(owner: User) : many (cue: Cue, name: String)`
-- `_search(owner: User, text: String) : many (cue: Cue, name: String)`
-- `_get(cue: Cue) : optional (owner: User, name: String)`
+- `_cues(creator: User) : many (cue: Cue, name: String)`
+- `_search(creator: User, text: String) : many (cue: Cue, name: String)`
+- `_get(cue: Cue) : optional (creator: User, name: String)`
 
 #### Instances
 

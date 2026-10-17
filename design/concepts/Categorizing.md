@@ -16,7 +16,7 @@ When they go through all their categories, they will see every categorized item 
 
 ```types
 external User
-  The person who owns a category.
+  The person who creates a category.
 
 external Item
   The thing placed in a category.
@@ -26,9 +26,9 @@ external Item
 
 ```state
 a set of Categories with
-  an owner User
+  a creator User
   a name String
-  unique owner and name
+  unique creator and name
 
 a set of Items with
   a Category
@@ -39,16 +39,16 @@ Rule: a category's name is stored trimmed, and is never blank or longer than 80 
 ## Actions
 
 ```actions
-create(owner: User, name: String) : returns (category: Category)
+create(creator: User, name: String) : returns (category: Category)
   where name is blank or longer than 80 characters once trimmed
   then
     refuses INVALID_CATEGORY  "A category name must have 1 to 80 characters."
-  where owner already has a category with the trimmed name
+  where creator already has a category with the trimmed name
   then
     refuses CATEGORY_EXISTS "You already have a category with that name."
-  where name is accepted and owner has no category with the trimmed name
+  where name is accepted and creator has no category with the trimmed name
   then
-    add a new category with owner and the trimmed name
+    add a new category with creator and the trimmed name
     returns category
 
 rename(category: Category, name: String) : returns (category: Category)
@@ -58,10 +58,10 @@ rename(category: Category, name: String) : returns (category: Category)
   where category is in Categories and name is blank or longer than 80 characters once trimmed
   then
     refuses INVALID_CATEGORY  "A category name must have 1 to 80 characters."
-  where category is in Categories and name is accepted and its owner has another category with the trimmed name
+  where category is in Categories and name is accepted and its creator has another category with the trimmed name
   then
     refuses CATEGORY_EXISTS "You already have a category with that name."
-  where category is in Categories, name is accepted, and its owner has no other category with the trimmed name
+  where category is in Categories, name is accepted, and its creator has no other category with the trimmed name
   then
     set the name of category to the trimmed name
     returns category
@@ -100,11 +100,11 @@ unplace(item: Item) : returns (item: Item)
 ## Queries
 
 ```queries
-_categories(owner: User) : many (category: Category, name: String)
-  Returns each category of the owner with its name, in alphabetical order of name, or no rows when the owner has none.
+_categories(creator: User) : many (category: Category, name: String)
+  Returns each category of the creator with its name, in alphabetical order of name, or no rows when the creator has none.
 
-_get(category: Category) : optional (owner: User, name: String)
-  Returns the category's owner and name, or no row when the category is not in Categories.
+_get(category: Category) : optional (creator: User, name: String)
+  Returns the category's creator and name, or no row when the category is not in Categories.
 
 _items(category: Category) : many (item: Item)
   Returns each item placed in the category, in the order they were placed, or no rows when the category is empty or unknown.

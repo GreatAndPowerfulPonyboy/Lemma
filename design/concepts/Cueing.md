@@ -22,7 +22,7 @@ external User
 
 ```state
 a seq of Cues with
-  an owner User
+  a creator User
   a name String
 
 Rule: a cue's name is stored trimmed, and is never blank or longer than 100 characters.
@@ -31,13 +31,13 @@ Rule: a cue's name is stored trimmed, and is never blank or longer than 100 char
 ## Actions
 
 ```actions
-create(owner: User, name: String) : returns (cue: Cue)
+create(creator: User, name: String) : returns (cue: Cue)
   where name is blank or longer than 100 characters once trimmed
   then
     refuses INVALID_NAME "A name must have 1 to 100 characters."
   where name is accepted
   then
-    append a new cue with owner and the trimmed name
+    append a new cue with creator and the trimmed name
     returns cue
 
 rename(cue: Cue, name: String) : returns (cue: Cue)
@@ -65,13 +65,13 @@ delete(cue: Cue) : returns (cue: Cue)
 ## Queries
 
 ```queries
-_cues(owner: User) : many (cue: Cue, name: String)
-  Returns each cue of the owner with its name, newest first, or no rows when the owner has none.
+_cues(creator: User) : many (cue: Cue, name: String)
+  Returns each cue of the creator with its name, newest first, or no rows when the creator has none.
 
-_search(owner: User, text: String) : many (cue: Cue, name: String)
-  Returns each cue of the owner whose name contains the trimmed text, ignoring case, newest first.
-  Returns no rows when none matches, and every cue of the owner when the text is blank.
+_search(creator: User, text: String) : many (cue: Cue, name: String)
+  Returns each cue of the creator whose name contains the trimmed text, ignoring case, newest first.
+  Returns no rows when none matches, and every cue of the creator when the text is blank.
 
-_get(cue: Cue) : optional (owner: User, name: String)
-  Returns the cue's owner and name, or no row when the cue is not in Cues.
+_get(cue: Cue) : optional (creator: User, name: String)
+  Returns the cue's creator and name, or no row when the cue is not in Cues.
 ```

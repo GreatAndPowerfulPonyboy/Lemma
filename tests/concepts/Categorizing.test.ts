@@ -19,8 +19,8 @@ describe("Categorizing", () => {
   test("its principle: moving an item takes it out of its first category, so every placed item is in exactly one", async () => {
     const { categorizing } = await setup();
 
-    const { category: algebra } = await categorizing.create({ owner: "matthew", name: "Linear Algebra" });
-    const { category: proofs } = await categorizing.create({ owner: "matthew", name: "Proofs" });
+    const { category: algebra } = await categorizing.create({ creator: "matthew", name: "Linear Algebra" });
+    const { category: proofs } = await categorizing.create({ creator: "matthew", name: "Proofs" });
     for (const item of ["spectral", "rank", "gram"]) await categorizing.place({ item, category: algebra });
     expect(await categorizing._items({ category: algebra })).toEqual([{ item: "spectral" }, { item: "rank" }, { item: "gram" }]);
 
@@ -38,7 +38,7 @@ describe("Categorizing", () => {
 
   test("a category with items can't be deleted until they are moved or unplaced", async () => {
     const { categorizing } = await setup();
-    const { category } = await categorizing.create({ owner: "a", name: "Topic" });
+    const { category } = await categorizing.create({ creator: "a", name: "Topic" });
     await categorizing.place({ item: "x", category });
 
     const refused = categorizing.delete({ category });
@@ -51,32 +51,32 @@ describe("Categorizing", () => {
     await expect(categorizing.delete({ category })).rejects.toThrow(CategoryNotFound);
   });
 
-  test("an owner can't have two categories with the same name, even when both are created at once", async () => {
+  test("a creator can't have two categories with the same name, even when both are created at once", async () => {
     const { categorizing } = await setup();
-    const { category } = await categorizing.create({ owner: "a", name: "Topic" });
-    await expect(categorizing.create({ owner: "a", name: " Topic " })).rejects.toThrow(CategoryExists);
-    expect(await categorizing.create({ owner: "b", name: "Topic" })).toHaveProperty("category");
+    const { category } = await categorizing.create({ creator: "a", name: "Topic" });
+    await expect(categorizing.create({ creator: "a", name: " Topic " })).rejects.toThrow(CategoryExists);
+    expect(await categorizing.create({ creator: "b", name: "Topic" })).toHaveProperty("category");
 
-    const { category: other } = await categorizing.create({ owner: "a", name: "Other" });
+    const { category: other } = await categorizing.create({ creator: "a", name: "Other" });
     await expect(categorizing.rename({ category: other, name: "Topic" })).rejects.toThrow(CategoryExists);
     expect(await categorizing.rename({ category, name: "Renamed" })).toEqual({ category });
-    expect(await categorizing._categories({ owner: "a" })).toEqual([
+    expect(await categorizing._categories({ creator: "a" })).toEqual([
       { category: other, name: "Other" },
       { category, name: "Renamed" },
     ]);
 
     await expectOneWinner(
-      [categorizing.create({ owner: "c", name: "Same" }), categorizing.create({ owner: "c", name: "Same" })],
+      [categorizing.create({ creator: "c", name: "Same" }), categorizing.create({ creator: "c", name: "Same" })],
       CategoryExists,
     );
   });
 
   test("names are trimmed and must have 1 to 80 characters; unknown categories and unplaced items are refused", async () => {
     const { categorizing } = await setup();
-    const { category } = await categorizing.create({ owner: "a", name: "  Spaced  " });
-    expect(await categorizing._get({ category })).toEqual([{ owner: "a", name: "Spaced" }]);
-    await expect(categorizing.create({ owner: "a", name: "   " })).rejects.toThrow(InvalidCategory);
-    await expect(categorizing.create({ owner: "a", name: "x".repeat(81) })).rejects.toThrow(InvalidCategory);
+    const { category } = await categorizing.create({ creator: "a", name: "  Spaced  " });
+    expect(await categorizing._get({ category })).toEqual([{ creator: "a", name: "Spaced" }]);
+    await expect(categorizing.create({ creator: "a", name: "   " })).rejects.toThrow(InvalidCategory);
+    await expect(categorizing.create({ creator: "a", name: "x".repeat(81) })).rejects.toThrow(InvalidCategory);
     await expect(categorizing.rename({ category, name: "" })).rejects.toThrow(InvalidCategory);
 
     const ghost = "no-such-category" as Category;

@@ -8,7 +8,7 @@ export type Category = string & {readonly __brand: "Category"}
 
 interface CategoryDocument<User> {
   _id: Category
-  owner: User,
+  creator: User,
   name: string,
 }
 
@@ -32,7 +32,7 @@ export class CategorizingConcept<User extends string, Item extends string> {
 
   #ready() {
     this.indexes ??= this.categories
-        .createIndex({owner: 1, name: 1}, {unique: true})
+        .createIndex({creator: 1, name: 1}, {unique: true})
         .catch((error:unknown) => {
           this.indexes = undefined;
           throw error;
@@ -40,13 +40,13 @@ export class CategorizingConcept<User extends string, Item extends string> {
         return this.indexes;
   }
 
-  async create({owner, name}: {owner: User, name: string}) {
+  async create({creator, name}: {creator: User, name: string}) {
     const trimmed = name.trim();
     if (!(trimmed.length <= 80 && trimmed.length >= 1)) throw new InvalidCategory("A category name must be between 1 and 80 characters.");
     const category = crypto.randomUUID() as Category;
     await this.#ready();
     try {
-      await this.categories.insertOne({_id: category,owner: owner, name: trimmed});
+      await this.categories.insertOne({_id: category,creator, name: trimmed});
       
     } catch (error) {
       if (isDuplicate(error)) throw new CategoryExists ("You already have a category with that name.");
@@ -103,14 +103,14 @@ export class CategorizingConcept<User extends string, Item extends string> {
     return {item};
     }
 
-  async _categories({owner}: {owner: User}) {
-    const found = await this.categories.find({owner}).sort( {name: 1}).toArray()
+  async _categories({creator}: {creator: User}) {
+    const found = await this.categories.find({creator}).sort( {name: 1}).toArray()
     return found.map(({_id, name}) => ({category: _id, name: name}));
   }
 
   async _get({category}:  {category: Category}) {
     const found = await this.categories.findOne({_id: category});
-    return found === null ? [] : [{owner: found.owner, name: found.name}];
+    return found === null ? [] : [{creator: found.creator, name: found.name}];
   }
 
   async _items({category}: {category: Category}) {

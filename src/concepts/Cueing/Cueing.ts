@@ -9,7 +9,7 @@ function isValidName(name: string) : boolean {
 interface CueDocument<User>
 {
   _id: Cue,
-  owner: User,
+  creator: User,
   name: string
 }
 
@@ -25,21 +25,21 @@ export class CueingConcept<User extends string>
 
   #ready() {
     this.indexes ??= this.cues
-          .createIndex({owner: 1, name: 1})
+          .createIndex({creator: 1, name: 1})
           .catch((error: unknown) => {
             this.indexes = undefined;
             throw error;
           })
           return this.indexes;
   }
-  async create({owner, name}: {owner: User, name: string}) {
+  async create({creator, name}: {creator: User, name: string}) {
     const trimmed = name.trim();
     if (!(isValidName(trimmed))) {
       throw new InvalidName("A name must have 1 to 100 characters."); 
     }
     await this.#ready();
     const cue = new ObjectId().toHexString() as Cue;
-    await this.cues.insertOne({_id: cue, owner: owner,name: trimmed});
+    await this.cues.insertOne({_id: cue, creator,name: trimmed});
     return {cue};     
     }
   
@@ -63,20 +63,20 @@ export class CueingConcept<User extends string>
     return {cue};
   }
 
-  async _cues({owner}: {owner: User}) {
-    const found = await this.cues.find({owner}).sort({_id : -1}).toArray();
+  async _cues({creator}: {creator: User}) {
+    const found = await this.cues.find({creator}).sort({_id : -1}).toArray();
     return found.map(({_id, name}) => ({cue: _id, name}));
   }
 
   async _get({cue}: {cue : Cue}) {
     const found = await this.cues.findOne({_id: cue});
-    return found === null ? [] : [{owner: found.owner, name: found.name}];
+    return found === null ? [] : [{creator: found.creator, name: found.name}];
   }
   
 
-  async _search({owner, text}: {owner: User, text: string}) {
+  async _search({creator, text}: {creator: User, text: string}) {
     const trimmed = text.trim();
-    const filter = (trimmed === "" ? {owner} : {owner, name : {$regex: escapeRegExp(trimmed), $options: "i"}});
+    const filter = (trimmed === "" ? {creator} : {creator, name : {$regex: escapeRegExp(trimmed), $options: "i"}});
     const found = await this.cues.find(filter).sort({_id: -1}).toArray();
     return found.map(({_id, name}) => ({cue: _id, name}));
   }
