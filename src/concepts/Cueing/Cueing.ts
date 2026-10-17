@@ -1,7 +1,6 @@
 import {type Collection, type Db, ObjectId} from "mongodb";
-export class InvalidCue extends Error {};
+export class InvalidName extends Error {};
 export class CueNotFound  extends Error {};
-
 export type Cue = string & {readonly __brand: "Cue"}
 function isValidName(name: string) : boolean {
   return (name.length <=  100 && name.length >= 1);
@@ -36,7 +35,7 @@ export class CueingConcept<User extends string>
   async create({owner, name}: {owner: User, name: string}) {
     const trimmed = name.trim();
     if (!(isValidName(trimmed))) {
-      throw new InvalidCue("A name must have 1 to 100 characters."); 
+      throw new InvalidName("A name must have 1 to 100 characters."); 
     }
     await this.#ready();
     const cue = new ObjectId().toHexString() as Cue;
@@ -49,7 +48,7 @@ export class CueingConcept<User extends string>
     const existingCue = await this.cues.findOne({_id: cue});
     if (existingCue === null) throw new CueNotFound("Cue does not exist.");
     const trimmed = name.trim();
-    if(!(isValidName(trimmed))) throw new InvalidCue("A cue's name must be between 1 and 100 characters.");
+    if(!(isValidName(trimmed))) throw new InvalidName("A cue's name must be between 1 and 100 characters.");
     await this.cues.updateOne({_id: existingCue._id},
                               {$set:{name: trimmed}});
     return {cue};
