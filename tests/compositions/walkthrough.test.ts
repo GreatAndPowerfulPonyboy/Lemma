@@ -35,9 +35,9 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, name: "F = ma", category: null},
-        {cue: ribosomes, name: "Ribosomes build proteins", category: null},
-        {cue: mitochondria, name: "Mitochondria make ATP", category: null},
+        {cue: newton, pointName: "F = ma", category: null, topicName: null},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
       ],
       myTopics: [],
     });
@@ -50,9 +50,9 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, name: "F = ma", category: physics},
-        {cue: ribosomes, name: "Ribosomes build proteins", category: biology},
-        {cue: mitochondria, name: "Mitochondria make ATP", category: biology},
+        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics"},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Biology"},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Biology"},
       ],
       myTopics: [
         {category: biology, name: "Biology"},
@@ -65,9 +65,9 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, name: "Newton's second law: F = ma", category: physics},
-        {cue: ribosomes, name: "Ribosomes build proteins", category: biology},
-        {cue: mitochondria, name: "Mitochondria make ATP", category: biology},
+        {cue: newton, pointName: "Newton's second law: F = ma", category: physics, topicName: "Physics"},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Cell biology"},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Cell biology"},
       ],
       myTopics: [
         {category: biology, name: "Cell biology"},
@@ -113,7 +113,7 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session: matthew.session}))).toEqual(before);
     expect(ok(await api.home({session}))).toEqual({
-      myPoints: [{cue: jonathansPoint, name: "Cells divide by mitosis", category: null}],
+      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: null, topicName: null}],
       myTopics: [{category: jonathansTopic, name: "Biology"}],
     });
   });

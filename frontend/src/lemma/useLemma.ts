@@ -45,6 +45,27 @@ async function change<T extends object>(path: Path, request: Promise<T | { error
   if ("error" in result) error.value = result.error;
   else await refresh();
   working.value = false;
+  return result;
+}
+
+/**
+ * Moves each point into the topic, one at a time, then reloads the homepage once. Stops at the first
+ * refusal and shows it in the banner; the points moved before it stay moved, and the reload shows them.
+ */
+async function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
+  working.value = true;
+  let failed: string | null = null;
+  for (const cue of cues) {
+    const result = await call("/point/move", api.point.move({ cue, incidentCategory: category }));
+    if ("error" in result) {
+      failed = result.error;
+      break;
+    }
+  }
+  await refresh();
+  if (failed) error.value = failed;
+  working.value = false;
+  return failed === null;
 }
 
 
@@ -57,5 +78,5 @@ function reset() {
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, call, reset, home};
+  return {error, working ,refresh, change, move, call, reset, home};
 }
