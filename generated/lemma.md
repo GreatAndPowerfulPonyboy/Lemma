@@ -132,9 +132,9 @@ _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
 Authored path: `access.permissions.ownsPoint`.
 - Covered by [Access](../design/compositions/access.md), line 3.
-- Covered by [Points](../design/compositions/points.md), line 9.
-- Covered by [Points](../design/compositions/points.md), line 15.
-- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 10.
+- Covered by [Points](../design/compositions/points.md), line 16.
+- Covered by [Points](../design/compositions/points.md), line 24.
 
 ```view
 (user) owns point (cue) — inputs (user, cue); outputs (); bindings ()
@@ -145,7 +145,8 @@ Authored path: `access.permissions.ownsPoint`.
 
 Authored path: `access.permissions.ownsTopic`.
 - Covered by [Access](../design/compositions/access.md), line 3.
-- Covered by [Points](../design/compositions/points.md), line 23.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 24.
 - Covered by [Topics](../design/compositions/topics.md), line 10.
 - Covered by [Topics](../design/compositions/topics.md), line 16.
 
@@ -176,6 +177,76 @@ then
   RequestBoundary.respond (error: message, requestId)
 ```
 
+### points.creating.CreateAndPlace
+
+Authored path: `points.creating.CreateAndPlace`.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 8.
+
+```reaction
+when RequestBoundary.request (category, name, path: "/point/createIn", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.creating.CreateAndPlace:creator#2
+
+Authored path: `points.creating.CreateAndPlace`.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.creating.CreateAndPlace
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/createIn", requestId, session)
+  view "(user) owns topic (category)" with (category, user)
+then
+  Cueing.create (creator: user, name)
+```
+
+### points.creating.CreateAndPlace:creator#3
+
+Authored path: `points.creating.CreateAndPlace`.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 8.
+
+```reaction
+when Cueing.create (creator: user, name, cue), asked by points.creating.CreateAndPlace:creator#2
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/createIn", requestId, session)
+then
+  Categorizing.place (category, item: cue)
+```
+
+### points.creating.CreateAndPlace:creator#4
+
+Authored path: `points.creating.CreateAndPlace`.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 8.
+
+```reaction
+when Categorizing.place (category, item: cue), asked by points.creating.CreateAndPlace:creator#3
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/createIn", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.creating.CreateAndPlace:refused#2
+
+Authored path: `points.creating.CreateAndPlace`.
+- Covered by [Points](../design/compositions/points.md), line 5.
+- Covered by [Points](../design/compositions/points.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.creating.CreateAndPlace
+where
+  earlier, RequestBoundary.request (category, name, path: "/point/createIn", requestId, session)
+  no view "(user) owns topic (category)" with (category, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
 ### points.creating.CreatePoint
 
 Authored path: `points.creating.CreatePoint`.
@@ -183,12 +254,12 @@ Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 7.
 
 ```reaction
-when RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+when RequestBoundary.request (name, path: "/point/create", requestId, session)
 then
   Sessioning.use (session)
 ```
 
-### points.creating.CreatePoint:creator#2
+### points.creating.CreatePoint#2
 
 Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 4.
@@ -197,60 +268,30 @@ Authored path: `points.creating.CreatePoint`.
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.creating.CreatePoint
 where
-  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
-  view "(user) owns topic (category)" with (category, user)
+  earlier, RequestBoundary.request (name, path: "/point/create", requestId, session)
 then
   Cueing.create (creator: user, name)
 ```
 
-### points.creating.CreatePoint:creator#3
+### points.creating.CreatePoint#3
 
 Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 4.
 - Covered by [Points](../design/compositions/points.md), line 7.
 
 ```reaction
-when Cueing.create (creator: user, name, cue), asked by points.creating.CreatePoint:creator#2
+when Cueing.create (creator: user, name, cue), asked by points.creating.CreatePoint#2
 where
-  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
-then
-  Categorizing.place (category, item: cue)
-```
-
-### points.creating.CreatePoint:creator#4
-
-Authored path: `points.creating.CreatePoint`.
-- Covered by [Points](../design/compositions/points.md), line 4.
-- Covered by [Points](../design/compositions/points.md), line 7.
-
-```reaction
-when Categorizing.place (category, item: cue), asked by points.creating.CreatePoint:creator#3
-where
-  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
+  earlier, RequestBoundary.request (name, path: "/point/create", requestId, session)
 then
   RequestBoundary.respond (cue, requestId)
-```
-
-### points.creating.CreatePoint:refused#2
-
-Authored path: `points.creating.CreatePoint`.
-- Covered by [Points](../design/compositions/points.md), line 4.
-- Covered by [Points](../design/compositions/points.md), line 7.
-
-```reaction
-when Sessioning.use (session, subject: user), asked by points.creating.CreatePoint
-where
-  earlier, RequestBoundary.request (category, name, path: "/point/create", requestId, session)
-  no view "(user) owns topic (category)" with (category, user)
-then
-  RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
 ### points.deleting.DeletePoint
 
 Authored path: `points.deleting.DeletePoint`.
-- Covered by [Points](../design/compositions/points.md), line 15.
-- Covered by [Points](../design/compositions/points.md), line 20.
+- Covered by [Points](../design/compositions/points.md), line 16.
+- Covered by [Points](../design/compositions/points.md), line 21.
 
 ```reaction
 when RequestBoundary.request (cue, path: "/point/delete", requestId, session)
@@ -261,8 +302,8 @@ then
 ### points.deleting.DeletePoint:creator#2
 
 Authored path: `points.deleting.DeletePoint`.
-- Covered by [Points](../design/compositions/points.md), line 15.
-- Covered by [Points](../design/compositions/points.md), line 20.
+- Covered by [Points](../design/compositions/points.md), line 16.
+- Covered by [Points](../design/compositions/points.md), line 21.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.deleting.DeletePoint
@@ -276,8 +317,8 @@ then
 ### points.deleting.DeletePoint:creator#3
 
 Authored path: `points.deleting.DeletePoint`.
-- Covered by [Points](../design/compositions/points.md), line 15.
-- Covered by [Points](../design/compositions/points.md), line 20.
+- Covered by [Points](../design/compositions/points.md), line 16.
+- Covered by [Points](../design/compositions/points.md), line 21.
 
 ```reaction
 when Cueing.delete (cue), asked by points.deleting.DeletePoint:creator#2
@@ -290,8 +331,8 @@ then
 ### points.deleting.DeletePoint:refused#2
 
 Authored path: `points.deleting.DeletePoint`.
-- Covered by [Points](../design/compositions/points.md), line 15.
-- Covered by [Points](../design/compositions/points.md), line 20.
+- Covered by [Points](../design/compositions/points.md), line 16.
+- Covered by [Points](../design/compositions/points.md), line 21.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.deleting.DeletePoint
@@ -305,7 +346,7 @@ then
 ### points.deleting.UnplaceDeleted
 
 Authored path: `points.deleting.UnplaceDeleted`.
-- Covered by [Points](../design/compositions/points.md), line 15.
+- Covered by [Points](../design/compositions/points.md), line 16.
 - Covered by [Topics](../design/compositions/topics.md), line 22.
 
 ```reaction
@@ -319,8 +360,8 @@ then
 ### points.moving.MovePoint
 
 Authored path: `points.moving.MovePoint`.
-- Covered by [Points](../design/compositions/points.md), line 23.
-- Covered by [Points](../design/compositions/points.md), line 26.
+- Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 27.
 
 ```reaction
 when RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
@@ -331,8 +372,8 @@ then
 ### points.moving.MovePoint:creator#2
 
 Authored path: `points.moving.MovePoint`.
-- Covered by [Points](../design/compositions/points.md), line 23.
-- Covered by [Points](../design/compositions/points.md), line 26.
+- Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 27.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
@@ -347,8 +388,8 @@ then
 ### points.moving.MovePoint:creator#3
 
 Authored path: `points.moving.MovePoint`.
-- Covered by [Points](../design/compositions/points.md), line 23.
-- Covered by [Points](../design/compositions/points.md), line 26.
+- Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 27.
 
 ```reaction
 when Categorizing.place (category: incidentCategory, item: cue), asked by points.moving.MovePoint:creator#2
@@ -361,8 +402,8 @@ then
 ### points.moving.MovePoint:no-point#2
 
 Authored path: `points.moving.MovePoint`.
-- Covered by [Points](../design/compositions/points.md), line 23.
-- Covered by [Points](../design/compositions/points.md), line 26.
+- Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 27.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
@@ -376,8 +417,8 @@ then
 ### points.moving.MovePoint:no-topic#2
 
 Authored path: `points.moving.MovePoint`.
-- Covered by [Points](../design/compositions/points.md), line 23.
-- Covered by [Points](../design/compositions/points.md), line 26.
+- Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 27.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.moving.MovePoint
@@ -392,8 +433,8 @@ then
 ### points.renaming.RenamePoint
 
 Authored path: `points.renaming.RenamePoint`.
-- Covered by [Points](../design/compositions/points.md), line 9.
-- Covered by [Points](../design/compositions/points.md), line 12.
+- Covered by [Points](../design/compositions/points.md), line 10.
+- Covered by [Points](../design/compositions/points.md), line 13.
 
 ```reaction
 when RequestBoundary.request (cue, name, path: "/point/rename", requestId, session)
@@ -404,8 +445,8 @@ then
 ### points.renaming.RenamePoint:creator#2
 
 Authored path: `points.renaming.RenamePoint`.
-- Covered by [Points](../design/compositions/points.md), line 9.
-- Covered by [Points](../design/compositions/points.md), line 12.
+- Covered by [Points](../design/compositions/points.md), line 10.
+- Covered by [Points](../design/compositions/points.md), line 13.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.renaming.RenamePoint
@@ -419,8 +460,8 @@ then
 ### points.renaming.RenamePoint:creator#3
 
 Authored path: `points.renaming.RenamePoint`.
-- Covered by [Points](../design/compositions/points.md), line 9.
-- Covered by [Points](../design/compositions/points.md), line 12.
+- Covered by [Points](../design/compositions/points.md), line 10.
+- Covered by [Points](../design/compositions/points.md), line 13.
 
 ```reaction
 when Cueing.rename (cue, name), asked by points.renaming.RenamePoint:creator#2
@@ -433,8 +474,8 @@ then
 ### points.renaming.RenamePoint:refused#2
 
 Authored path: `points.renaming.RenamePoint`.
-- Covered by [Points](../design/compositions/points.md), line 9.
-- Covered by [Points](../design/compositions/points.md), line 12.
+- Covered by [Points](../design/compositions/points.md), line 10.
+- Covered by [Points](../design/compositions/points.md), line 13.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.renaming.RenamePoint
@@ -783,7 +824,8 @@ not listed here have no explicit input contract.
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
-- `/point/create` — requires `category`, `name`, `session`
+- `/point/create` — requires `name`, `session`
+- `/point/createIn` — requires `category`, `name`, `session`
 - `/point/delete` — requires `cue`, `session`
 - `/point/move` — requires `cue`, `incidentCategory`, `session`
 - `/point/rename` — requires `cue`, `name`, `session`

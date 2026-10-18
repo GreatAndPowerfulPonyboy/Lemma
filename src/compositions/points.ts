@@ -8,6 +8,16 @@ const {Categorizing, Sessioning, Cueing} = concepts;
 
 export const CreatePoint = endpoint(
   "/point/create",
+  ({ session, user, name, cue }) =>
+    receive({ session, name,})
+      .then(Sessioning.use({ session }).responds({ subject: user }))
+          .then(Cueing.create({ creator: user, name }).responds({ cue }))
+          .then(respond({ cue })),
+  { validators: { input: textInput } },
+);
+
+export const CreateAndPlace= endpoint(
+  "/point/createIn",
   ({ session, user, name, category, cue }) =>
     receive({ session, name, category })
       .then(Sessioning.use({ session }).responds({ subject: user }))
@@ -23,6 +33,7 @@ export const CreatePoint = endpoint(
       ),
   { validators: { input: textInput } },
 );
+
 
 export const RenamePoint = endpoint(
   "/point/rename",
@@ -86,7 +97,7 @@ export const MovePoint = endpoint(
 )
 export const composition = {
   deleting: {DeletePoint, UnplaceDeleted},
-  creating: {CreatePoint},
+  creating: {CreatePoint,CreateAndPlace},
   renaming: {RenamePoint},
   moving: {MovePoint}
 }

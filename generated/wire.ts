@@ -55,6 +55,16 @@ export type LemmaWire = {
   };
   "/point/create": {
     input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>>, ["cue"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_NAME" | "NOT_SIGNED_IN" };
+  };
+  "/point/createIn": {
+    input: {
       "category": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>]>>;
       "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
@@ -166,13 +176,22 @@ export type LemmaWireHttp = {
   };
   "/point/create": {
     input: {
+      "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>>, ["cue"]>>;
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/point/createIn": {
+    input: {
       "category": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["category"]>]>>;
       "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["create"]>[0], ["name"]>>;
     };
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
     };
-    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/point/delete": {
     input: {
@@ -181,7 +200,7 @@ export type LemmaWireHttp = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["delete"]>[0], ["cue"]>>;
     };
-    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/point/move": {
     input: {
@@ -191,7 +210,7 @@ export type LemmaWireHttp = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["place"]>[0], ["item"]>>;
     };
-    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/point/rename": {
     input: {
@@ -201,7 +220,7 @@ export type LemmaWireHttp = {
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
     };
-    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/topic/create": {
     input: {
@@ -219,7 +238,7 @@ export type LemmaWireHttp = {
     output: {
       "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["delete"]>[0], ["category"]>>;
     };
-    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/topic/rename": {
     input: {
@@ -229,6 +248,6 @@ export type LemmaWireHttp = {
     output: {
       "category": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["rename"]>[0], ["category"]>>;
     };
-    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
 };
