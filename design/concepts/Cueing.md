@@ -32,7 +32,7 @@ Rule: a cue's name is stored trimmed, and is never blank or longer than 80 chara
 
 ```actions
 create(creator: User, name: String) : returns (cue: Cue)
-  where name is blank or longer than 100 characters once trimmed
+  where name is blank or longer than 80 characters once trimmed
   then
     refuses INVALID_NAME "A name must have 1 to 80 characters."
   where name is accepted
@@ -44,7 +44,7 @@ rename(cue: Cue, name: String) : returns (cue: Cue)
   where cue is not in Cues
   then
     refuses CUE_NOT_FOUND "Cue does not exist."
-  where cue is in Cues and name is blank or longer than 100 characters once trimmed
+  where cue is in Cues and name is blank or longer than 80 characters once trimmed
   then
     refuses INVALID_NAME "A name must have 1 to 80 characters."
   where cue is in Cues and name is accepted

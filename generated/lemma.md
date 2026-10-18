@@ -70,10 +70,10 @@ Defined in [Cueing](../design/concepts/Cueing.md), line 1.
 #### Actions
 
 - `create(creator: User, name: String) : returns (cue: Cue)`
-  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+  - Refuses `INVALID_NAME`: A name must have 1 to 80 characters.
 - `rename(cue: Cue, name: String) : returns (cue: Cue)`
   - Refuses `CUE_NOT_FOUND`: Cue does not exist.
-  - Refuses `INVALID_NAME`: A name must have 1 to 100 characters.
+  - Refuses `INVALID_NAME`: A name must have 1 to 80 characters.
 - `delete(cue: Cue) : returns (cue: Cue)`
   - Refuses `CUE_NOT_FOUND`: Cue does not exist.
 
@@ -132,6 +132,7 @@ _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
 Authored path: `access.permissions.ownsPoint`.
 - Covered by [Access](../design/compositions/access.md), line 3.
+- Covered by [Home](../design/compositions/home.md), line 2.
 - Covered by [Points](../design/compositions/points.md), line 10.
 - Covered by [Points](../design/compositions/points.md), line 16.
 - Covered by [Points](../design/compositions/points.md), line 24.
@@ -145,6 +146,7 @@ Authored path: `access.permissions.ownsPoint`.
 
 Authored path: `access.permissions.ownsTopic`.
 - Covered by [Access](../design/compositions/access.md), line 3.
+- Covered by [Home](../design/compositions/home.md), line 7.
 - Covered by [Points](../design/compositions/points.md), line 5.
 - Covered by [Points](../design/compositions/points.md), line 24.
 - Covered by [Topics](../design/compositions/topics.md), line 10.
@@ -153,6 +155,40 @@ Authored path: `access.permissions.ownsTopic`.
 ```view
 (user) owns topic (category) — inputs (user, category); outputs (); bindings ()
   where Categorizing._get (category) has (creator: user)
+```
+
+## Formers
+
+_Formers name result shapes evaluated when asked. The source former owns_
+_the authored explanation; this section records the generated shape._
+
+### the points (user) owns
+
+Authored path: `home.showing.myPoints`.
+- Covered by [Home](../design/compositions/home.md), line 5.
+
+```former
+Former "the points (user) owns" — inputs (user); bindings (category, cue, name); promises exactly one record — forms:
+  each Cueing._cues (creator: user) has (cue, name)
+    where view "(user) owns point (cue)" with (cue, user)
+    where whether Categorizing._category (item: cue) has (category)
+    form a record of
+      category
+      cue
+      name
+```
+
+### the topics (user) owns
+
+Authored path: `home.showing.myTopics`.
+- Covered by [Home](../design/compositions/home.md), line 7.
+
+```former
+Former "the topics (user) owns" — inputs (user); bindings (category, name); promises exactly one record — forms:
+  each Categorizing._categories (creator: user) has (category, name)
+    form a record of
+      category
+      name
 ```
 
 ## Reactions
@@ -175,6 +211,32 @@ where
   earlier, RequestBoundary.request (requestId)
 then
   RequestBoundary.respond (error: message, requestId)
+```
+
+### home.showing.ShowHome
+
+Authored path: `home.showing.ShowHome`.
+- Covered by [Home](../design/compositions/home.md), line 3.
+- Covered by [Home](../design/compositions/home.md), line 11.
+
+```reaction
+when RequestBoundary.request (path: "/home", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### home.showing.ShowHome#2
+
+Authored path: `home.showing.ShowHome`.
+- Covered by [Home](../design/compositions/home.md), line 3.
+- Covered by [Home](../design/compositions/home.md), line 11.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by home.showing.ShowHome
+where
+  earlier, RequestBoundary.request (path: "/home", requestId, session)
+then
+  RequestBoundary.respond (myPoints: former "the points (user) owns" with (user), myTopics: former "the topics (user) owns" with (user), requestId)
 ```
 
 ### points.creating.CreateAndPlace
@@ -824,6 +886,7 @@ not listed here have no explicit input contract.
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `password`, `username`
+- `/home` — requires `session`
 - `/point/create` — requires `name`, `session`
 - `/point/createIn` — requires `category`, `name`, `session`
 - `/point/delete` — requires `cue`, `session`

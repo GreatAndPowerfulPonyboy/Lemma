@@ -28,7 +28,7 @@ const myTopics = former(
     .form({category, name})
 );
 
-const showHome = endpoint(
+const ShowHome = endpoint(
   "/home",
   ({session, user}) =>
     receive({session})
@@ -43,5 +43,5 @@ const showHome = endpoint(
 );
 
 export const composition = {
-  showing: {showHome, myPoints, myTopics}
+  showing: {ShowHome, myPoints, myTopics}
 }

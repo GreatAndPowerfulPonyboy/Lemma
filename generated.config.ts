@@ -13,7 +13,8 @@ export default {
     new URL("./design/compositions/reusable/accounts.md", import.meta.url),
     new URL("./design/compositions/access.md", import.meta.url),
     new URL("./design/compositions/topics.md", import.meta.url),
-    new URL("./design/compositions/points.md", import.meta.url)
+    new URL("./design/compositions/points.md", import.meta.url),
+    new URL("./design/compositions/home.md", import.meta.url)
   ] },
     projections: [httpWire({ policy: lemmaPolicy("http://localhost:3000"), name: "LemmaWireHttp" })],
 };
