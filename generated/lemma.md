@@ -168,14 +168,16 @@ Authored path: `home.showing.myPoints`.
 - Covered by [Home](../design/compositions/home.md), line 5.
 
 ```former
-Former "the points (user) owns" — inputs (user); bindings (category, cue, name); promises exactly one record — forms:
-  each Cueing._cues (creator: user) has (cue, name)
+Former "the points (user) owns" — inputs (user); bindings (category, cue, pointName, topicName); promises exactly one record — forms:
+  each Cueing._cues (creator: user) has (cue, name: pointName)
     where view "(user) owns point (cue)" with (cue, user)
     where whether Categorizing._category (item: cue) has (category)
+    where whether Categorizing._get (category) has (name: topicName)
     form a record of
       category
       cue
-      name
+      pointName
+      topicName
 ```
 
 ### the topics (user) owns

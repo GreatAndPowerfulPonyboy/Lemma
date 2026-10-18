@@ -60,9 +60,10 @@ export type LemmaWire = {
     };
     output: {
       "myPoints": ({
-        "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>> | null;
+        "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
         "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
-        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
+        "topicName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>>>, ["name"]>> | null;
       })[];
       "myTopics": {
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;
@@ -196,9 +197,10 @@ export type LemmaWireHttp = {
     input: Record<string, never>;
     output: {
       "myPoints": ({
-        "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>> | null;
+        "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
         "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
-        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
+        "topicName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>>>, ["name"]>> | null;
       })[];
       "myTopics": {
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;

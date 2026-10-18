@@ -7,8 +7,8 @@ import {useSession} from "../reusable/session.ts";
 type Wire = LemmaWireHttp;
 type Path = keyof Wire;
 export type Home = Wire["/home"]["output"];
-export type myPoints = Home["myPoints"][number];
-export type myTopics = Home["myTopics"][number];
+export type MyPoint= Home["myPoints"][number];
+export type MyTopic= Home["myTopics"][number];
 
 const home = ref<Home | null>(null);
 const error = ref<string | null>(null);
@@ -47,8 +47,15 @@ async function change<T extends object>(path: Path, request: Promise<T | { error
   working.value = false;
 }
 
+
+/** Clears my HomePage  when my session ends, so the next person to sign in on this tab doesn't see it. */
+function reset() {
+  home.value = null;
+  error.value = null;
+}
+
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {topics, error, working ,refresh, change, call};
+  return {error, working ,refresh, change, call, reset, home};
 }

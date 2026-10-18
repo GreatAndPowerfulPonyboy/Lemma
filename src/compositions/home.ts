@@ -11,13 +11,15 @@ const {Sessioning, Cueing, Categorizing} = concepts;
 
 const myPoints = former(
   "the points (user) owns",
-  ({user}, {category,cue, name }) =>
-    each(Cueing._cues({creator: user}).is({cue, name}))
+  ({user}, {category,cue, pointName , topicName}) =>
+    each(Cueing._cues({creator: user}).is({cue, name: pointName}))
       .where(
         ownsPoint({user, cue}),
-        whether(Categorizing._category({item:cue}).is({category}))
+        whether(Categorizing._category({item:cue}).is({category})),
+        whether(Categorizing._get({category}).is({name: topicName}))
+          
       )
-      .form({cue, name, category})
+      .form({cue, pointName, category, topicName})
 );
 
 /** The topics that a user owns */

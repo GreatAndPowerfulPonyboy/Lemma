@@ -6,7 +6,7 @@ import { useSession } from "./reusable/session.ts";
 import Avatar from "./reusable/ui/Avatar.vue";
 import Icon from "./reusable/ui/Icon.vue";
 import Menu from "./reusable/ui/Menu.vue";
-
+import Home from "./lemma/HomePage.vue";
 const { me, checked, load, signOut } = useSession();
 onMounted(load);
 </script>
@@ -21,7 +21,7 @@ onMounted(load);
     </Menu>
   </header>
   <main v-if="checked" class="content">
-    <p v-if="me">Signed in. Your points will appear here.</p>
+    <Home v-if="me"/>
     <SignIn v-else icon="box" lead="Heighten your understanding with free recall">
       <PasswordForm />
     </SignIn>
