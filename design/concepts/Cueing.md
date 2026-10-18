@@ -25,7 +25,7 @@ a seq of Cues with
   a creator User
   a name String
 
-Rule: a cue's name is stored trimmed, and is never blank or longer than 100 characters.
+Rule: a cue's name is stored trimmed, and is never blank or longer than 80 characters.
 ```
 
 ## Actions
@@ -34,7 +34,7 @@ Rule: a cue's name is stored trimmed, and is never blank or longer than 100 char
 create(creator: User, name: String) : returns (cue: Cue)
   where name is blank or longer than 100 characters once trimmed
   then
-    refuses INVALID_NAME "A name must have 1 to 100 characters."
+    refuses INVALID_NAME "A name must have 1 to 80 characters."
   where name is accepted
   then
     append a new cue with creator and the trimmed name
@@ -46,7 +46,7 @@ rename(cue: Cue, name: String) : returns (cue: Cue)
     refuses CUE_NOT_FOUND "Cue does not exist."
   where cue is in Cues and name is blank or longer than 100 characters once trimmed
   then
-    refuses INVALID_NAME "A name must have 1 to 100 characters."
+    refuses INVALID_NAME "A name must have 1 to 80 characters."
   where cue is in Cues and name is accepted
   then
     set the name of cue to the trimmed name

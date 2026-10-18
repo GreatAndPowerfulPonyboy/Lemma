@@ -27,16 +27,16 @@ describe("Cueing", () => {
     expect(await cueing._cues({ creator: "matthew" })).toEqual([{ cue: spectral, name: "proof of the spectral theorem" }]);
   });
 
-  test("names are stored trimmed and must have 1 to 100 characters", async () => {
+  test("names are stored trimmed and must have 1 to 80 characters", async () => {
     const { cueing } = await setup();
     const { cue } = await cueing.create({ creator: "a", name: "  eigenvalues  " });
     expect(await cueing._get({ cue })).toEqual([{ creator: "a", name: "eigenvalues" }]);
 
     const blank = cueing.create({ creator: "a", name: "   " });
     await expect(blank).rejects.toThrow(InvalidName);
-    await expect(blank).rejects.toThrow("A name must have 1 to 100 characters.");
-    await expect(cueing.create({ creator: "a", name: "x".repeat(101) })).rejects.toThrow(InvalidName);
-    await expect(cueing.create({ creator: "a", name: ` ${"x".repeat(100)} ` })).resolves.toHaveProperty("cue");
+    await expect(blank).rejects.toThrow("A name must have 1 to 80 characters.");
+    await expect(cueing.create({ creator: "a", name: "x".repeat(81) })).rejects.toThrow(InvalidName);
+    await expect(cueing.create({ creator: "a", name: ` ${"x".repeat(80)} ` })).resolves.toHaveProperty("cue");
 
     await expect(cueing.rename({ cue, name: "" })).rejects.toThrow(InvalidName);
     expect(await cueing._get({ cue })).toEqual([{ creator: "a", name: "eigenvalues" }]);
