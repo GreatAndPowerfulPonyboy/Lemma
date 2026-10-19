@@ -12,11 +12,13 @@ export type MyTopic= Home["myTopics"][number];
 export type MyCheck = Home["myChecks"][number];
 export type CheckShown = Wire["/check/show"]["output"];
 export type AttemptShown = Wire["/attempt/show"]["output"];
+export type SharedPrompt = Wire["/shared"]["output"]["shared"][number];
+export type SharedShown = Wire["/shared/show"]["output"];
 type Check = MyCheck["check"];
 type Attempt = Wire["/attempt/show"]["input"]["attempt"];
 
 /** The tabs of the home screen. */
-export type Tab = "points" | "topics" | "prompts";
+export type Tab = "points" | "topics" | "prompts" | "shared";
 
 const home = ref<Home | null>(null);
 const error = ref<string | null>(null);
@@ -185,26 +187,67 @@ async function startPrompt(name: string, cues: MyPoint["cue"][]) {
 
 /**
  * Submits the attempt I'm typing, then marks each of these points as mentioned, one at a time like `move`, and
- * opens the results screen. Only the points go to the server, never what I typed.
+ * opens the results screen. Only the points go to the server, never what I typed. Once the submit itself succeeds,
+ * the results screen opens even if a mark is refused, since that's where marks are corrected and the attempt can't
+ * be submitted again. Returns whether the submit itself succeeded.
  */
 async function submitAttempt(cues: MyPoint["cue"][]) {
   const current = attempt.value;
   if (current === null) return false;
-  const done = await inOrder([
-    () => call("/attempt/submit", api.attempt.submit({ attempt: current })),
+  let submitted = false;
+  await inOrder([
+    async () => {
+      const result = await call("/attempt/submit", api.attempt.submit({ attempt: current }));
+      submitted = !("error" in result);
+      return result;
+    },
     ...cues.map((cue) => () => call("/attempt/mention", api.attempt.mention({ attempt: current, cue }))),
   ], noReload);
-  if (done) screen.value = "results";
-  return done;
+  if (submitted) screen.value = "results";
+  return submitted;
 }
 
-/** Gives up the attempt, so it's never graded, and goes back to the home screen. */
+/** Gives up the attempt, so it's never graded, and goes back to the home screen. Returns whether it was abandoned. */
 async function abandonAttempt() {
   const current = attempt.value;
-  if (current === null) return;
+  if (current === null) return false;
   // The home screen reloads when it shows, so this doesn't reload it first.
   const result = await change("/attempt/abandon", api.attempt.abandon({ attempt: current }), noReload);
-  if (!("error" in result)) goHome();
+  if ("error" in result) return false;
+  goHome();
+  return true;
+}
+
+/**
+ * Copies a prompt someone shared with me into my own prompts: opens a prompt with its name, then creates each of
+ * its points (Unsorted) and includes it, one call at a time like `move`. The copy is mine; nothing links it to the
+ * original. Returns whether every call succeeded.
+ */
+async function copyShared(shared: SharedPrompt["check"]) {
+  const original = await call("/shared/show", api.shared.show({ check: shared }));
+  if ("error" in original) {
+    error.value = original.error;
+    return false;
+  }
+  let check: Check | null = null;
+  return inOrder([
+    async () => {
+      const result = await call("/check/open", api.check.open({ name: original.name }));
+      if (!("error" in result)) check = result.check;
+      return result;
+    },
+    ...original.points.flatMap(({ pointName }) => {
+      let cue: MyPoint["cue"] | null = null;
+      return [
+        async () => {
+          const result = await call("/point/create", api.point.create({ name: pointName }));
+          if (!("error" in result)) cue = result.cue;
+          return result;
+        },
+        () => call("/check/include", api.check.include({ check: check!, cue: cue! })),
+      ];
+    }),
+  ]);
 }
 
 /** Clears my HomePage  when my session ends, so the next person to sign in on this tab doesn't see it. */
@@ -221,5 +264,5 @@ function reset() {
 
 export function useHome() {
   return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
-    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, goHome, submitAttempt, abandonAttempt};
+    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, goHome, submitAttempt, abandonAttempt, copyShared};
 }

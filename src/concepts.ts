@@ -7,6 +7,7 @@ import {categorizing} from "./concepts/Categorizing/registry.ts";
 import {flashcarding} from "./concepts/Flashcarding/registry.ts";
 import {recallChecking} from "./concepts/RecallChecking/registry.ts";
 import {spacedRepetition} from "./concepts/SpacedRepetition/registry.ts";
+import {sharing} from "./concepts/Sharing/registry.ts";
 export const applicationConceptSet = conceptSet({
   Registering: registering,
   Authenticating: authenticating,
@@ -16,6 +17,7 @@ export const applicationConceptSet = conceptSet({
   Flashcarding: flashcarding,
   RecallChecking: recallChecking,
   SpacedRepetition: spacedRepetition,
+  Sharing: sharing,
   
 });
 export const { concepts } = applicationConceptSet;

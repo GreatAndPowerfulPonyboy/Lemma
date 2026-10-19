@@ -2,6 +2,7 @@ import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
 import {each, former, no, reaction, when, where} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
 import {ownsAttempt, ownsCheck, ownsPoint} from "./access.ts";
+import {recipientsOf} from "./sharing.ts";
 import {textInput} from "./reusable/inputs.ts";
 
 const {Cueing, RecallChecking, Sessioning} = concepts;
@@ -277,6 +278,7 @@ export const ShowCheck = endpoint(
             subject: subjectOf({check}),
             current: currentAttemptOf({check}),
             attempts: attemptsOf({check}),
+            recipients: recipientsOf({check}),
           }))
           .named("owner"),
         where(no(ownsCheck({user, check})))

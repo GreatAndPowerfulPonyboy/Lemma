@@ -6,6 +6,7 @@ import HomeTabs from "./HomeTabs.vue";
 import PointsContainer from "./PointsContainer.vue";
 import PointSearch from "./PointSearch.vue";
 import PromptsContainer from "./PromptsContainer.vue";
+import SharedContainer from "./SharedContainer.vue";
 import TopicsContainer from "./TopicsContainer.vue";
 import TopicSearch from "./TopicSearch.vue";
 import { useHome, type MyTopic, type Tab } from "./useLemma.ts";
@@ -24,6 +25,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "points", label: "Points" },
   { id: "topics", label: "Topics" },
   { id: "prompts", label: "Prompts" },
+  { id: "shared", label: "Shared" },
 ];
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -80,8 +82,8 @@ function openTopic(topic: MyTopic | null) {
       <p v-if="error" class="error content-width">{{ error }}</p>
       <p v-else-if="!home" class="content-width">Loading…</p>
       <HomeTabs v-if="home" v-model="tab" :tabs="tabs" />
-      <!-- Each tab shows only the filters that apply to it; the Prompts tab has none yet. -->
-      <FilterRow v-if="home && tab !== 'prompts'">
+      <!-- Each tab shows only the filters that apply to it; the Prompts and Shared tabs have none yet. -->
+      <FilterRow v-if="home && (tab === 'points' || tab === 'topics')">
         <PointSearch v-if="tab === 'points'" v-model="pointSearch" :topic="exactTopic" />
         <TopicSearch v-model="topicSearch" v-model:unsorted="unsorted" :topic="exactTopic" />
         <button type="button" class="button outline" disabled>Review scheduling</button>
@@ -99,6 +101,7 @@ function openTopic(topic: MyTopic | null) {
       <div :id="`panel-${tab}`" class="panel" role="tabpanel" :aria-labelledby="`tab-${tab}`">
         <TopicsContainer v-if="tab === 'topics'" :topics="shownTopics" :show-unsorted="showUnsortedCard" @open="openTopic" />
         <PromptsContainer v-else-if="tab === 'prompts'" />
+        <SharedContainer v-else-if="tab === 'shared'" />
         <PointsContainer v-else :points="shown" :has-points="hasPoints" />
       </div>
     </template>

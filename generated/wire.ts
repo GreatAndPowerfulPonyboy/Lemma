@@ -194,7 +194,7 @@ export type LemmaWire = {
     output: {
       "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["delete"]>[0], ["check"]>>;
     };
-    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
   "/check/exclude": {
     input: {
@@ -243,9 +243,22 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
+  "/check/share": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["share"]>[0], ["item"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["share"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+    };
+    error: { error: AppWideError | "ALREADY_SHARED" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" | "NO_SUCH_USER" | "SHARE_WITH_SELF" };
+  };
   "/check/show": {
     input: {
-      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>]>>;
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
@@ -259,12 +272,30 @@ export type LemmaWire = {
         "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>>;
       } | null;
       "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      "recipients": {
+        "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      }[];
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
       }[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/check/unshare": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+    } | {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
   "/home": {
     input: {
@@ -356,6 +387,33 @@ export type LemmaWire = {
       "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>]>>;
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
+  };
+  "/shared": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "shared": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_sharedWith"]>>>, ["item"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+        "ownerUsername": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
+  };
+  "/shared/show": {
+    input: {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      "ownerUsername": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      "points": {
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/topic/create": {
     input: {
@@ -553,7 +611,7 @@ export type LemmaWireHttp = {
     output: {
       "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["delete"]>[0], ["check"]>>;
     };
-    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/check/exclude": {
     input: {
@@ -598,9 +656,21 @@ export type LemmaWireHttp = {
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
+  "/check/share": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["share"]>[0], ["item"]>]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["share"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/check/show": {
     input: {
-      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>]>>;
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
     };
     output: {
       "attempts": {
@@ -613,12 +683,29 @@ export type LemmaWireHttp = {
         "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>>;
       } | null;
       "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      "recipients": {
+        "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      }[];
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/check/unshare": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+    } | {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/home": {
     input: Record<string, never>;
@@ -700,6 +787,30 @@ export type LemmaWireHttp = {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["unplace"]>[0], ["item"]>>;
     } | {
       "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>]>>;
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/shared": {
+    input: Record<string, never>;
+    output: {
+      "shared": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sharing"]["_sharedWith"]>>>, ["item"]>]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+        "ownerUsername": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      }[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/shared/show": {
+    input: {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+    };
+    output: {
+      "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      "ownerUsername": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
+      "points": {
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
+      }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };

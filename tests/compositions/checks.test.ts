@@ -2,17 +2,7 @@ import {describe, expect, test} from "bun:test";
 import type {Session} from "../../src/concepts/Sessioning/Sessioning.ts";
 import {startLemma} from "../support/app.ts";
 import {ok} from "../support/reusable/results.ts";
-import {type Lemma, matthewWithTopics} from "../support/matthew.ts";
-
-/** Matthew's three points from two topics, in a prompt named "Explain Dijkstra". */
-async function matthewWithPrompt(lemma: Lemma) {
-  const {api} = lemma;
-  const matthew = await matthewWithTopics(lemma);
-  const {session} = matthew;
-  const {check} = ok(await api.check.open({session, name: "Explain Dijkstra"}));
-  for (const cue of [matthew.mitochondria, matthew.ribosomes, matthew.newton]) ok(await api.check.include({session, check, cue}));
-  return {...matthew, check};
-}
+import {matthewWithPrompt, matthewWithTopics} from "../support/matthew.ts";
 
 describe("Prompts", () => {
   test("Matthew attempts Explain Dijkstra, marks two of three points mentioned, and closes it with 2/3 credit", async () => {
@@ -35,6 +25,7 @@ describe("Prompts", () => {
       ],
       current: null,
       attempts: [{attempt, status: "CLOSED", credit: 2 / 3}],
+      recipients: [],
     });
     expect(ok(await api.attempt.show({session, attempt}))).toEqual({
       check,

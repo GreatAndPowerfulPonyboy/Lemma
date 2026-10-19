@@ -8,14 +8,22 @@ const { account } = defineProps<{ account: string | null }>();
 
 const { attempt, call, change, error, working, abandonAttempt, goHome } = useHome();
 
+/** A refusal usually means another tab finished the attempt, so reloading it shows where it stands now. */
+async function abandon() {
+  if (!(await abandonAttempt())) await load();
+}
+
 const shown = ref<AttemptShown | null>(null);
 
 /** Loads the attempt's points, split into mentioned and missed. */
 async function load() {
   if (attempt.value === null) return;
   const result = await call("/attempt/show", api.attempt.show({ attempt: attempt.value }));
-  if ("error" in result) error.value = result.error;
-  else shown.value = result;
+  // Its prompt may have been deleted in another tab; then only the sentence and "Back to home" are left.
+  if ("error" in result) {
+    error.value = result.error;
+    shown.value = null;
+  } else shown.value = result;
 }
 onMounted(load);
 
@@ -24,6 +32,8 @@ type Point = AttemptShown["subject"][number];
 /** Moves a point to the other list, reloading the attempt afterwards. */
 function mark(point: Point, as: "mentioned" | "missed") {
   if (attempt.value === null) return;
+  // The banner is about my last action; reloading the attempt doesn't clear it the way reloading the homepage does.
+  error.value = null;
   const request = { attempt: attempt.value, cue: point.cue };
   if (as === "mentioned") change("/attempt/mention", api.attempt.mention(request), load);
   else change("/attempt/omit", api.attempt.omit(request), load);
@@ -31,10 +41,12 @@ function mark(point: Point, as: "mentioned" | "missed") {
 
 /** Closes the attempt, which fixes its result. */
 function finish() {
+  error.value = null;
   if (attempt.value !== null) change("/attempt/close", api.attempt.close({ attempt: attempt.value }), load);
 }
 
-const finished = computed(() => shown.value?.status === "CLOSED");
+/** Closed here or in another tab, or abandoned in another tab: either way it can't be corrected any more. */
+const finished = computed(() => shown.value?.status === "CLOSED" || shown.value?.status === "ABANDONED");
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 </script>
 
@@ -42,6 +54,7 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
   <main class="screen content-width">
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="!shown && !error">Loading…</p>
+    <button v-if="!shown && error" type="button" class="button primary back" @click="goHome">Back to home</button>
     <template v-if="shown">
       <h1>{{ shown.checkName }}</h1>
       <div class="sides">
@@ -72,11 +85,12 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
         </section>
       </div>
       <div v-if="finished" class="buttons">
-        <p class="summary">You recalled {{ shown.mentioned.length }} of {{ plural(shown.subject.length, "point") }}</p>
+        <p v-if="shown.status === 'ABANDONED'" class="summary">This attempt was abandoned in another tab.</p>
+        <p v-else class="summary">You recalled {{ shown.mentioned.length }} of {{ plural(shown.subject.length, "point") }}</p>
         <button type="button" class="button primary" @click="goHome">Back to home</button>
       </div>
       <div v-else class="buttons">
-        <button type="button" class="button outline" :disabled="working" @click="abandonAttempt">Abandon</button>
+        <button type="button" class="button outline" :disabled="working" @click="abandon">Abandon</button>
         <button type="button" class="button primary" :disabled="working" @click="finish">Finish</button>
       </div>
     </template>
@@ -141,6 +155,9 @@ li {
   justify-content: flex-end;
   align-items: center;
   gap: var(--space-3);
+}
+.back {
+  align-self: flex-start;
 }
 .summary {
   margin-right: auto;

@@ -213,6 +213,28 @@ Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
 - `Sessioning` — instance of `Sessioning` — [Lemma types](../design/types.md), line 22.
   - `Subject` is `Registering.User` — [Lemma types](../design/types.md), line 23.
 
+### Sharing
+
+Defined in [Sharing](../design/concepts/Sharing.md), line 1.
+
+#### Actions
+
+- `share(item: Item, recipient: Person) : returns (item: Item, recipient: Person)`
+  - Refuses `ALREADY_SHARED`: This is already shared with that person.
+- `revoke(item: Item, recipient: Person) : returns (item: Item, recipient: Person)`
+  - Refuses `NOT_SHARED`: This is not shared with that person.
+
+#### Queries
+
+- `_recipients(item: Item) : many (recipient: Person)`
+- `_sharedWith(recipient: Person) : many (item: Item)`
+
+#### Instances
+
+- `Sharing` — instance of `Sharing` — [Lemma types](../design/types.md), line 35.
+  - `Item` is `RecallChecking.Check` — [Lemma types](../design/types.md), line 36.
+  - `Person` is `Registering.User` — [Lemma types](../design/types.md), line 37.
+
 ### SpacedRepetition
 
 Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
@@ -242,12 +264,23 @@ Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
+### (check) is shared with (user)
+
+Authored path: `access.permissions.sharedWith`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+
+```view
+(check) is shared with (user) — inputs (user, check); outputs (); bindings ()
+  where Sharing._recipients (item: check) has (recipient: user)
+```
+
 ### (user) owns check (check)
 
 Authored path: `access.permissions.ownsCheck`.
 - Covered by [Access](../design/compositions/access.md), line 8.
 - Covered by [Checks](../design/compositions/checks.md), line 27.
 - Covered by [Home](../design/compositions/home.md), line 9.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
 
 ```view
 (user) owns check (check) — inputs (user, check); outputs (); bindings ()
@@ -359,6 +392,22 @@ Former "the checks (user) owns" — inputs (user); bindings (check, name); promi
       name
 ```
 
+### the checks shared with (user)
+
+Authored path: `sharing.showing.sharedWithMe`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+
+```former
+Former "the checks shared with (user)" — inputs (user); bindings (check, name, owner, ownerUsername); promises exactly one record — forms:
+  each Sharing._sharedWith (recipient: user) has (item: check)
+    where RecallChecking._get (check) has (name, owner)
+    where Registering._username (user: owner) has (username: ownerUsername)
+    form a record of
+      check
+      name
+      ownerUsername
+```
+
 ### the points (user) owns
 
 Authored path: `home.showing.myPoints`.
@@ -403,6 +452,18 @@ Former "the points of (attempt)" — inputs (attempt); bindings (cue, pointName)
       pointName
 ```
 
+### the points of shared (check)
+
+Authored path: `sharing.showing.sharedPoints`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+
+```former
+Former "the points of shared (check)" — inputs (check); bindings (pointName); promises exactly one record — forms:
+  each RecallChecking._subject (check) has (name: pointName)
+    form a record of
+      pointName
+```
+
 ### the points omitted from (attempt)
 
 Authored path: `checks.showing.omittedIn`.
@@ -414,6 +475,19 @@ Former "the points omitted from (attempt)" — inputs (attempt); bindings (cue, 
     form a record of
       cue
       pointName
+```
+
+### the recipients of (check)
+
+Authored path: `sharing.showing.recipientsOf`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+
+```former
+Former "the recipients of (check)" — inputs (check); bindings (recipient, username); promises exactly one record — forms:
+  each Sharing._recipients (item: check) has (recipient)
+    where Registering._username (user: recipient) has (username)
+    form a record of
+      username
 ```
 
 ### the subject of (check)
@@ -1084,6 +1158,7 @@ then
 Authored path: `checks.opening.OpenCheck`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when RequestBoundary.request (name, path: "/check/open", requestId, session)
@@ -1096,6 +1171,7 @@ then
 Authored path: `checks.opening.OpenCheck`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.opening.OpenCheck
@@ -1110,6 +1186,7 @@ then
 Authored path: `checks.opening.OpenCheck`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when RecallChecking.open (name, owner: user, check), asked by checks.opening.OpenCheck#2
@@ -1244,7 +1321,7 @@ where
   view "(user) owns check (check)" with (check, user)
   RecallChecking._get (check) has (name)
 then
-  RequestBoundary.respond (attempts: former "the attempts of (check)" with (check), current: former "the current attempt of (check)" with (check), name, requestId, subject: former "the subject of (check)" with (check))
+  RequestBoundary.respond (attempts: former "the attempts of (check)" with (check), current: former "the current attempt of (check)" with (check), name, recipients: former "the recipients of (check)" with (check), requestId, subject: former "the subject of (check)" with (check))
 ```
 
 ### checks.showing.ShowCheck:refused#2
@@ -1371,6 +1448,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
@@ -1383,6 +1461,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
@@ -1400,6 +1479,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
@@ -1415,6 +1495,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
@@ -1431,6 +1512,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
@@ -1449,6 +1531,7 @@ then
 Authored path: `checks.subjects.IncludePoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Checks](../design/compositions/checks.md), line 8.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when RecallChecking.include (check, item: cue, name: pointName), asked by checks.subjects.IncludePoint:owner#2
@@ -1572,6 +1655,7 @@ then
 Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 4.
 - Covered by [Points](../design/compositions/points.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when RequestBoundary.request (name, path: "/point/create", requestId, session)
@@ -1584,6 +1668,7 @@ then
 Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 4.
 - Covered by [Points](../design/compositions/points.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by points.creating.CreatePoint
@@ -1598,6 +1683,7 @@ then
 Authored path: `points.creating.CreatePoint`.
 - Covered by [Points](../design/compositions/points.md), line 4.
 - Covered by [Points](../design/compositions/points.md), line 7.
+- Covered by [Sharing](../design/compositions/sharing.md), line 18.
 
 ```reaction
 when Cueing.create (creator: user, name, cue), asked by points.creating.CreatePoint#2
@@ -2054,6 +2140,288 @@ then
   RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
 ```
 
+### sharing.revoking.RevokeDeleted
+
+Authored path: `sharing.revoking.RevokeDeleted`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+
+```reaction
+when RecallChecking.delete (check)
+where
+  Sharing._recipients (item: check) has (recipient)
+then
+  Sharing.revoke (item: check, recipient)
+```
+
+### sharing.sharing.ShareCheck
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+then
+  Sessioning.use (session)
+```
+
+### sharing.sharing.ShareCheck:no-user#2
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.ShareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  no Registering._byUsername (username)
+then
+  RequestBoundary.respond (error: "NO_SUCH_USER", requestId)
+```
+
+### sharing.sharing.ShareCheck:owner#2
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.ShareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  Registering._byUsername (username) has (user: recipient)
+  no Registering._byUsername (username) has (user)
+  no Sharing._recipients (item: check) has (recipient)
+then
+  Sharing.share (item: check, recipient)
+```
+
+### sharing.sharing.ShareCheck:owner#3
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sharing.share (item: check, recipient), asked by sharing.sharing.ShareCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.ShareCheck:refused#2
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.ShareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### sharing.sharing.ShareCheck:self#2
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.ShareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  Registering._byUsername (username) has (user)
+then
+  RequestBoundary.respond (error: "SHARE_WITH_SELF", requestId)
+```
+
+### sharing.sharing.ShareCheck:shared#2
+
+Authored path: `sharing.sharing.ShareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.ShareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/share", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  Registering._byUsername (username) has (user: recipient)
+  Sharing._recipients (item: check) has (recipient)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.UnshareCheck
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+then
+  Sessioning.use (session)
+```
+
+### sharing.sharing.UnshareCheck:no-user#2
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.UnshareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  no Registering._byUsername (username)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.UnshareCheck:not-shared#2
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.UnshareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  Registering._byUsername (username) has (user: recipient)
+  no Sharing._recipients (item: check) has (recipient)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.UnshareCheck:owner#2
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.UnshareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+  view "(user) owns check (check)" with (check, user)
+  Registering._byUsername (username) has (user: recipient)
+  Sharing._recipients (item: check) has (recipient)
+then
+  Sharing.revoke (item: check, recipient)
+```
+
+### sharing.sharing.UnshareCheck:owner#3
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when Sharing.revoke (item: check, recipient), asked by sharing.sharing.UnshareCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.UnshareCheck:refused#2
+
+Authored path: `sharing.sharing.UnshareCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 4.
+- Covered by [Sharing](../design/compositions/sharing.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.UnshareCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/unshare", requestId, session, username)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### sharing.showing.ShowShared
+
+Authored path: `sharing.showing.ShowShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+- Covered by [Sharing](../design/compositions/sharing.md), line 14.
+
+```reaction
+when RequestBoundary.request (path: "/shared", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### sharing.showing.ShowShared#2
+
+Authored path: `sharing.showing.ShowShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+- Covered by [Sharing](../design/compositions/sharing.md), line 14.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.showing.ShowShared
+where
+  earlier, RequestBoundary.request (path: "/shared", requestId, session)
+then
+  RequestBoundary.respond (requestId, shared: former "the checks shared with (user)" with (user))
+```
+
+### sharing.showing.ShowSharedCheck
+
+Authored path: `sharing.showing.ShowSharedCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+- Covered by [Sharing](../design/compositions/sharing.md), line 15.
+
+```reaction
+when RequestBoundary.request (check, path: "/shared/show", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### sharing.showing.ShowSharedCheck:recipient#2
+
+Authored path: `sharing.showing.ShowSharedCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+- Covered by [Sharing](../design/compositions/sharing.md), line 15.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.showing.ShowSharedCheck
+where
+  earlier, RequestBoundary.request (check, path: "/shared/show", requestId, session)
+  view "(check) is shared with (user)" with (check, user)
+  RecallChecking._get (check) has (name, owner)
+  Registering._username (user: owner) has (username: ownerUsername)
+then
+  RequestBoundary.respond (name, ownerUsername, points: former "the points of shared (check)" with (check), requestId)
+```
+
+### sharing.showing.ShowSharedCheck:refused#2
+
+Authored path: `sharing.showing.ShowSharedCheck`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 11.
+- Covered by [Sharing](../design/compositions/sharing.md), line 15.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.showing.ShowSharedCheck
+where
+  earlier, RequestBoundary.request (check, path: "/shared/show", requestId, session)
+  no view "(check) is shared with (user)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
 ### topics.creating.CreateTopic
 
 Authored path: `topics.creating.CreateTopic`.
@@ -2233,7 +2601,9 @@ not listed here have no explicit input contract.
 - `/check/include` — requires `check`, `cue`, `session`
 - `/check/open` — requires `name`, `session`
 - `/check/rename` — requires `check`, `name`, `session`
+- `/check/share` — requires `check`, `session`, `username`
 - `/check/show` — requires `check`, `session`
+- `/check/unshare` — requires `check`, `session`, `username`
 - `/home` — requires `session`
 - `/point/create` — requires `name`, `session`
 - `/point/createIn` — requires `category`, `name`, `session`
@@ -2241,6 +2611,8 @@ not listed here have no explicit input contract.
 - `/point/move` — requires `cue`, `incidentCategory`, `session`
 - `/point/rename` — requires `cue`, `name`, `session`
 - `/point/unplace` — requires `cue`, `session`
+- `/shared` — requires `session`
+- `/shared/show` — requires `check`, `session`
 - `/topic/create` — requires `name`, `session`
 - `/topic/delete` — requires `category`, `session`
 - `/topic/rename` — requires `category`, `newName`, `session`

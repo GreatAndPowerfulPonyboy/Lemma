@@ -9,10 +9,11 @@ import {composition as points} from "./compositions/points.ts";
 import {composition as home} from "./compositions/home.ts";
 import {composition as cards} from "./compositions/cards.ts";
 import {composition as checks} from "./compositions/checks.ts";
+import {composition as sharing} from "./compositions/sharing.ts";
 export function assembleApplication(resources: {database: Db}) {
   return assemble({
     conceptSet: applicationConceptSet,
     instances:applicationConceptSet.implementations("mongo",resources),
-    composition: {reusable: {accounts, passwords}, access, topics, points, home, cards, checks}
+    composition: {reusable: {accounts, passwords}, access, topics, points, home, cards, checks, sharing}
   });
 }

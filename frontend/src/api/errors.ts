@@ -32,6 +32,13 @@ const messages: Record<string, Record<string, string>> = {
   "/attempt/close": { CONFLICT: "This attempt can't be closed now.", NOT_FOUND: noAttempt },
   "/attempt/abandon": { CONFLICT: "This attempt is already finished.", NOT_FOUND: noAttempt },
   "/attempt/show": { NOT_FOUND: noAttempt },
+  "/check/share": {
+    INVALID_REQUEST: "There's no user with that username.",
+    CONFLICT: "You can't share a prompt with yourself.",
+    NOT_FOUND: noPrompt,
+  },
+  "/check/unshare": { NOT_FOUND: noPrompt },
+  "/shared/show": { NOT_FOUND: "That prompt isn't shared with you anymore." },
 };
 
 /** The sentence to show when the endpoint at `path` returns `error`. */

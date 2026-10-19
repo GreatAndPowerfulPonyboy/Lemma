@@ -1,7 +1,7 @@
 import {no, view, where} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
 
-const {Cueing, Categorizing, RecallChecking} = concepts;
+const {Cueing, Categorizing, RecallChecking, Sharing} = concepts;
 
 /** In Lemma, whoever created a topic  owns it. */
 
@@ -27,6 +27,12 @@ export const ownsAttempt = view("(user) owns attempt (attempt)", ( {user, attemp
   where(RecallChecking._attempt({attempt}).is({check}), ownsCheck({user, check})),
 ).holds();
 
+/** In Lemma, a check is shared with a user while its owner has shared it with them and hasn't taken it back. */
+
+export const sharedWith = view("(check) is shared with (user)", ( {user, check} ) =>
+  where(Sharing._recipients({item: check}).is({recipient: user})),
+).holds();
+
 export const composition = {
-  permissions: {ownsTopic, ownsPoint, ownsCheck, ownsAttempt},
+  permissions: {ownsTopic, ownsPoint, ownsCheck, ownsAttempt, sharedWith},
 };

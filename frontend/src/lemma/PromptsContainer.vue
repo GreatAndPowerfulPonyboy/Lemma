@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
+import ShareDialog from "./ShareDialog.vue";
 import { useHome, type CheckShown, type MyCheck } from "./useLemma.ts";
 
 const { home, working, call, change, error, recentCheck, startAttempt, resume } = useHome();
@@ -90,6 +91,9 @@ async function saveRename(prompt: MyCheck) {
 /** The prompt the dialog asks me to confirm deleting, since its attempts go with it. */
 const deleting = ref<MyCheck | null>(null);
 
+/** The prompt the Share dialog is open for, if any. */
+const sharing = ref<MyCheck | null>(null);
+
 async function confirmDelete() {
   const prompt = deleting.value;
   if (!prompt) return;
@@ -120,6 +124,7 @@ async function confirmDelete() {
             </button>
             <Menu label="Edit prompt">
               <button type="button" @click="startRename(prompt)">Rename</button>
+              <button type="button" @click="sharing = prompt">Share…</button>
               <button type="button" @click="deleting = prompt">Delete</button>
             </Menu>
           </div>
@@ -148,6 +153,7 @@ async function confirmDelete() {
     </ul>
     <h4 v-else class="content-width">No prompts yet. Select points and choose Recall selected.</h4>
 
+    <ShareDialog v-if="sharing" :prompt="sharing" @close="sharing = null" />
     <Dialog v-if="deleting" title="Delete this prompt?" :subtitle="deleting.name" @close="deleting = null">
       <p>Its attempts will be deleted too. Its points stay.</p>
       <div class="dialog-buttons">

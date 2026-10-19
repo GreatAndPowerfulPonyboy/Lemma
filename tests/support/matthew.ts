@@ -25,3 +25,13 @@ export async function matthewWithTopics(lemma: Lemma) {
   ok(await api.point.move({session, cue: matthew.newton, incidentCategory: physics}));
   return {...matthew, biology, physics};
 }
+
+/** Matthew's three points from two topics, in a prompt named "Explain Dijkstra". */
+export async function matthewWithPrompt(lemma: Lemma) {
+  const {api} = lemma;
+  const matthew = await matthewWithTopics(lemma);
+  const {session} = matthew;
+  const {check} = ok(await api.check.open({session, name: "Explain Dijkstra"}));
+  for (const cue of [matthew.mitochondria, matthew.ribosomes, matthew.newton]) ok(await api.check.include({session, check, cue}));
+  return {...matthew, check};
+}
