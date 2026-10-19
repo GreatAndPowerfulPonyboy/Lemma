@@ -30,18 +30,21 @@ a set of Checks with
   an owner User
   a name String
   a subject set of Items
+  an itemNames seq of String
 
 a set of Attempts with
   a check Check
   a status AttemptStatus
   a subject set of Items
+  an itemNames seq of String
   a mentioned set of Items
   an omitted set of Items
   an optional rating Number
   a credit Number
 
 Rule: a check's name is stored trimmed, and is never blank or longer than 80 characters.
-Rule: an attempt's subject is the check's subject when the attempt began; later changes to the check don't change it.
+Rule: itemNames holds the name of each item in subject, in the same order.
+Rule: an attempt's subject and item names are the check's when the attempt began; later changes to the check don't change them.
 Rule: a check has at most one attempt that is OPEN or GRADED.
 Rule: an OPEN attempt has no mentioned or omitted items; in any other attempt, mentioned and omitted partition its subject.
 Rule: rating and credit are between 0 and 1, and credit is 0 until the attempt is CLOSED.
@@ -72,7 +75,7 @@ rename(check: Check, name: String) : returns (check: Check)
     set the name of check to the trimmed name
     returns check
 
-include(check: Check, item: Item) : returns (check: Check)
+include(check: Check, item: Item, name: String) : returns (check: Check)
   where check is not in Checks
   then
     refuses CHECK_NOT_FOUND "There is no such check."
@@ -81,7 +84,7 @@ include(check: Check, item: Item) : returns (check: Check)
     refuses ALREADY_INCLUDED "That item is already in this check."
   where check is in Checks and item is not in its subject
   then
-    add item to the subject of check
+    add item to the subject of check, with name as its name
     returns check
 
 exclude(check: Check, item: Item) : returns (check: Check)
@@ -93,8 +96,14 @@ exclude(check: Check, item: Item) : returns (check: Check)
     refuses NOT_INCLUDED "That item isn't in this check."
   where check is in Checks and item is in its subject
   then
-    remove item from the subject of check
+    remove item and its name from the subject of check
     returns check
+
+relabel(item: Item, name: String) : returns (item: Item)
+  where any checks include item, or none do
+  then
+    set the name of item in the subject of every check that includes it
+    returns item
 
 delete(check: Check) : returns (check: Check)
   where check is not in Checks
@@ -114,7 +123,7 @@ attempt(check: Check) : returns (attempt: Attempt)
     refuses ATTEMPT_IN_PROGRESS "Finish or abandon the current attempt first."
   where check is in Checks and no attempt of it is OPEN or GRADED
   then
-    add a new OPEN attempt of check with the check's subject, no mentioned or omitted items, no rating, and credit 0
+    add a new OPEN attempt of check with the check's subject and item names, no mentioned or omitted items, no rating, and credit 0
     returns attempt
 
 submit(attempt: Attempt) : returns (attempt: Attempt)
@@ -220,8 +229,8 @@ _checks(owner: User) : many (check: Check, name: String)
 _get(check: Check) : optional (owner: User, name: String)
   Returns the check's owner and name, or no row when the check is not in Checks.
 
-_subject(check: Check) : many (item: Item)
-  Returns each item in the subject of the check, in the order they were included, or no rows when it has none or is unknown.
+_subject(check: Check) : many (item: Item, name: String)
+  Returns each item in the subject of the check with its name, in the order they were included, or no rows when it has none or is unknown.
 
 _including(item: Item) : many (check: Check)
   Returns each check whose subject includes the item, or no rows when there are none.
@@ -235,12 +244,12 @@ _current(check: Check) : optional (attempt: Attempt, status: AttemptStatus)
 _attempt(attempt: Attempt) : optional (check: Check, status: AttemptStatus, credit: Number)
   Returns the attempt's check, status and credit, or no row when the attempt is not in Attempts.
 
-_attemptSubject(attempt: Attempt) : many (item: Item)
-  Returns each item in the subject of the attempt, in the order they were included, or no rows when it has none or is unknown.
+_attemptSubject(attempt: Attempt) : many (item: Item, name: String)
+  Returns each item in the subject of the attempt with the name it had when the attempt began, in the order they were included, or no rows when it has none or is unknown.
 
-_mentioned(attempt: Attempt) : many (item: Item)
-  Returns each mentioned item of the attempt, in the order they were included, or no rows when there are none or the attempt is OPEN or unknown.
+_mentioned(attempt: Attempt) : many (item: Item, name: String)
+  Returns each mentioned item of the attempt with its name, in the order they were included, or no rows when there are none or the attempt is OPEN or unknown.
 
-_omitted(attempt: Attempt) : many (item: Item)
-  Returns each omitted item of the attempt, in the order they were included, or no rows when there are none or the attempt is OPEN or unknown.
+_omitted(attempt: Attempt) : many (item: Item, name: String)
+  Returns each omitted item of the attempt with its name, in the order they were included, or no rows when there are none or the attempt is OPEN or unknown.
 ```

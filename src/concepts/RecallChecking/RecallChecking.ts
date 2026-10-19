@@ -21,20 +21,26 @@ export type AttemptStatus = "OPEN" | "GRADED" | "CLOSED" | "ABANDONED";
 const MAX_NAME = 80;
 const UNFINISHED: AttemptStatus[] = ["OPEN", "GRADED"];
 
+/** An item in a subject, with the name it is shown by. */
+interface Entry<Item> {
+  item: Item;
+  name: string;
+}
+
 interface CheckDocument<User, Item> {
   _id: Check;
   owner: User;
   name: string;
   /** In the order the items were included. */
-  subject: Item[];
+  subject: Entry<Item>[];
 }
 
 interface AttemptDocument<Item> {
   _id: Attempt;
   check: Check;
   status: AttemptStatus;
-  /** A copy of the check's subject when the attempt began; mentioned and omitted are read back in its order. */
-  subject: Item[];
+  /** A copy of the check's subject, names included, when the attempt began; mentioned and omitted are read back in its order. */
+  subject: Entry<Item>[];
   mentioned: Item[];
   omitted: Item[];
   rating?: number;
@@ -61,7 +67,7 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
   #ready() {
     this.indexes ??= Promise.all([
       this.checks.createIndex({ owner: 1 }),
-      this.checks.createIndex({ subject: 1 }),
+      this.checks.createIndex({ "subject.item": 1 }),
       this.attempts.createIndex({ check: 1 }),
     ]).catch((error: unknown) => {
       this.indexes = undefined;
@@ -87,18 +93,30 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
     return { check };
   }
 
-  async include({ check, item }: { check: Check; item: Item }) {
+  async include({ check, item, name }: { check: Check; item: Item; name: string }) {
     const found = await this.#check(check);
-    if (found.subject.includes(item)) throw new AlreadyIncluded("That item is already in this check.");
-    await this.checks.updateOne({ _id: check }, { $set: { subject: [...found.subject, item] } });
+    if (includes(found.subject, item)) throw new AlreadyIncluded("That item is already in this check.");
+    await this.checks.updateOne({ _id: check }, { $set: { subject: [...found.subject, { item, name }] } });
     return { check };
   }
 
   async exclude({ check, item }: { check: Check; item: Item }) {
     const found = await this.#check(check);
-    if (!found.subject.includes(item)) throw new NotIncluded("That item isn't in this check.");
-    await this.checks.updateOne({ _id: check }, { $set: { subject: found.subject.filter((other) => other !== item) } });
+    if (!includes(found.subject, item)) throw new NotIncluded("That item isn't in this check.");
+    await this.checks.updateOne({ _id: check }, { $set: { subject: found.subject.filter((entry) => entry.item !== item) } });
     return { check };
+  }
+
+  /** Renames the item in every check that includes it. Attempts keep the names they began with. */
+  async relabel({ item, name }: { item: Item; name: string }) {
+    await this.#ready();
+    // `$[entry]` updates each element the array filter matches, in every matching check.
+    await this.checks.updateMany(
+      { "subject.item": item },
+      { $set: { "subject.$[entry].name": name } },
+      { arrayFilters: [{ "entry.item": item }] },
+    );
+    return { item };
   }
 
   async delete({ check }: { check: Check }) {
@@ -126,7 +144,10 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
   async submit({ attempt }: { attempt: Attempt }) {
     const found = await this.#attempt(attempt);
     if (found.status !== "OPEN") throw new NotOpen("This attempt has already been submitted.");
-    await this.attempts.updateOne({ _id: attempt }, { $set: { status: "GRADED", omitted: found.subject, mentioned: [] } });
+    await this.attempts.updateOne(
+      { _id: attempt },
+      { $set: { status: "GRADED", omitted: found.subject.map(({ item }) => item), mentioned: [] } },
+    );
     return { attempt };
   }
 
@@ -189,12 +210,12 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
 
   async _subject({ check }: { check: Check }) {
     const found = await this.checks.findOne({ _id: check });
-    return (found?.subject ?? []).map((item) => ({ item }));
+    return found?.subject ?? [];
   }
 
   async _including({ item }: { item: Item }) {
-    // On an array field, MongoDB matches a document when any element equals the value.
-    const found = await this.checks.find({ subject: item }).sort({ _id: -1 }).toArray();
+    // On an array of documents, MongoDB matches a check when any element's item equals the value.
+    const found = await this.checks.find({ "subject.item": item }).sort({ _id: -1 }).toArray();
     return found.map(({ _id }) => ({ check: _id }));
   }
 
@@ -215,7 +236,7 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
 
   async _attemptSubject({ attempt }: { attempt: Attempt }) {
     const found = await this.attempts.findOne({ _id: attempt });
-    return (found?.subject ?? []).map((item) => ({ item }));
+    return found?.subject ?? [];
   }
 
   async _mentioned({ attempt }: { attempt: Attempt }) {
@@ -246,7 +267,7 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
   async #correctable(attempt: Attempt, item: Item) {
     const found = await this.#attempt(attempt);
     if (found.status !== "GRADED") throw new NotGraded("This attempt can't be corrected now.");
-    if (!found.subject.includes(item)) throw new NotInSubject("That item isn't part of this attempt.");
+    if (!includes(found.subject, item)) throw new NotInSubject("That item isn't part of this attempt.");
     return found;
   }
 }
@@ -262,8 +283,12 @@ function without<Item>(items: Item[], item: Item): Item[] {
   return items.filter((other) => other !== item);
 }
 
+function includes<Item>(subject: Entry<Item>[], item: Item): boolean {
+  return subject.some((entry) => entry.item === item);
+}
+
 function inSubjectOrder<Item>(attempt: AttemptDocument<Item>, items: Item[]) {
-  return attempt.subject.filter((item) => items.includes(item)).map((item) => ({ item }));
+  return attempt.subject.filter(({ item }) => items.includes(item));
 }
 
 const checkNotFound = () => new CheckNotFound("There is no such check.");

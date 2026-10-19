@@ -123,12 +123,13 @@ Defined in [RecallChecking](../design/concepts/RecallChecking.md), line 1.
 - `rename(check: Check, name: String) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
   - Refuses `INVALID_NAME`: A check name must have 1 to 80 characters.
-- `include(check: Check, item: Item) : returns (check: Check)`
+- `include(check: Check, item: Item, name: String) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
   - Refuses `ALREADY_INCLUDED`: That item is already in this check.
 - `exclude(check: Check, item: Item) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
   - Refuses `NOT_INCLUDED`: That item isn't in this check.
+- `relabel(item: Item, name: String) : returns (item: Item)`
 - `delete(check: Check) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
 - `attempt(check: Check) : returns (attempt: Attempt)`
@@ -161,14 +162,14 @@ Defined in [RecallChecking](../design/concepts/RecallChecking.md), line 1.
 
 - `_checks(owner: User) : many (check: Check, name: String)`
 - `_get(check: Check) : optional (owner: User, name: String)`
-- `_subject(check: Check) : many (item: Item)`
+- `_subject(check: Check) : many (item: Item, name: String)`
 - `_including(item: Item) : many (check: Check)`
 - `_attempts(check: Check) : many (attempt: Attempt, status: AttemptStatus, credit: Number)`
 - `_current(check: Check) : optional (attempt: Attempt, status: AttemptStatus)`
 - `_attempt(attempt: Attempt) : optional (check: Check, status: AttemptStatus, credit: Number)`
-- `_attemptSubject(attempt: Attempt) : many (item: Item)`
-- `_mentioned(attempt: Attempt) : many (item: Item)`
-- `_omitted(attempt: Attempt) : many (item: Item)`
+- `_attemptSubject(attempt: Attempt) : many (item: Item, name: String)`
+- `_mentioned(attempt: Attempt) : many (item: Item, name: String)`
+- `_omitted(attempt: Attempt) : many (item: Item, name: String)`
 
 #### Instances
 
@@ -241,11 +242,37 @@ Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
+### (user) owns check (check)
+
+Authored path: `access.permissions.ownsCheck`.
+- Covered by [Access](../design/compositions/access.md), line 8.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Home](../design/compositions/home.md), line 9.
+
+```view
+(user) owns check (check) — inputs (user, check); outputs (); bindings ()
+  where RecallChecking._get (check) has (owner: user)
+```
+
+### (user) owns attempt (attempt)
+
+Authored path: `access.permissions.ownsAttempt`.
+- Covered by [Access](../design/compositions/access.md), line 8.
+- Covered by [Checks](../design/compositions/checks.md), line 14.
+
+```view
+(user) owns attempt (attempt) — inputs (user, attempt); outputs (); bindings (check)
+  where
+    RecallChecking._attempt (attempt) has (check)
+    view "(user) owns check (check)" with (check, user)
+```
+
 ### (user) owns point (cue)
 
 Authored path: `access.permissions.ownsPoint`.
 - Covered by [Access](../design/compositions/access.md), line 3.
 - Covered by [Cards](../design/compositions/cards.md), line 7.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
 - Covered by [Home](../design/compositions/home.md), line 2.
 - Covered by [Points](../design/compositions/points.md), line 10.
 - Covered by [Points](../design/compositions/points.md), line 16.
@@ -277,6 +304,20 @@ Authored path: `access.permissions.ownsTopic`.
 _Formers name result shapes evaluated when asked. The source former owns_
 _the authored explanation; this section records the generated shape._
 
+### the attempts of (check)
+
+Authored path: `checks.showing.attemptsOf`.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+
+```former
+Former "the attempts of (check)" — inputs (check); bindings (attempt, status, credit); promises exactly one record — forms:
+  each RecallChecking._attempts (check) has (attempt, credit, status)
+    form a record of
+      attempt
+      credit
+      status
+```
+
 ### the card of (cue)
 
 Authored path: `cards.showing.cardOf`.
@@ -289,6 +330,32 @@ Former "the card of (cue)" — inputs (cue); bindings (name, answer); promises e
     form a record of
       answer
       name
+```
+
+### the checks (user) owns
+
+Authored path: `home.showing.myChecks`.
+- Covered by [Home](../design/compositions/home.md), line 9.
+
+```former
+Former "the checks (user) owns" — inputs (user); bindings (check, name); promises exactly one record — forms:
+  each RecallChecking._checks (owner: user) has (check, name)
+    form a record of
+      check
+      name
+```
+
+### the current attempt of (check)
+
+Authored path: `checks.showing.currentAttemptOf`.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+
+```former
+Former "the current attempt of (check)" — inputs (check); bindings (attempt, status); promises at most one record — forms:
+  a record of
+    where RecallChecking._current (check) has (attempt, status)
+    attempt
+    status
 ```
 
 ### the points (user) owns
@@ -307,6 +374,58 @@ Former "the points (user) owns" — inputs (user); bindings (category, cue, poin
       cue
       pointName
       topicName
+```
+
+### the points mentioned in (attempt)
+
+Authored path: `checks.showing.mentionedIn`.
+- Covered by [Checks](../design/compositions/checks.md), line 15.
+
+```former
+Former "the points mentioned in (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
+  each RecallChecking._mentioned (attempt) has (item: cue, name: pointName)
+    form a record of
+      cue
+      pointName
+```
+
+### the points of (attempt)
+
+Authored path: `checks.showing.attemptPoints`.
+- Covered by [Checks](../design/compositions/checks.md), line 15.
+
+```former
+Former "the points of (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
+  each RecallChecking._attemptSubject (attempt) has (item: cue, name: pointName)
+    form a record of
+      cue
+      pointName
+```
+
+### the points omitted from (attempt)
+
+Authored path: `checks.showing.omittedIn`.
+- Covered by [Checks](../design/compositions/checks.md), line 15.
+
+```former
+Former "the points omitted from (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
+  each RecallChecking._omitted (attempt) has (item: cue, name: pointName)
+    form a record of
+      cue
+      pointName
+```
+
+### the subject of (check)
+
+Authored path: `checks.showing.subjectOf`.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+
+```former
+Former "the subject of (check)" — inputs (check); bindings (cue, pointName); promises exactly one record — forms:
+  each RecallChecking._subject (check) has (item: cue, name: pointName)
+    form a record of
+      cue
+      pointName
 ```
 
 ### the topics (user) owns
@@ -567,6 +686,790 @@ then
   RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
+### checks.attempting.AbandonAttempt
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.AbandonAttempt:owner#2
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.AbandonAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RecallChecking.abandon (attempt)
+```
+
+### checks.attempting.AbandonAttempt:owner#3
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
+
+```reaction
+when RecallChecking.abandon (attempt), asked by checks.attempting.AbandonAttempt:owner#2
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+then
+  RequestBoundary.respond (attempt, requestId)
+```
+
+### checks.attempting.AbandonAttempt:refused#2
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.AbandonAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.attempting.CloseAttempt
+
+Authored path: `checks.attempting.CloseAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/attempt/close", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.CloseAttempt:owner#2
+
+Authored path: `checks.attempting.CloseAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.CloseAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/close", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RecallChecking.close (attempt)
+```
+
+### checks.attempting.CloseAttempt:owner#3
+
+Authored path: `checks.attempting.CloseAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
+
+```reaction
+when RecallChecking.close (attempt, credit), asked by checks.attempting.CloseAttempt:owner#2
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/close", requestId, session)
+then
+  RequestBoundary.respond (credit, requestId)
+```
+
+### checks.attempting.CloseAttempt:refused#2
+
+Authored path: `checks.attempting.CloseAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.CloseAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/close", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.attempting.MentionPoint
+
+Authored path: `checks.attempting.MentionPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
+
+```reaction
+when RequestBoundary.request (attempt, cue, path: "/attempt/mention", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.MentionPoint:owner#2
+
+Authored path: `checks.attempting.MentionPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.MentionPoint
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/mention", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RecallChecking.mention (attempt, item: cue)
+```
+
+### checks.attempting.MentionPoint:owner#3
+
+Authored path: `checks.attempting.MentionPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
+
+```reaction
+when RecallChecking.mention (attempt, item: cue), asked by checks.attempting.MentionPoint:owner#2
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/mention", requestId, session)
+then
+  RequestBoundary.respond (attempt, requestId)
+```
+
+### checks.attempting.MentionPoint:refused#2
+
+Authored path: `checks.attempting.MentionPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.MentionPoint
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/mention", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.attempting.OmitPoint
+
+Authored path: `checks.attempting.OmitPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
+
+```reaction
+when RequestBoundary.request (attempt, cue, path: "/attempt/omit", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.OmitPoint:owner#2
+
+Authored path: `checks.attempting.OmitPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.OmitPoint
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/omit", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RecallChecking.omit (attempt, item: cue)
+```
+
+### checks.attempting.OmitPoint:owner#3
+
+Authored path: `checks.attempting.OmitPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
+
+```reaction
+when RecallChecking.omit (attempt, item: cue), asked by checks.attempting.OmitPoint:owner#2
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/omit", requestId, session)
+then
+  RequestBoundary.respond (attempt, requestId)
+```
+
+### checks.attempting.OmitPoint:refused#2
+
+Authored path: `checks.attempting.OmitPoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.OmitPoint
+where
+  earlier, RequestBoundary.request (attempt, cue, path: "/attempt/omit", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.attempting.StartAttempt
+
+Authored path: `checks.attempting.StartAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 18.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/attempt", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.StartAttempt:owner#2
+
+Authored path: `checks.attempting.StartAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 18.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
+where
+  earlier, RequestBoundary.request (check, path: "/check/attempt", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+then
+  RecallChecking.attempt (check)
+```
+
+### checks.attempting.StartAttempt:owner#3
+
+Authored path: `checks.attempting.StartAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 18.
+
+```reaction
+when RecallChecking.attempt (check, attempt), asked by checks.attempting.StartAttempt:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/attempt", requestId, session)
+then
+  RequestBoundary.respond (attempt, requestId)
+```
+
+### checks.attempting.StartAttempt:refused#2
+
+Authored path: `checks.attempting.StartAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 18.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
+where
+  earlier, RequestBoundary.request (check, path: "/check/attempt", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.attempting.SubmitAttempt
+
+Authored path: `checks.attempting.SubmitAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/attempt/submit", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.attempting.SubmitAttempt:owner#2
+
+Authored path: `checks.attempting.SubmitAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.SubmitAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/submit", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RecallChecking.submit (attempt)
+```
+
+### checks.attempting.SubmitAttempt:owner#3
+
+Authored path: `checks.attempting.SubmitAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
+
+```reaction
+when RecallChecking.submit (attempt), asked by checks.attempting.SubmitAttempt:owner#2
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/submit", requestId, session)
+then
+  RequestBoundary.respond (attempt, requestId)
+```
+
+### checks.attempting.SubmitAttempt:refused#2
+
+Authored path: `checks.attempting.SubmitAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.SubmitAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/submit", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.deleting.DeleteCheck
+
+Authored path: `checks.deleting.DeleteCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/delete", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.deleting.DeleteCheck:owner#2
+
+Authored path: `checks.deleting.DeleteCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.deleting.DeleteCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/delete", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+then
+  RecallChecking.delete (check)
+```
+
+### checks.deleting.DeleteCheck:owner#3
+
+Authored path: `checks.deleting.DeleteCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
+
+```reaction
+when RecallChecking.delete (check), asked by checks.deleting.DeleteCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/delete", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.deleting.DeleteCheck:refused#2
+
+Authored path: `checks.deleting.DeleteCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.deleting.DeleteCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/delete", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.opening.OpenCheck
+
+Authored path: `checks.opening.OpenCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 7.
+
+```reaction
+when RequestBoundary.request (name, path: "/check/open", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.opening.OpenCheck#2
+
+Authored path: `checks.opening.OpenCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.opening.OpenCheck
+where
+  earlier, RequestBoundary.request (name, path: "/check/open", requestId, session)
+then
+  RecallChecking.open (name, owner: user)
+```
+
+### checks.opening.OpenCheck#3
+
+Authored path: `checks.opening.OpenCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 7.
+
+```reaction
+when RecallChecking.open (name, owner: user, check), asked by checks.opening.OpenCheck#2
+where
+  earlier, RequestBoundary.request (name, path: "/check/open", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.renaming.RenameCheck
+
+Authored path: `checks.renaming.RenameCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 31.
+
+```reaction
+when RequestBoundary.request (check, name, path: "/check/rename", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.renaming.RenameCheck:owner#2
+
+Authored path: `checks.renaming.RenameCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 31.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.renaming.RenameCheck
+where
+  earlier, RequestBoundary.request (check, name, path: "/check/rename", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+then
+  RecallChecking.rename (check, name)
+```
+
+### checks.renaming.RenameCheck:owner#3
+
+Authored path: `checks.renaming.RenameCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 31.
+
+```reaction
+when RecallChecking.rename (check, name), asked by checks.renaming.RenameCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, name, path: "/check/rename", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.renaming.RenameCheck:refused#2
+
+Authored path: `checks.renaming.RenameCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 31.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.renaming.RenameCheck
+where
+  earlier, RequestBoundary.request (check, name, path: "/check/rename", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.showing.ShowAttempt
+
+Authored path: `checks.showing.ShowAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/attempt/show", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.showing.ShowAttempt:owner#2
+
+Authored path: `checks.showing.ShowAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.showing.ShowAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/show", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+  RecallChecking._attempt (attempt) has (check, credit, status)
+  RecallChecking._get (check) has (name: checkName)
+then
+  RequestBoundary.respond (check, checkName, credit, mentioned: former "the points mentioned in (attempt)" with (attempt), omitted: former "the points omitted from (attempt)" with (attempt), requestId, status, subject: former "the points of (attempt)" with (attempt))
+```
+
+### checks.showing.ShowAttempt:refused#2
+
+Authored path: `checks.showing.ShowAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.showing.ShowAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/show", requestId, session)
+  no view "(user) owns attempt (attempt)" with (attempt, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.showing.ShowCheck
+
+Authored path: `checks.showing.ShowCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/show", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.showing.ShowCheck:owner#2
+
+Authored path: `checks.showing.ShowCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.showing.ShowCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/show", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  RecallChecking._get (check) has (name)
+then
+  RequestBoundary.respond (attempts: former "the attempts of (check)" with (check), current: former "the current attempt of (check)" with (check), name, requestId, subject: former "the subject of (check)" with (check))
+```
+
+### checks.showing.ShowCheck:refused#2
+
+Authored path: `checks.showing.ShowCheck`.
+- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.showing.ShowCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/show", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.subjects.ExcludeDeleted
+
+Authored path: `checks.subjects.ExcludeDeleted`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+
+```reaction
+when Cueing.delete (cue)
+where
+  RecallChecking._including (item: cue) has (check)
+then
+  RecallChecking.exclude (check, item: cue)
+```
+
+### checks.subjects.ExcludePoint
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.subjects.ExcludePoint:excluded#2
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.ExcludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  view "(user) owns point (cue)" with (cue, user)
+  no RecallChecking._subject (check) has (item: cue)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.subjects.ExcludePoint:no-check#2
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.ExcludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.subjects.ExcludePoint:no-point#2
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.ExcludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.subjects.ExcludePoint:owner#2
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.ExcludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  view "(user) owns point (cue)" with (cue, user)
+  RecallChecking._subject (check) has (item: cue)
+then
+  RecallChecking.exclude (check, item: cue)
+```
+
+### checks.subjects.ExcludePoint:owner#3
+
+Authored path: `checks.subjects.ExcludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 9.
+
+```reaction
+when RecallChecking.exclude (check, item: cue), asked by checks.subjects.ExcludePoint:owner#2
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/exclude", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.subjects.IncludePoint
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### checks.subjects.IncludePoint:included#2
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  view "(user) owns point (cue)" with (cue, user)
+  RecallChecking._subject (check) has (item: cue)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.subjects.IncludePoint:no-check#2
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.subjects.IncludePoint:no-point#2
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  no view "(user) owns point (cue)" with (cue, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### checks.subjects.IncludePoint:owner#2
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.subjects.IncludePoint
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  view "(user) owns point (cue)" with (cue, user)
+  no RecallChecking._subject (check) has (item: cue)
+  Cueing._get (cue) has (name: pointName)
+then
+  RecallChecking.include (check, item: cue, name: pointName)
+```
+
+### checks.subjects.IncludePoint:owner#3
+
+Authored path: `checks.subjects.IncludePoint`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+- Covered by [Checks](../design/compositions/checks.md), line 8.
+
+```reaction
+when RecallChecking.include (check, item: cue, name: pointName), asked by checks.subjects.IncludePoint:owner#2
+where
+  earlier, RequestBoundary.request (check, cue, path: "/check/include", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### checks.subjects.RelabelRenamed
+
+Authored path: `checks.subjects.RelabelRenamed`.
+- Covered by [Checks](../design/compositions/checks.md), line 4.
+
+```reaction
+when Cueing.rename (cue)
+where
+  Cueing._get (cue) has (name)
+then
+  RecallChecking.relabel (item: cue, name)
+```
+
 ### home.showing.ShowHome
 
 Authored path: `home.showing.ShowHome`.
@@ -590,7 +1493,7 @@ when Sessioning.use (session, subject: user), asked by home.showing.ShowHome
 where
   earlier, RequestBoundary.request (path: "/home", requestId, session)
 then
-  RequestBoundary.respond (myPoints: former "the points (user) owns" with (user), myTopics: former "the topics (user) owns" with (user), requestId)
+  RequestBoundary.respond (myChecks: former "the checks (user) owns" with (user), myPoints: former "the points (user) owns" with (user), myTopics: former "the topics (user) owns" with (user), requestId)
 ```
 
 ### points.creating.CreateAndPlace
@@ -1309,6 +2212,12 @@ object or lacks a required key. The response uses `INVALID_INPUT` and names
 the path or missing key. A declared default fills an absent key. Endpoints
 not listed here have no explicit input contract.
 
+- `/attempt/abandon` — requires `attempt`, `session`
+- `/attempt/close` — requires `attempt`, `session`
+- `/attempt/mention` — requires `attempt`, `cue`, `session`
+- `/attempt/omit` — requires `attempt`, `cue`, `session`
+- `/attempt/show` — requires `attempt`, `session`
+- `/attempt/submit` — requires `attempt`, `session`
 - `/auth/login` — requires `password`, `username`
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
@@ -1317,6 +2226,13 @@ not listed here have no explicit input contract.
 - `/card/revise` — requires `answer`, `cue`, `session`
 - `/card/show` — requires `cue`, `session`
 - `/card/write` — requires `answer`, `cue`, `session`
+- `/check/attempt` — requires `check`, `session`
+- `/check/delete` — requires `check`, `session`
+- `/check/exclude` — requires `check`, `cue`, `session`
+- `/check/include` — requires `check`, `cue`, `session`
+- `/check/open` — requires `name`, `session`
+- `/check/rename` — requires `check`, `name`, `session`
+- `/check/show` — requires `check`, `session`
 - `/home` — requires `session`
 - `/point/create` — requires `name`, `session`
 - `/point/createIn` — requires `category`, `name`, `session`

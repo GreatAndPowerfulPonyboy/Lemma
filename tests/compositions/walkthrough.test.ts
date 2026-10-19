@@ -4,31 +4,7 @@ import type {Cue} from "../../src/concepts/Cueing/Cueing.ts";
 import type {Session} from "../../src/concepts/Sessioning/Sessioning.ts";
 import {startLemma} from "../support/app.ts";
 import {ok} from "../support/reusable/results.ts";
-
-type Lemma = Awaited<ReturnType<typeof startLemma>>;
-
-/** Matthew registers and adds three points, none of them in a topic yet. */
-async function matthewWithThreePoints({api, register}: Lemma) {
-  const matthew = await register("Matthew");
-  const {session} = matthew;
-  const {cue: mitochondria} = ok(await api.point.create({session, name: "Mitochondria make ATP"}));
-  const {cue: ribosomes} = ok(await api.point.create({session, name: "Ribosomes build proteins"}));
-  const {cue: newton} = ok(await api.point.create({session, name: "F = ma"}));
-  return {session, mitochondria, ribosomes, newton};
-}
-
-/** Matthew's three points, with biology and physics topics, and each point placed in one. */
-async function matthewWithTopics(lemma: Lemma) {
-  const {api} = lemma;
-  const matthew = await matthewWithThreePoints(lemma);
-  const {session} = matthew;
-  const {category: biology} = ok(await api.topic.create({session, name: "Biology"}));
-  const {category: physics} = ok(await api.topic.create({session, name: "Physics"}));
-  ok(await api.point.move({session, cue: matthew.mitochondria, incidentCategory: biology}));
-  ok(await api.point.move({session, cue: matthew.ribosomes, incidentCategory: biology}));
-  ok(await api.point.move({session, cue: matthew.newton, incidentCategory: physics}));
-  return {...matthew, biology, physics};
-}
+import {type Lemma, matthewWithThreePoints, matthewWithTopics} from "../support/matthew.ts";
 
 describe("Lemma", () => {
   test("Matthew adds points, files them under topics, renames some, then deletes all his points and topics", async () => {
@@ -43,6 +19,7 @@ describe("Lemma", () => {
         {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
       ],
       myTopics: [],
+      myChecks: [],
     });
 
     const {category: biology} = ok(await api.topic.create({session, name: "Biology"}));
@@ -61,6 +38,7 @@ describe("Lemma", () => {
         {category: biology, name: "Biology"},
         {category: physics, name: "Physics"},
       ],
+      myChecks: [],
     });
 
     ok(await api.point.rename({session, cue: newton, name: "Newton's second law: F = ma"}));
@@ -76,6 +54,7 @@ describe("Lemma", () => {
         {category: biology, name: "Cell biology"},
         {category: physics, name: "Physics"},
       ],
+      myChecks: [],
     });
 
     for (const cue of [mitochondria, ribosomes, newton]) ok(await api.point.delete({session, cue}));
@@ -86,11 +65,12 @@ describe("Lemma", () => {
         {category: biology, name: "Cell biology"},
         {category: physics, name: "Physics"},
       ],
+      myChecks: [],
     });
 
     ok(await api.topic.delete({session, category: biology}));
     ok(await api.topic.delete({session, category: physics}));
-    expect(ok(await api.home({session}))).toEqual({myPoints: [], myTopics: []});
+    expect(ok(await api.home({session}))).toEqual({myPoints: [], myTopics: [], myChecks: []});
   });
 
   test("Jonathan cannot delete, rename, or move Matthew's points and topics, or add to Matthew's topics", async () => {
@@ -118,6 +98,7 @@ describe("Lemma", () => {
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: null, topicName: null}],
       myTopics: [{category: jonathansTopic, name: "Biology"}],
+      myChecks: [],
     });
   });
 
@@ -139,6 +120,7 @@ describe("Lemma", () => {
         {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
       ],
       myTopics: [{category: physics, name: "Physics"}],
+      myChecks: [],
     });
   });
 
@@ -262,6 +244,7 @@ describe("Access", () => {
         {category: jonathansBiology, name: "Biology"},
         {category: jonathansPhysics, name: "Physics"},
       ],
+      myChecks: [],
     });
     expect(ok(await api.home({session: matthew.session}))).toEqual(matthewsHome);
   });

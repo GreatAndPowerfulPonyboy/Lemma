@@ -4,7 +4,7 @@ import {concepts} from "../concepts.ts";
 import {ownsPoint, ownsTopic} from "./access.ts";
 import {textInput} from "./reusable/inputs.ts";
 
-const {Sessioning, Cueing, Categorizing} = concepts;
+const {Sessioning, Cueing, Categorizing, RecallChecking} = concepts;
 
 
 /** The points that a user owns, newest first, with the category that they belong to */
@@ -30,6 +30,14 @@ const myTopics = former(
     .form({category, name})
 );
 
+/** The checks that a user owns, newest first */
+const myChecks = former(
+  "the checks (user) owns",
+  ({user}, {check, name}) =>
+    each(RecallChecking._checks({owner: user}).is({check, name}))
+    .form({check, name})
+);
+
 const ShowHome = endpoint(
   "/home",
   ({session, user}) =>
@@ -38,12 +46,13 @@ const ShowHome = endpoint(
       .then(
         respond({
           myPoints: myPoints({user}),
-          myTopics: myTopics({user})
+          myTopics: myTopics({user}),
+          myChecks: myChecks({user})
         }),
       ),
       {validators: { input: textInput}},
 );
 
 export const composition = {
-  showing: {ShowHome, myPoints, myTopics}
+  showing: {ShowHome, myPoints, myTopics, myChecks}
 }

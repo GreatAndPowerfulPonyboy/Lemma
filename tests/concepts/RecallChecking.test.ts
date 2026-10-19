@@ -9,12 +9,15 @@ async function setup() {
   return { checking: new RecallCheckingConcept<string, string>(await testDatabase()) };
 }
 
-/** A check named for Dijkstra's proof, covering three points. */
+/** A check named for Dijkstra's proof, covering three points, each named for itself. */
 async function dijkstra(checking: RecallCheckingConcept<string, string>) {
   const { check } = await checking.open({ owner: "matthew", name: "Explain the proof of correctness for Dijkstra" });
-  for (const item of ["invariant", "relaxation", "non-negative weights"]) await checking.include({ check, item });
+  for (const item of ["invariant", "relaxation", "non-negative weights"]) await checking.include({ check, item, name: item });
   return check;
 }
+
+/** The rows a subject query returns for items named for themselves. */
+const named = (...items: string[]) => items.map((item) => ({ item, name: item }));
 
 const ghostCheck = "000000000000000000000000" as Check;
 const ghostAttempt = "000000000000000000000000" as Attempt;
@@ -27,14 +30,12 @@ describe("RecallChecking", () => {
     const { attempt: first } = await checking.attempt({ check });
     expect(await checking._mentioned({ attempt: first })).toEqual([]);
     await checking.submit({ attempt: first });
-    expect(await checking._omitted({ attempt: first })).toEqual([
-      { item: "invariant" }, { item: "relaxation" }, { item: "non-negative weights" },
-    ]);
+    expect(await checking._omitted({ attempt: first })).toEqual(named("invariant", "relaxation", "non-negative weights"));
     await checking.mention({ attempt: first, item: "invariant" });
     await checking.mention({ attempt: first, item: "relaxation" });
     await checking.omit({ attempt: first, item: "relaxation" });
-    expect(await checking._mentioned({ attempt: first })).toEqual([{ item: "invariant" }]);
-    expect(await checking._omitted({ attempt: first })).toEqual([{ item: "relaxation" }, { item: "non-negative weights" }]);
+    expect(await checking._mentioned({ attempt: first })).toEqual(named("invariant"));
+    expect(await checking._omitted({ attempt: first })).toEqual(named("relaxation", "non-negative weights"));
     expect(await checking.close({ attempt: first })).toEqual({ attempt: first, check, credit: 1 / 3 });
 
     const { attempt: second } = await checking.attempt({ check });
@@ -72,18 +73,30 @@ describe("RecallChecking", () => {
     const check = await dijkstra(checking);
     const { attempt } = await checking.attempt({ check });
     await checking.exclude({ check, item: "relaxation" });
-    await checking.include({ check, item: "priority queue" });
+    await checking.include({ check, item: "priority queue", name: "priority queue" });
 
-    expect(await checking._subject({ check })).toEqual([
-      { item: "invariant" }, { item: "non-negative weights" }, { item: "priority queue" },
-    ]);
-    expect(await checking._attemptSubject({ attempt })).toEqual([
-      { item: "invariant" }, { item: "relaxation" }, { item: "non-negative weights" },
-    ]);
+    expect(await checking._subject({ check })).toEqual(named("invariant", "non-negative weights", "priority queue"));
+    expect(await checking._attemptSubject({ attempt })).toEqual(named("invariant", "relaxation", "non-negative weights"));
     await checking.submit({ attempt });
     await expect(checking.mention({ attempt, item: "priority queue" })).rejects.toThrow(NotInSubject);
     expect(await checking._including({ item: "relaxation" })).toEqual([]);
     expect(await checking._including({ item: "invariant" })).toEqual([{ check }]);
+  });
+
+  test("relabeling renames an item in every check that includes it, while attempts keep the names they began with", async () => {
+    const { checking } = await setup();
+    const check = await dijkstra(checking);
+    const { check: other } = await checking.open({ owner: "matthew", name: "Explain shortest paths" });
+    await checking.include({ check: other, item: "relaxation", name: "relaxation" });
+    const { attempt } = await checking.attempt({ check });
+
+    expect(await checking.relabel({ item: "relaxation", name: "edge relaxation" })).toEqual({ item: "relaxation" });
+    expect(await checking._subject({ check })).toEqual([
+      ...named("invariant"), { item: "relaxation", name: "edge relaxation" }, ...named("non-negative weights"),
+    ]);
+    expect(await checking._subject({ check: other })).toEqual([{ item: "relaxation", name: "edge relaxation" }]);
+    expect(await checking._attemptSubject({ attempt })).toEqual(named("invariant", "relaxation", "non-negative weights"));
+    await expect(checking.relabel({ item: "nothing", name: "anything" })).resolves.toEqual({ item: "nothing" });
   });
 
   test("a check has one unfinished attempt at a time, and an abandoned one frees it", async () => {
@@ -120,7 +133,7 @@ describe("RecallChecking", () => {
     await expect(checking.open({ owner: "a", name: "   " })).rejects.toThrow(InvalidName);
     await expect(checking.open({ owner: "a", name: "x".repeat(81) })).rejects.toThrow("A check name must have 1 to 80 characters.");
     const check = await dijkstra(checking);
-    await expect(checking.include({ check, item: "invariant" })).rejects.toThrow(AlreadyIncluded);
+    await expect(checking.include({ check, item: "invariant", name: "invariant" })).rejects.toThrow(AlreadyIncluded);
     await expect(checking.exclude({ check, item: "nothing" })).rejects.toThrow(NotIncluded);
     await checking.rename({ check, name: "  Prove Dijkstra correct  " });
     expect(await checking._get({ check })).toEqual([{ owner: "matthew", name: "Prove Dijkstra correct" }]);
