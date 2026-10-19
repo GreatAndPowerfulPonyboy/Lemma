@@ -3,7 +3,7 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { api } from "../api/client.ts";
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
-import { useBoxSelect } from "./useBoxSelect.ts";
+import { useBoxSelect, useDragTip } from "./useBoxSelect.ts";
 import { useHome, type MyPoint, type MyTopic } from "./useLemma.ts";
 
 /** `topics` are the topics the filters leave, chosen by HomePage; `showUnsorted` says whether the Unsorted card is one of them. */
@@ -36,10 +36,16 @@ const { box, boxStyle, touched, press, justDragged } = useBoxSelect<MyTopic["cat
   ticked.value = new Set([...ticked.value, ...categories]);
 });
 
+const { dragTipShowing, showDragTip, hideDragTip } = useDragTip(() => selected.value.length);
+
+/** Selecting a topic by clicking shows the drag tip, the first time ever. */
 function toggle(category: MyTopic["category"]) {
   if (justDragged()) return;
   const next = new Set(ticked.value);
-  if (!next.delete(category)) next.add(category);
+  if (!next.delete(category)) {
+    next.add(category);
+    showDragTip();
+  }
   ticked.value = next;
 }
 function clear() {
@@ -139,6 +145,10 @@ onUnmounted(() => document.removeEventListener("click", closeIfOutside));
               @click="confirming = { action: 'empty', topics: selected }">Empty</button>
       <button type="button" @click="confirming = { action: 'delete', topics: selected }">Empty and delete</button>
       <button type="button" @click="clear">Clear</button>
+      <p v-if="dragTipShowing" class="tip">
+        Tip: drag across the background to select several.
+        <button type="button" class="icon-button" aria-label="Dismiss tip" @click="hideDragTip">×</button>
+      </p>
     </div>
 
     <h4 v-if="!showUnsorted && !topics.length" class="content-width">No topics match.</h4>

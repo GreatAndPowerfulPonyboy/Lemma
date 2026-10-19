@@ -70,6 +70,8 @@ button:disabled {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  /* Undoes the content area's crosshair, which is only for its empty background; `.selectable` below sets its own. */
+  cursor: auto;
 }
 
 /* Cards that flow left to right and wrap onto new rows, such as the points and topics on the home screen. Each card is only as tall as its content, and a long name inside never makes its column wider. */
@@ -303,6 +305,8 @@ button:disabled {
   gap: var(--space-4);
   padding: var(--space-5) var(--space-6) 88px;
   background: var(--color-zone);
+  /* Shows that I can drag a selection rectangle from the empty background. Cards, the pinned bar and dialogs set the cursor back. */
+  cursor: crosshair;
 }
 
 @media (max-width: 600px) {
@@ -343,6 +347,28 @@ button:disabled {
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-popover);
+  cursor: auto;
+}
+
+/*
+ * A tip on its own row at the bottom of the pinned bar, with a button to dismiss it. `width: 0` keeps the tip
+ * from widening the bar; `min-width: 100%` then stretches it across the bar's row, wrapping if it must.
+ */
+.bulk .tip {
+  display: flex;
+  flex-basis: 100%;
+  width: 0;
+  min-width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.bulk .tip .icon-button {
+  width: 28px;
+  height: 28px;
 }
 
 /* A row of buttons at the bottom of a dialog, such as Cancel and Delete. */

@@ -40,6 +40,8 @@ onMounted(() => dialog.value?.showModal());
 
 <style scoped>
 dialog {
+  /* A dialog opened from inside an area with its own cursor, such as the home screen's crosshair, keeps the normal one. */
+  cursor: auto;
   width: min(480px, calc(100vw - 32px));
   max-height: calc(100vh - 64px);
   margin: 12vh auto auto;

@@ -1,4 +1,55 @@
-import { computed, onUnmounted, ref, type Ref } from "vue";
+import { computed, onUnmounted, ref, watch, type Ref } from "vue";
+
+/** Where the browser remembers that I've seen the drag tip. Storage can be unavailable (a private window, say), so every read and write is wrapped; then the tip just shows again next visit. */
+const dragTipKey = "lemma.dragTipSeen";
+
+function readDragTipSeen() {
+  try {
+    return localStorage.getItem(dragTipKey) === "true";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The tip about drag-selecting shows once, ever. `dragTipSeen` is whether it has already shown (or I found
+ * drag-selecting by myself); `dragTipShowing` is whether it's in the bar right now. Both are shared by the
+ * points and topics views, so the tip shows once in total.
+ */
+const dragTipSeen = ref(readDragTipSeen());
+const dragTipShowing = ref(false);
+
+function markDragTipSeen() {
+  dragTipSeen.value = true;
+  try {
+    localStorage.setItem(dragTipKey, "true");
+  } catch {
+    // Storage is unavailable; the tip won't show again until the page reloads.
+  }
+}
+
+/** Shows the tip if it has never shown, and marks it seen straight away, so this is the only time. */
+function showDragTip() {
+  if (dragTipSeen.value) return;
+  dragTipShowing.value = true;
+  markDragTipSeen();
+}
+
+function hideDragTip() {
+  dragTipShowing.value = false;
+}
+
+/**
+ * The drag tip for a view's pinned bar: `showDragTip` when I select something by clicking, `hideDragTip` for its
+ * dismiss button. Its one showing also ends when the selection empties (the bar goes away) or the view closes.
+ */
+export function useDragTip(selectedCount: () => number) {
+  watch(() => selectedCount() === 0, (nothingSelected) => {
+    if (nothingSelected) hideDragTip();
+  });
+  onUnmounted(hideDragTip);
+  return { dragTipShowing, showDragTip, hideDragTip };
+}
 
 /**
  * Drag-to-select, the way a desktop works: pressing the main mouse button inside `area` and dragging draws a
@@ -106,6 +157,9 @@ export function useBoxSelect<Key extends string>(area: Ref<HTMLElement | null>, 
     if (!box.value) return;
     dragged = true;
     setTimeout(() => (dragged = false));
+    // I've found drag-selecting, so the tip about it has done its job.
+    markDragTipSeen();
+    hideDragTip();
     add(touched.value);
     touched.value = new Set();
     box.value = null;

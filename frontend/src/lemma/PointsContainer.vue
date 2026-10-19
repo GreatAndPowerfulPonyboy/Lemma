@@ -4,7 +4,7 @@ import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
 import PointCard from "./PointCard.vue";
 import TopicPicker from "./TopicPicker.vue";
-import {useBoxSelect} from "./useBoxSelect.ts";
+import {useBoxSelect, useDragTip} from "./useBoxSelect.ts";
 import {useHome, type MyPoint, type MyTopic} from "./useLemma.ts";
 /** `hasPoints` is false when I have no points at all, and true when I have some but the filters hide them all. */
 const {points, hasPoints} = defineProps<{points: MyPoint[], hasPoints: boolean}>();
@@ -21,10 +21,16 @@ const {box, boxStyle, touched, press, justDragged} = useBoxSelect<MyPoint["cue"]
   ticked.value = new Set([...ticked.value, ...cues]);
 });
 
+const {dragTipShowing, showDragTip, hideDragTip} = useDragTip(() => selected.value.length);
+
+/** Selecting a point by clicking shows the drag tip, the first time ever. */
 function toggle(cue: MyPoint["cue"]) {
   if (justDragged()) return;
   const next = new Set(ticked.value);
-  if (!next.delete(cue)) next.add(cue);
+  if (!next.delete(cue)) {
+    next.add(cue);
+    showDragTip();
+  }
   ticked.value = next;
 }
 function selectAll() {
@@ -74,6 +80,10 @@ async function confirmMove() {
         <TopicPicker :topics="home?.myTopics ?? []" @pick="pickTopic" />
       </Menu>
       <button type="button" @click="clear">Clear</button>
+      <p v-if="dragTipShowing" class="tip">
+        Tip: drag across the background to select several.
+        <button type="button" class="icon-button" aria-label="Dismiss tip" @click="hideDragTip">×</button>
+      </p>
     </div>
     <ul v-if="points.length" class="card-grid content-width">
       <li v-for="point in points" :key="point.cue" :data-key="point.cue">
