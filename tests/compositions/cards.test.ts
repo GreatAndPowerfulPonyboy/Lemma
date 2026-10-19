@@ -7,7 +7,7 @@ async function withPoint() {
   const lemma = await startLemma();
   const { session } = await lemma.register("matthew");
   const { category } = ok(await lemma.api.topic.create({ session, name: "Shortest paths" }));
-  const { cue } = ok(await lemma.api.point.create({ session, category, name: "Dijkstra invariant" }));
+  const { cue } = ok(await lemma.api.point.createIn({ session, category, name: "Dijkstra invariant" }));
   return { ...lemma, session, cue };
 }
 
