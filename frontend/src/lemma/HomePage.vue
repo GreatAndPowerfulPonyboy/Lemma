@@ -6,6 +6,8 @@ import HomeTabs from "./HomeTabs.vue";
 import PointsContainer from "./PointsContainer.vue";
 import PointSearch from "./PointSearch.vue";
 import PromptsContainer from "./PromptsContainer.vue";
+import ScheduleContainer from "./ScheduleContainer.vue";
+import SuggestedContainer from "./SuggestedContainer.vue";
 import SharedContainer from "./SharedContainer.vue";
 import TopicsContainer from "./TopicsContainer.vue";
 import TopicSearch from "./TopicSearch.vue";
@@ -20,13 +22,18 @@ const topicSearch = ref("");
 /** True when I'm looking only at points with no topic. */
 const unsorted = ref(false);
 
-/** The tabs, in order. Each later feature that needs a tab adds one here. */
-const tabs: { id: Tab; label: string }[] = [
-  { id: "points", label: "Points" },
-  { id: "topics", label: "Topics" },
-  { id: "prompts", label: "Prompts" },
-  { id: "shared", label: "Shared" },
-];
+/** The tabs, in order. Each later feature that needs a tab adds one here. Scheduling counts the prompts due now. */
+const tabs = computed<{ id: Tab; label: string }[]>(() => {
+  const dueCount = home.value?.dueChecks.length ?? 0;
+  return [
+    { id: "points", label: "Points" },
+    { id: "topics", label: "Topics" },
+    { id: "prompts", label: "Prompts" },
+    { id: "shared", label: "Shared" },
+    { id: "scheduling", label: dueCount ? `Scheduling · ${dueCount}` : "Scheduling" },
+    { id: "suggested", label: "Suggested cards" },
+  ];
+});
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const contains = (text: string, part: string) => text.toLowerCase().includes(part.trim().toLowerCase());
@@ -82,11 +89,10 @@ function openTopic(topic: MyTopic | null) {
       <p v-if="error" class="error content-width">{{ error }}</p>
       <p v-else-if="!home" class="content-width">Loading…</p>
       <HomeTabs v-if="home" v-model="tab" :tabs="tabs" />
-      <!-- Each tab shows only the filters that apply to it; the Prompts and Shared tabs have none yet. -->
+      <!-- Each tab shows only the filters that apply to it; only Points and Topics have any yet. -->
       <FilterRow v-if="home && (tab === 'points' || tab === 'topics')">
         <PointSearch v-if="tab === 'points'" v-model="pointSearch" :topic="exactTopic" />
         <TopicSearch v-model="topicSearch" v-model:unsorted="unsorted" :topic="exactTopic" />
-        <button type="button" class="button outline" disabled>Review scheduling</button>
         <button v-if="tab === 'points'" type="button" class="button outline" :class="{ unused: !filtering }" @click="clearFilters">
           <Icon name="trash" />Clear filters
         </button>
@@ -102,6 +108,8 @@ function openTopic(topic: MyTopic | null) {
         <TopicsContainer v-if="tab === 'topics'" :topics="shownTopics" :show-unsorted="showUnsortedCard" @open="openTopic" />
         <PromptsContainer v-else-if="tab === 'prompts'" />
         <SharedContainer v-else-if="tab === 'shared'" />
+        <ScheduleContainer v-else-if="tab === 'scheduling'" />
+        <SuggestedContainer v-else-if="tab === 'suggested'" />
         <PointsContainer v-else :points="shown" :has-points="hasPoints" />
       </div>
     </template>

@@ -6,7 +6,16 @@ import Menu from "../reusable/ui/Menu.vue";
 import ShareDialog from "./ShareDialog.vue";
 import { useHome, type CheckShown, type MyCheck } from "./useLemma.ts";
 
-const { home, working, call, change, error, recentCheck, startAttempt, resume } = useHome();
+const { home, working, call, change, error, recentCheck, startOrResume } = useHome();
+
+/** Whether a prompt is on my schedule, so its menu offers Track or Untrack. */
+const isTracked = (check: Check) => (home.value?.scheduledChecks ?? []).some((s) => s.check === check);
+
+function track(prompt: MyCheck) {
+  const request = { check: prompt.check };
+  if (isTracked(prompt.check)) change("/check/untrack", api.check.untrack(request));
+  else change("/check/track", api.check.track(request));
+}
 
 type Check = MyCheck["check"];
 
@@ -65,13 +74,6 @@ function showAll(check: Check) {
   showingAll.value = new Set(showingAll.value).add(check);
 }
 
-/** Starts a new attempt, or picks up the unfinished one where I left it. */
-function startOrResume(prompt: MyCheck) {
-  const { attempt, status } = prompt.current;
-  if (attempt !== null && status !== null) resume(prompt.check, { attempt, status });
-  else startAttempt(prompt.check);
-}
-
 /** Focuses an input as soon as it appears, so I can type straight away. */
 const vFocus = { mounted: (el: HTMLElement) => el.focus() };
 
@@ -125,6 +127,7 @@ async function confirmDelete() {
             <Menu label="Edit prompt">
               <button type="button" @click="startRename(prompt)">Rename</button>
               <button type="button" @click="sharing = prompt">Share…</button>
+              <button type="button" @click="track(prompt)">{{ isTracked(prompt.check) ? "Untrack" : "Track" }}</button>
               <button type="button" @click="deleting = prompt">Delete</button>
             </Menu>
           </div>

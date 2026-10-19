@@ -252,4 +252,7 @@ _mentioned(attempt: Attempt) : many (item: Item, name: String)
 
 _omitted(attempt: Attempt) : many (item: Item, name: String)
   Returns each omitted item of the attempt with its name, in the order they were included, or no rows when there are none or the attempt is OPEN or unknown.
+
+_missed(owner: User, atLeast: Number) : many (item: Item, misses: Number)
+  Returns each item omitted from at least atLeast CLOSED attempts at the owner's checks, with how many, most misses first, or no rows when there are none.
 ```

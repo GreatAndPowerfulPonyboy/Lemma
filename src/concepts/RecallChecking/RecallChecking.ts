@@ -249,6 +249,19 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
     return found === null ? [] : inSubjectOrder(found, found.omitted);
   }
 
+  async _missed({ owner, atLeast }: { owner: User; atLeast: number }) {
+    const checks = await this.checks.find({ owner }, { projection: { _id: 1 } }).toArray();
+    // One row per omitted item of each closed attempt, then counted per item.
+    const found = await this.attempts.aggregate<{ _id: Item; misses: number }>([
+      { $match: { check: { $in: checks.map(({ _id }) => _id) }, status: "CLOSED" } },
+      { $unwind: "$omitted" },
+      { $group: { _id: "$omitted", misses: { $sum: 1 } } },
+      { $match: { misses: { $gte: atLeast } } },
+      { $sort: { misses: -1, _id: 1 } },
+    ]).toArray();
+    return found.map(({ _id, misses }) => ({ item: _id, misses }));
+  }
+
   // Lookups that refuse
 
   async #check(check: Check) {

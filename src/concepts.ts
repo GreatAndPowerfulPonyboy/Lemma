@@ -18,6 +18,8 @@ export const applicationConceptSet = conceptSet({
   RecallChecking: recallChecking,
   SpacedRepetition: spacedRepetition,
   Sharing: sharing,
-  
+}, {
+  /** Whether a prompt is tracked, given its due date. A blank reaches a computation as undefined, not null. */
+  isTracked: ({due}: {due: Date | null | undefined}) => due !== undefined && due !== null,
 });
-export const { concepts } = applicationConceptSet;
+export const { concepts, computations } = applicationConceptSet;

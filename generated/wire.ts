@@ -32,7 +32,7 @@ export type LemmaWire = {
     output: {
       "credit": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>>, ["credit"]>>;
     };
-    error: { error: AppWideError | "ATTEMPT_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_GRADED" | "NOT_SIGNED_IN" | "UNRATED" };
+    error: { error: AppWideError | "ATTEMPT_NOT_FOUND" | "INVALID_CREDIT" | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_GRADED" | "NOT_SIGNED_IN" | "UNRATED" };
   };
   "/attempt/mention": {
     input: {
@@ -65,14 +65,16 @@ export type LemmaWire = {
       "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["check"]>]>>;
       "checkName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
       "credit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["credit"]>>;
-      "mentioned": {
-        "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>>;
+      "mentioned": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["name"]>>;
-      }[];
-      "omitted": {
-        "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>>;
+      })[];
+      "omitted": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["name"]>>;
-      }[];
+      })[];
       "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["status"]>>;
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attemptSubject"]>>>, ["item"]>>;
@@ -194,7 +196,7 @@ export type LemmaWire = {
     output: {
       "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["delete"]>[0], ["check"]>>;
     };
-    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
   "/check/exclude": {
     input: {
@@ -258,7 +260,7 @@ export type LemmaWire = {
   };
   "/check/show": {
     input: {
-      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
@@ -275,12 +277,28 @@ export type LemmaWire = {
       "recipients": {
         "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
       }[];
+      "schedule": {
+        "due": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.computations)["isTracked"]["fn"]>[0], ["due"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>]>> | null;
+        "tracked": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.computations)["isTracked"]["fn"]>>, []>>;
+      };
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
       }[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
+  "/check/track": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["enroll"]>[0], ["item"]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["enroll"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
+    };
+    error: { error: AppWideError | "ALREADY_ENROLLED" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/check/unshare": {
     input: {
@@ -297,11 +315,28 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
+  "/check/untrack": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["drop"]>[0], ["item"]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["drop"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+  };
   "/home": {
     input: {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
+      "dueChecks": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
+        "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["due"]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      }[];
       "myChecks": ({
         "check": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>>;
         "current": {
@@ -311,14 +346,25 @@ export type LemmaWire = {
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
       })[];
       "myPoints": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
         "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
-        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
         "topicName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>>>, ["name"]>> | null;
       })[];
       "myTopics": {
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["name"]>>;
+      }[];
+      "scheduledChecks": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>]>>;
+        "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
+      }[];
+      "suggestedCards": {
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_missed"]>>>, ["item"]>]>>;
+        "misses": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_missed"]>>>, ["misses"]>>;
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
       }[];
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
@@ -467,7 +513,7 @@ export type LemmaWireHttp = {
     output: {
       "credit": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["close"]>>, ["credit"]>>;
     };
-    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+    error: { error: HttpAppWideError | "CONFLICT" | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/attempt/mention": {
     input: {
@@ -497,14 +543,16 @@ export type LemmaWireHttp = {
       "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["check"]>]>>;
       "checkName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
       "credit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["credit"]>>;
-      "mentioned": {
-        "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>>;
+      "mentioned": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["item"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_mentioned"]>>>, ["name"]>>;
-      }[];
-      "omitted": {
-        "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>>;
+      })[];
+      "omitted": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["item"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_omitted"]>>>, ["name"]>>;
-      }[];
+      })[];
       "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempt"]>>>, ["status"]>>;
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attemptSubject"]>>>, ["item"]>>;
@@ -670,7 +718,7 @@ export type LemmaWireHttp = {
   };
   "/check/show": {
     input: {
-      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_attempts"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
     };
     output: {
       "attempts": {
@@ -686,12 +734,27 @@ export type LemmaWireHttp = {
       "recipients": {
         "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
       }[];
+      "schedule": {
+        "due": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.computations)["isTracked"]["fn"]>[0], ["due"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>]>> | null;
+        "tracked": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.computations)["isTracked"]["fn"]>>, []>>;
+      };
       "subject": {
         "cue": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["item"]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>>>, ["name"]>>;
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/check/track": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["enroll"]>[0], ["item"]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["enroll"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/check/unshare": {
     input: {
@@ -707,9 +770,25 @@ export type LemmaWireHttp = {
     };
     error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
+  "/check/untrack": {
+    input: {
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["drop"]>[0], ["item"]>, AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["drop"]>[0], ["item"]>>;
+    } | {
+      "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>]>>;
+    };
+    error: { error: HttpAppWideError | "INTERNAL_ERROR" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/home": {
     input: Record<string, never>;
     output: {
+      "dueChecks": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
+        "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["due"]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
+      }[];
       "myChecks": ({
         "check": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>>;
         "current": {
@@ -719,14 +798,25 @@ export type LemmaWireHttp = {
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
       })[];
       "myPoints": ({
+        "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
         "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
-        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
         "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["name"]>>;
         "topicName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>>>, ["name"]>> | null;
       })[];
       "myTopics": {
         "category": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["category"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_categories"]>>>, ["name"]>>;
+      }[];
+      "scheduledChecks": {
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>]>>;
+        "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_entry"]>>>, ["due"]>>;
+        "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
+      }[];
+      "suggestedCards": {
+        "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>[0], ["item"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_missed"]>>>, ["item"]>]>>;
+        "misses": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_missed"]>>>, ["misses"]>>;
+        "pointName": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>>>, ["name"]>>;
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };

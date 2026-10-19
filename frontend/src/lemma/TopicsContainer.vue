@@ -232,7 +232,8 @@ onUnmounted(() => document.removeEventListener("click", closeIfOutside));
         </button>
       </div>
     </Dialog>
-    <RecallDialog v-if="recalling" :cues="pointsIn([recalling.category])" :name="`Explain ${recalling.name}`"
+    <RecallDialog v-if="recalling" :points="(home?.myPoints ?? []).filter((p) => p.category === recalling!.category)"
+                  :name="`Explain ${recalling.name}`" choose
                   @close="recalling = null" />
   </section>
 </template>

@@ -26,6 +26,7 @@ describe("Prompts", () => {
       current: null,
       attempts: [{attempt, status: "CLOSED", credit: 2 / 3}],
       recipients: [],
+      schedule: {tracked: false, due: null},
     });
     expect(ok(await api.attempt.show({session, attempt}))).toEqual({
       check,
@@ -38,10 +39,10 @@ describe("Prompts", () => {
         {cue: newton, pointName: "F = ma"},
       ],
       mentioned: [
-        {cue: mitochondria, pointName: "Mitochondria make ATP"},
-        {cue: newton, pointName: "F = ma"},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", answer: null},
+        {cue: newton, pointName: "F = ma", answer: null},
       ],
-      omitted: [{cue: ribosomes, pointName: "Ribosomes build proteins"}],
+      omitted: [{cue: ribosomes, pointName: "Ribosomes build proteins", answer: null}],
     });
     expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt: null, status: null}}]);
   });

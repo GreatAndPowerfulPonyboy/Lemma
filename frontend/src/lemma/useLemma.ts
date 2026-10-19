@@ -13,12 +13,14 @@ export type MyCheck = Home["myChecks"][number];
 export type CheckShown = Wire["/check/show"]["output"];
 export type AttemptShown = Wire["/attempt/show"]["output"];
 export type SharedPrompt = Wire["/shared"]["output"]["shared"][number];
+export type ScheduledCheck = Home["scheduledChecks"][number];
+export type SuggestedCard = Home["suggestedCards"][number];
 export type SharedShown = Wire["/shared/show"]["output"];
 type Check = MyCheck["check"];
 type Attempt = Wire["/attempt/show"]["input"]["attempt"];
 
 /** The tabs of the home screen. */
-export type Tab = "points" | "topics" | "prompts" | "shared";
+export type Tab = "points" | "topics" | "prompts" | "shared" | "scheduling" | "suggested";
 
 const home = ref<Home | null>(null);
 const error = ref<string | null>(null);
@@ -147,6 +149,8 @@ function openAttempt(next: "recall" | "results", started: Attempt, check: Check)
 function goHome() {
   screen.value = "home";
   attempt.value = null;
+  // Only the Prompts tab opens the prompt I came back from; on any other tab it's forgotten.
+  if (tab.value !== "prompts") recentCheck.value = null;
 }
 
 /** Starts an attempt at one of my prompts and opens the recall screen. */
@@ -158,6 +162,13 @@ async function startAttempt(check: Check) {
 /** Opens a prompt's unfinished attempt where I left it: the recall screen if it isn't submitted yet, otherwise the results. */
 function resume(check: Check, current: { attempt: Attempt; status: string }) {
   openAttempt(current.status === "OPEN" ? "recall" : "results", current.attempt, check);
+}
+
+/** Starts a new attempt at a prompt, or picks up its unfinished one where I left it. */
+function startOrResume(prompt: MyCheck) {
+  const { attempt, status } = prompt.current;
+  if (attempt !== null && status !== null) resume(prompt.check, { attempt, status });
+  else startAttempt(prompt.check);
 }
 
 /**
@@ -264,5 +275,5 @@ function reset() {
 
 export function useHome() {
   return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
-    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, goHome, submitAttempt, abandonAttempt, copyShared};
+    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, startOrResume, goHome, submitAttempt, abandonAttempt, copyShared};
 }

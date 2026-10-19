@@ -7,6 +7,8 @@ const promptName = "A prompt's name must have 1 to 200 characters.";
 const noPrompt = "That prompt isn't available.";
 const noAttempt = "That attempt isn't available.";
 const notCorrectable = "This attempt can't be corrected now.";
+const answerLength = "An answer must have 1 to 5000 characters.";
+const noAnswer = "That point has no answer.";
 
 /** The sentence to show for each HTTP category, by endpoint outside `/auth`. Each refusal is mapped to its category in `src/host/http.ts`. */
 const messages: Record<string, Record<string, string>> = {
@@ -38,6 +40,11 @@ const messages: Record<string, Record<string, string>> = {
     NOT_FOUND: noPrompt,
   },
   "/check/unshare": { NOT_FOUND: noPrompt },
+  "/card/write": { INVALID_REQUEST: answerLength, CONFLICT: "That point already has an answer.", NOT_FOUND: noPoint },
+  "/card/revise": { INVALID_REQUEST: answerLength, CONFLICT: noAnswer, NOT_FOUND: noPoint },
+  "/card/remove": { CONFLICT: noAnswer, NOT_FOUND: noPoint },
+  "/check/track": { NOT_FOUND: noPrompt },
+  "/check/untrack": { NOT_FOUND: noPrompt },
   "/shared/show": { NOT_FOUND: "That prompt isn't shared with you anymore." },
 };
 

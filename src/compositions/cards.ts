@@ -8,7 +8,7 @@ import { concepts } from "../concepts.ts";
 import { ownsPoint } from "./access.ts";
 import { textInput } from "./reusable/inputs.ts";
 
-const { Cueing, Flashcarding, Sessioning } = concepts;
+const { Cueing, Flashcarding, RecallChecking, Sessioning } = concepts;
 
 export const WriteAnswer = endpoint(
   "/card/write",
@@ -91,8 +91,24 @@ const RemoveAnswerOfDeleted = reaction(({ cue }) =>
     .then(Flashcarding.remove({ item: cue })),
 );
 
+/** How many closed attempts a point must be missed in before it's suggested as a card. */
+const MISSES_TO_SUGGEST = 3;
+
+/**
+ * The promotion queue: the user's points missed in enough closed attempts to earn an answer, most misses first.
+ * A point that already has an answer is a card, so it leaves the queue.
+ */
+export const suggestedCards = former(
+  "the cards suggested to (user)",
+  ({ user }, { cue, pointName, misses }) =>
+    each(RecallChecking._missed({ owner: user, atLeast: MISSES_TO_SUGGEST }).is({ item: cue, misses }))
+      .where(ownsPoint({ user, cue }), Cueing._get({ cue }).is({ name: pointName }), no(Flashcarding._answer({ item: cue })))
+      .form({ cue, pointName, misses }),
+);
+
 export const composition = {
   answering: { WriteAnswer, ReviseAnswer, RemoveAnswer },
+  promoting: { suggestedCards },
   showing: { ShowCard, cardOf },
   deleting: { RemoveAnswerOfDeleted },
 };

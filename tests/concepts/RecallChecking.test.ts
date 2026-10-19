@@ -99,6 +99,34 @@ describe("RecallChecking", () => {
     await expect(checking.relabel({ item: "nothing", name: "anything" })).resolves.toEqual({ item: "nothing" });
   });
 
+  test("an item omitted from enough closed attempts at the owner's checks counts as missed", async () => {
+    const { checking } = await setup();
+    const check = await dijkstra(checking);
+    /** Closes an attempt where only `mentioned` was mentioned. */
+    async function closeMentioning(mentioned: string, status: "close" | "abandon" = "close") {
+      const { attempt } = await checking.attempt({ check });
+      await checking.submit({ attempt });
+      await checking.mention({ attempt, item: mentioned });
+      await checking[status]({ attempt });
+    }
+    await closeMentioning("invariant");
+    await closeMentioning("invariant");
+    await closeMentioning("relaxation");
+    await closeMentioning("relaxation", "abandon");
+    const { check: other } = await checking.open({ owner: "sam", name: "Explain Dijkstra" });
+    await checking.include({ check: other, item: "invariant", name: "invariant" });
+    const { attempt: samsAttempt } = await checking.attempt({ check: other });
+    await checking.submit({ attempt: samsAttempt });
+    await checking.close({ attempt: samsAttempt });
+
+    expect(await checking._missed({ owner: "matthew", atLeast: 2 })).toEqual([
+      { item: "non-negative weights", misses: 3 },
+      { item: "relaxation", misses: 2 },
+    ]);
+    expect(await checking._missed({ owner: "matthew", atLeast: 4 })).toEqual([]);
+    expect(await checking._missed({ owner: "sam", atLeast: 1 })).toEqual([{ item: "invariant", misses: 1 }]);
+  });
+
   test("a check has one unfinished attempt at a time, and an abandoned one frees it", async () => {
     const { checking } = await setup();
     const check = await dijkstra(checking);

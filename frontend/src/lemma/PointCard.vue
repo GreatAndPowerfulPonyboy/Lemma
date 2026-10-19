@@ -3,6 +3,8 @@ import {computed, ref} from 'vue';
 import {api} from "../api/client.ts";
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu  from "../reusable/ui/Menu.vue";
+import AnswerDialog from "./AnswerDialog.vue";
+import DrillDialog from "./DrillDialog.vue";
 import TopicPicker from "./TopicPicker.vue";
 import {useHome, type MyPoint, type MyTopic} from "./useLemma.ts";
 
@@ -41,6 +43,18 @@ async function deletePoint() {
   confirmingDelete.value = false;
 }
 
+/** Which dialog about this point's answer is open: writing or editing it, drilling it, or confirming its removal. */
+const answering = ref<"write" | "drill" | "remove" | null>(null);
+
+/** True while the card shows its answer in place of its name. */
+const flipped = ref(false);
+
+async function removeAnswer() {
+  await change("/card/remove", api.card.remove({cue: row.cue}));
+  answering.value = null;
+  flipped.value = false;
+}
+
 /** True for clicks on the card's own controls (the select target, the menu, the rename box, the dialog), which do their own thing. */
 function onControl(event: Event) {
   return event.target instanceof Element && event.target.closest("button, input, .menu, dialog") !== null;
@@ -62,15 +76,35 @@ function clickCard(event: MouseEvent) {
     <div class="line">
       <input v-if="editing" v-model="newName" aria-label="New point name" maxlength="80"
              @keydown.enter="saveRename" @keydown.escape="editing = false" />
+      <p v-else-if="flipped && row.answer !== null" class="answer">{{row.answer}}</p>
       <p v-else class = "name">{{row.pointName}}</p>
       <Menu label="Edit point" align="start">
         <template #button><span class="edit">Edit point</span></template>
         <button type="button" @click="startRename">Rename</button>
         <button type="button" @click="confirmingDelete = true">Delete</button>
+        <button type="button" @click="answering = 'write'">{{row.answer === null ? "Write answer" : "Edit answer"}}</button>
+        <template v-if="row.answer !== null">
+          <button type="button" @click="answering = 'drill'">Drill</button>
+          <button type="button" @click="answering = 'remove'">Remove answer</button>
+        </template>
         <p class="heading">Move to</p>
         <TopicPicker :topics="otherTopics" @pick="moveTo" />
       </Menu>
     </div>
+    <!-- A card's background selects it, so flipping has its own button. -->
+    <button v-if="row.answer !== null" type="button" class="text-button flip" :aria-pressed="flipped"
+            @click="flipped = !flipped">{{flipped ? "Show point" : "Tap to flip"}}</button>
+  <AnswerDialog v-if="answering === 'write'" :cue="row.cue" :point-name="row.pointName" :answer="row.answer"
+                @close="answering = null" />
+  <DrillDialog v-if="answering === 'drill' && row.answer !== null" :point-name="row.pointName" :answer="row.answer"
+               @close="answering = null" />
+  <Dialog v-if="answering === 'remove'" title="Remove this answer?" :subtitle="row.pointName" @close="answering = null">
+    <p>The point stays, but it stops being a card. The answer can't be brought back.</p>
+    <div class="dialog-buttons">
+      <button type="button" class="button outline" @click="answering = null">Cancel</button>
+      <button type="button" class="button danger" :disabled="working" @click="removeAnswer">Remove</button>
+    </div>
+  </Dialog>
   <Dialog v-if="confirmingDelete" title="Delete this point?" :subtitle="row.pointName" @close="confirmingDelete = false">
     <p>This can't be undone.</p>
     <div class="dialog-buttons">
@@ -112,6 +146,15 @@ function clickCard(event: MouseEvent) {
 .edit {
   padding: 0 var(--space-3);
   font-size: var(--text-sm);
+}
+.answer {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.flip {
+  align-self: flex-start;
+  font-size: var(--text-xs);
 }
 .heading {
   flex: none;

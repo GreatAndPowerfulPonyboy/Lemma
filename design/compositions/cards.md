@@ -25,3 +25,7 @@ For anyone who doesn't own the point, every endpoint here responds with `NOT_FOU
 ## Deleting
 
 When a point is deleted, a reaction [removes its answer](reaction:cards.deleting.RemoveAnswerOfDeleted), so no answer is left behind for a point that no longer exists.
+
+## Promoting
+
+A point only needs an answer once it has proved hard to produce. When a point has been omitted from at least three closed attempts at its owner's prompts, it is [suggested as a card](former:cards.promoting.suggestedCards), with how many times it was missed, most misses first. This is the promotion queue, shown in the Suggested cards tab of the home screen. Writing an answer for a suggested point makes it a card and takes it off the queue; deleting the point takes it off too.

@@ -170,6 +170,7 @@ Defined in [RecallChecking](../design/concepts/RecallChecking.md), line 1.
 - `_attemptSubject(attempt: Attempt) : many (item: Item, name: String)`
 - `_mentioned(attempt: Attempt) : many (item: Item, name: String)`
 - `_omitted(attempt: Attempt) : many (item: Item, name: String)`
+- `_missed(owner: User, atLeast: Number) : many (item: Item, misses: Number)`
 
 #### Instances
 
@@ -260,6 +261,10 @@ Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
 - `SpacedRepetition` — instance of `SpacedRepetition` — [Lemma types](../design/types.md), line 32.
   - `Item` is `RecallChecking.Check` — [Lemma types](../design/types.md), line 33.
 
+## Computations
+
+- `isTracked(due?: DateTime) : Boolean` — [Scheduling](../design/compositions/scheduling.md), line 16.
+
 ## Views
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
@@ -280,6 +285,7 @@ Authored path: `access.permissions.ownsCheck`.
 - Covered by [Access](../design/compositions/access.md), line 8.
 - Covered by [Checks](../design/compositions/checks.md), line 27.
 - Covered by [Home](../design/compositions/home.md), line 9.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
 - Covered by [Sharing](../design/compositions/sharing.md), line 4.
 
 ```view
@@ -365,6 +371,39 @@ Former "the card of (cue)" — inputs (cue); bindings (name, answer); promises e
       name
 ```
 
+### the cards suggested to (user)
+
+Authored path: `cards.promoting.suggestedCards`.
+- Covered by [Cards](../design/compositions/cards.md), line 31.
+
+```former
+Former "the cards suggested to (user)" — inputs (user); bindings (cue, pointName, misses); promises exactly one record — forms:
+  each RecallChecking._missed (atLeast: 3, owner: user) has (item: cue, misses)
+    where view "(user) owns point (cue)" with (cue, user)
+    where Cueing._get (cue) has (name: pointName)
+    where no Flashcarding._answer (item: cue)
+    form a record of
+      cue
+      misses
+      pointName
+```
+
+### the checks (user) has due by (before)
+
+Authored path: `scheduling.showing.dueChecks`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 20.
+
+```former
+Former "the checks (user) has due by (before)" — inputs (user, before); bindings (check, name, due); promises exactly one record — forms:
+  each SpacedRepetition._due (before) has (due, item: check)
+    where view "(user) owns check (check)" with (check, user)
+    where RecallChecking._get (check) has (name)
+    form a record of
+      check
+      due
+      name
+```
+
 ### the current attempt of (check)
 
 Authored path: `checks.showing.currentAttemptOf`.
@@ -392,6 +431,22 @@ Former "the checks (user) owns" — inputs (user); bindings (check, name); promi
       name
 ```
 
+### the checks (user) tracks
+
+Authored path: `scheduling.showing.scheduledChecks`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 20.
+
+```former
+Former "the checks (user) tracks" — inputs (user); bindings (check, name, due); promises exactly one record — forms:
+  each RecallChecking._checks (owner: user) has (check, name)
+    where SpacedRepetition._entry (item: check) has (due)
+    arranged by due
+    form a record of
+      check
+      due
+      name
+```
+
 ### the checks shared with (user)
 
 Authored path: `sharing.showing.sharedWithMe`.
@@ -414,12 +469,14 @@ Authored path: `home.showing.myPoints`.
 - Covered by [Home](../design/compositions/home.md), line 5.
 
 ```former
-Former "the points (user) owns" — inputs (user); bindings (category, cue, pointName, topicName); promises exactly one record — forms:
+Former "the points (user) owns" — inputs (user); bindings (category, cue, pointName, topicName, answer); promises exactly one record — forms:
   each Cueing._cues (creator: user) has (cue, name: pointName)
     where view "(user) owns point (cue)" with (cue, user)
     where whether Categorizing._category (item: cue) has (category)
     where whether Categorizing._get (category) has (name: topicName)
+    where whether Flashcarding._answer (item: cue) has (answer)
     form a record of
+      answer
       category
       cue
       pointName
@@ -432,9 +489,11 @@ Authored path: `checks.showing.mentionedIn`.
 - Covered by [Checks](../design/compositions/checks.md), line 15.
 
 ```former
-Former "the points mentioned in (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
+Former "the points mentioned in (attempt)" — inputs (attempt); bindings (cue, pointName, answer); promises exactly one record — forms:
   each RecallChecking._mentioned (attempt) has (item: cue, name: pointName)
+    where whether Flashcarding._answer (item: cue) has (answer)
     form a record of
+      answer
       cue
       pointName
 ```
@@ -470,9 +529,11 @@ Authored path: `checks.showing.omittedIn`.
 - Covered by [Checks](../design/compositions/checks.md), line 15.
 
 ```former
-Former "the points omitted from (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
+Former "the points omitted from (attempt)" — inputs (attempt); bindings (cue, pointName, answer); promises exactly one record — forms:
   each RecallChecking._omitted (attempt) has (item: cue, name: pointName)
+    where whether Flashcarding._answer (item: cue) has (answer)
     form a record of
+      answer
       cue
       pointName
 ```
@@ -488,6 +549,20 @@ Former "the recipients of (check)" — inputs (check); bindings (recipient, user
     where Registering._username (user: recipient) has (username)
     form a record of
       username
+```
+
+### the schedule of (check)
+
+Authored path: `scheduling.showing.scheduleOf`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 13.
+
+```former
+Former "the schedule of (check)" — inputs (check); bindings (due, tracked); promises exactly one record — forms:
+  a record of
+    where whether SpacedRepetition._entry (item: check) has (due)
+    where tracked is isTracked (due)
+    due
+    tracked
 ```
 
 ### the subject of (check)
@@ -1321,7 +1396,7 @@ where
   view "(user) owns check (check)" with (check, user)
   RecallChecking._get (check) has (name)
 then
-  RequestBoundary.respond (attempts: former "the attempts of (check)" with (check), current: former "the current attempt of (check)" with (check), name, recipients: former "the recipients of (check)" with (check), requestId, subject: former "the subject of (check)" with (check))
+  RequestBoundary.respond (attempts: former "the attempts of (check)" with (check), current: former "the current attempt of (check)" with (check), name, recipients: former "the recipients of (check)" with (check), requestId, schedule: former "the schedule of (check)" with (check), subject: former "the subject of (check)" with (check))
 ```
 
 ### checks.showing.ShowCheck:refused#2
@@ -1575,9 +1650,10 @@ Authored path: `home.showing.ShowHome`.
 ```reaction
 when Sessioning.use (session, subject: user), asked by home.showing.ShowHome
 where
+  instant is the current flow's instant
   earlier, RequestBoundary.request (path: "/home", requestId, session)
 then
-  RequestBoundary.respond (myChecks: former "the checks (user) owns" with (user), myPoints: former "the points (user) owns" with (user), myTopics: former "the topics (user) owns" with (user), requestId)
+  RequestBoundary.respond (dueChecks: former "the checks (user) has due by (before)" with (before: instant, user), myChecks: former "the checks (user) owns" with (user), myPoints: former "the points (user) owns" with (user), myTopics: former "the topics (user) owns" with (user), requestId, scheduledChecks: former "the checks (user) tracks" with (user), suggestedCards: former "the cards suggested to (user)" with (user))
 ```
 
 ### points.creating.CreateAndPlace
@@ -2140,6 +2216,178 @@ then
   RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
 ```
 
+### scheduling.reviewing.ReviewClosed
+
+Authored path: `scheduling.reviewing.ReviewClosed`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 11.
+
+```reaction
+when RecallChecking.close (check, credit)
+where
+  SpacedRepetition._entry (item: check)
+then
+  SpacedRepetition.review (credit, item: check)
+```
+
+### scheduling.tracking.DropDeleted
+
+Authored path: `scheduling.tracking.DropDeleted`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 11.
+
+```reaction
+when RecallChecking.delete (check)
+where
+  SpacedRepetition._entry (item: check)
+then
+  SpacedRepetition.drop (item: check)
+```
+
+### scheduling.tracking.TrackCheck
+
+Authored path: `scheduling.tracking.TrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/track", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### scheduling.tracking.TrackCheck:owner#2
+
+Authored path: `scheduling.tracking.TrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.TrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/track", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  no SpacedRepetition._entry (item: check)
+then
+  SpacedRepetition.enroll (item: check)
+```
+
+### scheduling.tracking.TrackCheck:owner#3
+
+Authored path: `scheduling.tracking.TrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when SpacedRepetition.enroll (item: check), asked by scheduling.tracking.TrackCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/track", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### scheduling.tracking.TrackCheck:refused#2
+
+Authored path: `scheduling.tracking.TrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.TrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/track", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### scheduling.tracking.TrackCheck:tracked#2
+
+Authored path: `scheduling.tracking.TrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 7.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.TrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/track", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  SpacedRepetition._entry (item: check)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### scheduling.tracking.UntrackCheck
+
+Authored path: `scheduling.tracking.UntrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 8.
+
+```reaction
+when RequestBoundary.request (check, path: "/check/untrack", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### scheduling.tracking.UntrackCheck:owner#2
+
+Authored path: `scheduling.tracking.UntrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.UntrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/untrack", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  SpacedRepetition._entry (item: check)
+then
+  SpacedRepetition.drop (item: check)
+```
+
+### scheduling.tracking.UntrackCheck:owner#3
+
+Authored path: `scheduling.tracking.UntrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 8.
+
+```reaction
+when SpacedRepetition.drop (item: check), asked by scheduling.tracking.UntrackCheck:owner#2
+where
+  earlier, RequestBoundary.request (check, path: "/check/untrack", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### scheduling.tracking.UntrackCheck:refused#2
+
+Authored path: `scheduling.tracking.UntrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.UntrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/untrack", requestId, session)
+  no view "(user) owns check (check)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### scheduling.tracking.UntrackCheck:untracked#2
+
+Authored path: `scheduling.tracking.UntrackCheck`.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
+- Covered by [Scheduling](../design/compositions/scheduling.md), line 8.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by scheduling.tracking.UntrackCheck
+where
+  earlier, RequestBoundary.request (check, path: "/check/untrack", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  no SpacedRepetition._entry (item: check)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
 ### sharing.revoking.RevokeDeleted
 
 Authored path: `sharing.revoking.RevokeDeleted`.
@@ -2603,7 +2851,9 @@ not listed here have no explicit input contract.
 - `/check/rename` — requires `check`, `name`, `session`
 - `/check/share` — requires `check`, `session`, `username`
 - `/check/show` — requires `check`, `session`
+- `/check/track` — requires `check`, `session`
 - `/check/unshare` — requires `check`, `session`, `username`
+- `/check/untrack` — requires `check`, `session`
 - `/home` — requires `session`
 - `/point/create` — requires `name`, `session`
 - `/point/createIn` — requires `category`, `name`, `session`

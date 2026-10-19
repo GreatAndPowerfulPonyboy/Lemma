@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { api } from "../api/client.ts";
-import { useHome, type AttemptShown } from "./useLemma.ts";
+import { useHome, type AttemptShown, type CheckShown } from "./useLemma.ts";
 
 /** What I typed on the recall screen, or null when I resumed an attempt, since it isn't saved anywhere. */
 const { account } = defineProps<{ account: string | null }>();
@@ -48,6 +48,23 @@ function finish() {
 /** Closed here or in another tab, or abandoned in another tab: either way it can't be corrected any more. */
 const finished = computed(() => shown.value?.status === "CLOSED" || shown.value?.status === "ABANDONED");
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+/** The prompt's schedule, loaded once the attempt is closed, so an untracked prompt can offer to be tracked. */
+const schedule = ref<CheckShown["schedule"] | null>(null);
+
+async function loadSchedule() {
+  if (!shown.value) return;
+  const result = await call("/check/show", api.check.show({ check: shown.value.check }));
+  if ("error" in result) error.value = result.error;
+  else schedule.value = result.schedule;
+}
+watch(() => shown.value?.status, (status) => {
+  if (status === "CLOSED" && schedule.value === null) loadSchedule();
+});
+
+function track() {
+  if (shown.value) change("/check/track", api.check.track({ check: shown.value.check }), loadSchedule);
+}
 </script>
 
 <template>
@@ -67,7 +84,7 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
           <h2>Mentioned</h2>
           <ul>
             <li v-for="point in shown.mentioned" :key="point.cue">
-              <span>{{ point.pointName }}</span>
+              <span class="point">{{ point.pointName }}<span v-if="point.answer !== null" class="answer">{{ point.answer }}</span></span>
               <button v-if="!finished" type="button" class="text-button" :disabled="working"
                       @click="mark(point, 'missed')">Missed it</button>
             </li>
@@ -76,7 +93,7 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
           <h2>Missed</h2>
           <ul>
             <li v-for="point in shown.omitted" :key="point.cue">
-              <span>{{ point.pointName }}</span>
+              <span class="point">{{ point.pointName }}<span v-if="point.answer !== null" class="answer">{{ point.answer }}</span></span>
               <button v-if="!finished" type="button" class="text-button" :disabled="working"
                       @click="mark(point, 'mentioned')">Mentioned it</button>
             </li>
@@ -87,6 +104,9 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
       <div v-if="finished" class="buttons">
         <p v-if="shown.status === 'ABANDONED'" class="summary">This attempt was abandoned in another tab.</p>
         <p v-else class="summary">You recalled {{ shown.mentioned.length }} of {{ plural(shown.subject.length, "point") }}</p>
+        <button v-if="schedule && !schedule.tracked" type="button" class="button outline" :disabled="working"
+                @click="track">Track this prompt</button>
+        <span v-else-if="schedule?.tracked" class="muted">Tracked</span>
         <button type="button" class="button primary" @click="goHome">Back to home</button>
       </div>
       <div v-else class="buttons">
@@ -141,6 +161,17 @@ li {
   align-items: baseline;
   gap: var(--space-3);
   overflow-wrap: anywhere;
+}
+/* A card's answer sits under its point, to grade what I said against. */
+.point {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.answer {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
 }
 .text-button {
   flex: none;

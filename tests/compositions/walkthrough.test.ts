@@ -14,12 +14,15 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, pointName: "F = ma", category: null, topicName: null},
-        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null},
-        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
+        {cue: newton, pointName: "F = ma", category: null, topicName: null, answer: null},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null, answer: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null, answer: null},
       ],
       myTopics: [],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
 
     const {category: biology} = ok(await api.topic.create({session, name: "Biology"}));
@@ -30,15 +33,18 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics"},
-        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Biology"},
-        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Biology"},
+        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics", answer: null},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Biology", answer: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Biology", answer: null},
       ],
       myTopics: [
         {category: biology, name: "Biology"},
         {category: physics, name: "Physics"},
       ],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
 
     ok(await api.point.rename({session, cue: newton, name: "Newton's second law: F = ma"}));
@@ -46,15 +52,18 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, pointName: "Newton's second law: F = ma", category: physics, topicName: "Physics"},
-        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Cell biology"},
-        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Cell biology"},
+        {cue: newton, pointName: "Newton's second law: F = ma", category: physics, topicName: "Physics", answer: null},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: biology, topicName: "Cell biology", answer: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: biology, topicName: "Cell biology", answer: null},
       ],
       myTopics: [
         {category: biology, name: "Cell biology"},
         {category: physics, name: "Physics"},
       ],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
 
     for (const cue of [mitochondria, ribosomes, newton]) ok(await api.point.delete({session, cue}));
@@ -66,11 +75,14 @@ describe("Lemma", () => {
         {category: physics, name: "Physics"},
       ],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
 
     ok(await api.topic.delete({session, category: biology}));
     ok(await api.topic.delete({session, category: physics}));
-    expect(ok(await api.home({session}))).toEqual({myPoints: [], myTopics: [], myChecks: []});
+    expect(ok(await api.home({session}))).toEqual({myPoints: [], myTopics: [], myChecks: [], dueChecks: [], scheduledChecks: [], suggestedCards: []});
   });
 
   test("Jonathan cannot delete, rename, or move Matthew's points and topics, or add to Matthew's topics", async () => {
@@ -96,9 +108,12 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session: matthew.session}))).toEqual(before);
     expect(ok(await api.home({session}))).toEqual({
-      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: null, topicName: null}],
+      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: null, topicName: null, answer: null}],
       myTopics: [{category: jonathansTopic, name: "Biology"}],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
   });
 
@@ -115,12 +130,15 @@ describe("Lemma", () => {
 
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [
-        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics"},
-        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null},
-        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
+        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics", answer: null},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null, answer: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null, answer: null},
       ],
       myTopics: [{category: physics, name: "Physics"}],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
   });
 
@@ -239,12 +257,15 @@ describe("Access", () => {
     const {cue: jonathansPoint} = ok(await api.point.createIn({session, name: "Cells divide by mitosis", category: jonathansBiology}));
 
     expect(ok(await api.home({session}))).toEqual({
-      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: jonathansBiology, topicName: "Biology"}],
+      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: jonathansBiology, topicName: "Biology", answer: null}],
       myTopics: [
         {category: jonathansBiology, name: "Biology"},
         {category: jonathansPhysics, name: "Physics"},
       ],
       myChecks: [],
+      dueChecks: [],
+      scheduledChecks: [],
+      suggestedCards: [],
     });
     expect(ok(await api.home({session: matthew.session}))).toEqual(matthewsHome);
   });

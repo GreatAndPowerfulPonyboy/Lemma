@@ -1,11 +1,12 @@
 import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
-import {each, former, no, reaction, when, where} from "@mit-sdg/sync-engine/language";
+import {each, former, no, reaction, when, where, whether} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
 import {ownsAttempt, ownsCheck, ownsPoint} from "./access.ts";
 import {recipientsOf} from "./sharing.ts";
+import {scheduleOf} from "./scheduling.ts";
 import {textInput} from "./reusable/inputs.ts";
 
-const {Cueing, RecallChecking, Sessioning} = concepts;
+const {Cueing, Flashcarding, RecallChecking, Sessioning} = concepts;
 
 export const OpenCheck = endpoint(
   "/check/open",
@@ -252,18 +253,22 @@ const attemptPoints = former(
       .form({cue, pointName}),
 );
 
+/** The points mentioned in an attempt, each with its card's answer (or null), to grade against. */
 const mentionedIn = former(
   "the points mentioned in (attempt)",
-  ({attempt}, {cue, pointName}) =>
+  ({attempt}, {cue, pointName, answer}) =>
     each(RecallChecking._mentioned({attempt}).is({item: cue, name: pointName}))
-      .form({cue, pointName}),
+      .where(whether(Flashcarding._answer({item: cue}).is({answer})))
+      .form({cue, pointName, answer}),
 );
 
+/** The points omitted from an attempt, each with its card's answer (or null), to grade against. */
 const omittedIn = former(
   "the points omitted from (attempt)",
-  ({attempt}, {cue, pointName}) =>
+  ({attempt}, {cue, pointName, answer}) =>
     each(RecallChecking._omitted({attempt}).is({item: cue, name: pointName}))
-      .form({cue, pointName}),
+      .where(whether(Flashcarding._answer({item: cue}).is({answer})))
+      .form({cue, pointName, answer}),
 );
 
 export const ShowCheck = endpoint(
@@ -279,6 +284,7 @@ export const ShowCheck = endpoint(
             current: currentAttemptOf({check}),
             attempts: attemptsOf({check}),
             recipients: recipientsOf({check}),
+            schedule: scheduleOf({check}),
           }))
           .named("owner"),
         where(no(ownsCheck({user, check})))

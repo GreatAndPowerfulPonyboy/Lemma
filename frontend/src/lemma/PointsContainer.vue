@@ -106,6 +106,6 @@ async function confirmMove() {
         <button type="button" class="button primary" :disabled="working" autofocus @click="confirmMove">Move</button>
       </div>
     </Dialog>
-    <RecallDialog v-if="recalling" :cues="selected.map((p) => p.cue)" @close="recalling = false" />
+    <RecallDialog v-if="recalling" :points="selected" @close="recalling = false" />
   </section>
 </template>
