@@ -3,17 +3,17 @@ import { ref } from "vue";
 
 /**
  * The home screen's tabs, from `tabs` in order. The chosen one is the v-model. Only the chosen tab is in the tab
- * order; the arrow keys (and Home and End) move to another tab and choose it. Each tab controls the panel whose
- * id is `panel-<id>`.
+ * order; the arrow keys (and Home and End) move the focus to another tab without choosing it, and Enter, Space or
+ * a click chooses it. Each tab controls the panel whose id is `panel-<id>`.
  */
 const { tabs } = defineProps<{ tabs: { id: string; label: string }[] }>();
 const chosen = defineModel<string>({ required: true });
 
 const buttons = ref<HTMLButtonElement[]>([]);
 
-function choose(index: number) {
+/** Moves the focus to the tab at `index`, wrapping around at either end. */
+function focusTab(index: number) {
   const tab = tabs[(index + tabs.length) % tabs.length]!;
-  chosen.value = tab.id;
   buttons.value.find((button) => button.id === `tab-${tab.id}`)?.focus();
 }
 
@@ -21,7 +21,7 @@ function key(event: KeyboardEvent, index: number) {
   const moves: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: tabs.length - 1 };
   if (!(event.key in moves)) return;
   event.preventDefault();
-  choose(moves[event.key]!);
+  focusTab(moves[event.key]!);
 }
 </script>
 

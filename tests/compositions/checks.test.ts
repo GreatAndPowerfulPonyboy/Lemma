@@ -122,15 +122,15 @@ describe("Prompts", () => {
     expect(ok(await api.attempt.show({session, attempt})).mentioned).toEqual([]);
   });
 
-  test("A prompt's name must have 1 to 80 characters once trimmed", async () => {
+  test("A prompt's name must have 1 to 200 characters once trimmed", async () => {
     const lemma = await startLemma();
     const {api} = lemma;
     const {session} = await matthewWithTopics(lemma);
 
     expect(await api.check.open({session, name: "   "})).toEqual({error: "INVALID_NAME"});
-    expect(await api.check.open({session, name: "x".repeat(81)})).toEqual({error: "INVALID_NAME"});
-    const {check} = ok(await api.check.open({session, name: "x".repeat(80)}));
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(80), current: {attempt: null, status: null}}]);
+    expect(await api.check.open({session, name: "x".repeat(201)})).toEqual({error: "INVALID_NAME"});
+    const {check} = ok(await api.check.open({session, name: "x".repeat(200)}));
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(200), current: {attempt: null, status: null}}]);
   });
 
   test("Deleting a prompt deletes its attempts and takes it off the home screen", async () => {

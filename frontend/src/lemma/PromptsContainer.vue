@@ -109,7 +109,7 @@ async function confirmDelete() {
       <li v-for="prompt in home.myChecks" :key="prompt.check">
         <div class="Prompt card" :class="{ open: expanded.has(prompt.check) }" @click="clickRow($event, prompt.check)">
           <div class="row">
-            <input v-if="renaming === prompt.check" v-model="newName" v-focus aria-label="New prompt name" maxlength="80"
+            <input v-if="renaming === prompt.check" v-model="newName" v-focus aria-label="New prompt name" maxlength="200"
                    @keydown.enter="saveRename(prompt)" @keydown.escape="renaming = null" />
             <button v-else type="button" class="name" :aria-expanded="expanded.has(prompt.check)"
                     :aria-controls="`prompt-${prompt.check}`" @click="toggle(prompt.check)">

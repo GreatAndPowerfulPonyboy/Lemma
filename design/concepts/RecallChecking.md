@@ -42,7 +42,7 @@ a set of Attempts with
   an optional rating Number
   a credit Number
 
-Rule: a check's name is stored trimmed, and is never blank or longer than 80 characters.
+Rule: a check's name is stored trimmed, and is never blank or longer than 200 characters.
 Rule: itemNames holds the name of each item in subject, in the same order.
 Rule: an attempt's subject and item names are the check's when the attempt began; later changes to the check don't change them.
 Rule: a check has at most one attempt that is OPEN or GRADED.
@@ -55,9 +55,9 @@ Rule: RecallChecking never receives or stores the account itself; whoever reads 
 
 ```actions
 open(owner: User, name: String) : returns (check: Check)
-  where name is blank or longer than 80 characters once trimmed
+  where name is blank or longer than 200 characters once trimmed
   then
-    refuses INVALID_NAME "A check name must have 1 to 80 characters."
+    refuses INVALID_NAME "A check name must have 1 to 200 characters."
   where name is accepted
   then
     add a new check with owner, the trimmed name, and an empty subject
@@ -67,9 +67,9 @@ rename(check: Check, name: String) : returns (check: Check)
   where check is not in Checks
   then
     refuses CHECK_NOT_FOUND "There is no such check."
-  where check is in Checks and name is blank or longer than 80 characters once trimmed
+  where check is in Checks and name is blank or longer than 200 characters once trimmed
   then
-    refuses INVALID_NAME "A check name must have 1 to 80 characters."
+    refuses INVALID_NAME "A check name must have 1 to 200 characters."
   where check is in Checks and name is accepted
   then
     set the name of check to the trimmed name

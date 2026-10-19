@@ -131,7 +131,7 @@ describe("RecallChecking", () => {
   test("names, subjects, and unknown checks and attempts are refused", async () => {
     const { checking } = await setup();
     await expect(checking.open({ owner: "a", name: "   " })).rejects.toThrow(InvalidName);
-    await expect(checking.open({ owner: "a", name: "x".repeat(81) })).rejects.toThrow("A check name must have 1 to 80 characters.");
+    await expect(checking.open({ owner: "a", name: "x".repeat(201) })).rejects.toThrow("A check name must have 1 to 200 characters.");
     const check = await dijkstra(checking);
     await expect(checking.include({ check, item: "invariant", name: "invariant" })).rejects.toThrow(AlreadyIncluded);
     await expect(checking.exclude({ check, item: "nothing" })).rejects.toThrow(NotIncluded);

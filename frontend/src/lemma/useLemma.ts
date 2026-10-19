@@ -70,12 +70,16 @@ async function change<T extends object>(path: Path, request: Promise<T | { error
   return result;
 }
 
+/** For a `change` or `inOrder` whose next screen loads its own data, so reloading the homepage would be wasted. */
+const noReload = async () => {};
+
 /**
- * Makes several calls one at a time, then reloads the homepage once. Stops at the first refusal and shows it in
- * the banner; the calls made before it stay done, and the reload shows them. Returns whether every call succeeded.
+ * Makes several calls one at a time, then reloads the homepage once, or runs `reload` instead, which is told
+ * whether every call succeeded. Stops at the first refusal and shows it in the banner; the calls made before it
+ * stay done, and the reload shows them. Returns whether every call succeeded.
  * Each call is a function, so it only starts once the one before it has finished.
  */
-async function inOrder(calls: (() => Promise<object>)[]) {
+async function inOrder(calls: (() => Promise<object>)[], reload: (done: boolean) => Promise<void> = refresh) {
   working.value = true;
   let failed: string | null = null;
   for (const makeCall of calls) {
@@ -85,7 +89,7 @@ async function inOrder(calls: (() => Promise<object>)[]) {
       break;
     }
   }
-  await refresh();
+  await reload(failed === null);
   if (failed) error.value = failed;
   working.value = false;
   return failed === null;
@@ -136,7 +140,7 @@ function goHome() {
 
 /** Starts an attempt at one of my prompts and opens the recall screen. */
 async function startAttempt(check: Check) {
-  const result = await change("/check/attempt", api.check.attempt({ check }));
+  const result = await change("/check/attempt", api.check.attempt({ check }), noReload);
   if (!("error" in result)) openAttempt("recall", result.attempt, check);
 }
 
@@ -164,7 +168,8 @@ async function startPrompt(name: string, cues: MyPoint["cue"][]) {
       if (!("error" in result)) started = result.attempt;
       return result;
     },
-  ]);
+    // Only a refusal keeps me on the home screen, where it should show any prompt made before it.
+  ], (done) => (done ? noReload() : refresh()));
   if (done && check && started) openAttempt("recall", started, check);
   return done;
 }
@@ -179,7 +184,7 @@ async function submitAttempt(cues: MyPoint["cue"][]) {
   const done = await inOrder([
     () => call("/attempt/submit", api.attempt.submit({ attempt: current })),
     ...cues.map((cue) => () => call("/attempt/mention", api.attempt.mention({ attempt: current, cue }))),
-  ]);
+  ], noReload);
   if (done) screen.value = "results";
   return done;
 }
@@ -188,7 +193,8 @@ async function submitAttempt(cues: MyPoint["cue"][]) {
 async function abandonAttempt() {
   const current = attempt.value;
   if (current === null) return;
-  const result = await change("/attempt/abandon", api.attempt.abandon({ attempt: current }));
+  // The home screen reloads when it shows, so this doesn't reload it first.
+  const result = await change("/attempt/abandon", api.attempt.abandon({ attempt: current }), noReload);
   if (!("error" in result)) goHome();
 }
 

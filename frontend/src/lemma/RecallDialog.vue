@@ -21,7 +21,7 @@ async function start() {
 
 <template>
   <Dialog title="What will you explain?" :subtitle="`Recall ${plural(cues.length, 'point')} from memory`" @close="emit('close')">
-    <input v-model="prompt" class="prompt" maxlength="80" placeholder="Explain …" aria-label="Prompt" autofocus
+    <input v-model="prompt" class="prompt" maxlength="200" placeholder="Explain …" aria-label="Prompt" autofocus
            @keydown.enter="start" />
     <div class="dialog-buttons">
       <button type="button" class="button outline" @click="emit('close')">Cancel</button>

@@ -18,7 +18,7 @@ export type Check = string & { readonly __brand: "Check" };
 export type Attempt = string & { readonly __brand: "Attempt" };
 export type AttemptStatus = "OPEN" | "GRADED" | "CLOSED" | "ABANDONED";
 
-const MAX_NAME = 80;
+const MAX_NAME = 200;
 const UNFINISHED: AttemptStatus[] = ["OPEN", "GRADED"];
 
 /** An item in a subject, with the name it is shown by. */
@@ -275,7 +275,7 @@ export class RecallCheckingConcept<User extends string, Item extends string> {
 /** Returns the trimmed name, or refuses it. */
 function acceptedName(name: string): string {
   const trimmed = name.trim();
-  if (trimmed.length === 0 || trimmed.length > MAX_NAME) throw new InvalidName("A check name must have 1 to 80 characters.");
+  if (trimmed.length === 0 || trimmed.length > MAX_NAME) throw new InvalidName("A check name must have 1 to 200 characters.");
   return trimmed;
 }
 

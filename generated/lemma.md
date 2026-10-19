@@ -119,10 +119,10 @@ Defined in [RecallChecking](../design/concepts/RecallChecking.md), line 1.
 #### Actions
 
 - `open(owner: User, name: String) : returns (check: Check)`
-  - Refuses `INVALID_NAME`: A check name must have 1 to 80 characters.
+  - Refuses `INVALID_NAME`: A check name must have 1 to 200 characters.
 - `rename(check: Check, name: String) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
-  - Refuses `INVALID_NAME`: A check name must have 1 to 80 characters.
+  - Refuses `INVALID_NAME`: A check name must have 1 to 200 characters.
 - `include(check: Check, item: Item, name: String) : returns (check: Check)`
   - Refuses `CHECK_NOT_FOUND`: There is no such check.
   - Refuses `ALREADY_INCLUDED`: That item is already in this check.
