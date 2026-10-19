@@ -102,10 +102,13 @@ export const UnplacePoint = endpoint(
   receive({session, cue})
     .then(Sessioning.use({session}).responds({subject: user}))
     .then(
-      where(ownsPoint({user, cue}))
+      where(ownsPoint({user, cue}), Categorizing._category({item: cue}))
         .then(Categorizing.unplace({item: cue}).responds({}))
         .then(respond({cue}))
         .named("creator"),
+      where(ownsPoint({user, cue}), no(Categorizing._category({item: cue})))
+        .then(respond({cue}))
+        .named("unsorted"),
       where(no(ownsPoint({user, cue})))
         .then(respond({error: "NOT_FOUND"}))
         .named("refused"),

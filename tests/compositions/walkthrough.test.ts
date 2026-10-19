@@ -129,7 +129,7 @@ describe("Lemma", () => {
     expect(await api.topic.delete({session, category: biology})).toEqual({error: "CATEGORY_NOT_EMPTY"});
     ok(await api.point.unplace({session, cue: mitochondria}));
     ok(await api.point.unplace({session, cue: ribosomes}));
-    expect(await api.point.unplace({session, cue: ribosomes})).toEqual({error: "NOT_PLACED"});
+    expect(await api.point.unplace({session, cue: ribosomes})).toEqual({cue: ribosomes});
     ok(await api.topic.delete({session, category: biology}));
 
     expect(ok(await api.home({session}))).toEqual({

@@ -518,6 +518,7 @@ when Sessioning.use (session, subject: user), asked by points.moving.UnplacePoin
 where
   earlier, RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
   view "(user) owns point (cue)" with (cue, user)
+  Categorizing._category (item: cue)
 then
   Categorizing.unplace (item: cue)
 ```
@@ -549,6 +550,22 @@ where
   no view "(user) owns point (cue)" with (cue, user)
 then
   RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.moving.UnplacePoint:unsorted#2
+
+Authored path: `points.moving.UnplacePoint`.
+- Covered by [Points](../design/compositions/points.md), line 30.
+- Covered by [Points](../design/compositions/points.md), line 33.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.UnplacePoint
+where
+  earlier, RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+  no Categorizing._category (item: cue)
+then
+  RequestBoundary.respond (cue, requestId)
 ```
 
 ### points.renaming.RenamePoint
