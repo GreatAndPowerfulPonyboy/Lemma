@@ -57,21 +57,26 @@ async function refresh() {
 
 
 /**
- * Waits for a call to an endpoint that changes my homepage, then reloads the homepage, or whatever `reload` loads
- * instead. A refusal is shown in the banner. Controls are disabled until the reload, so a second click can't send
- * the request again.
+ * Waits for a call to an endpoint that changes my homepage, then reloads the homepage, or runs `reload` instead,
+ * which is told whether the call succeeded. A refusal reloads too, since it usually means something changed in
+ * another tab, and is shown in the banner after the reload, which would otherwise clear it. Controls are disabled
+ * until the reload, so a second click can't send the request again.
  */
-async function change<T extends object>(path: Path, request: Promise<T | { error: string }>, reload = refresh) {
+async function change<T extends object>(path: Path, request: Promise<T | { error: string }>,
+                                        reload: (done: boolean) => Promise<void> = refresh) {
   working.value = true;
   const result = await call(path, request);
+  await reload(!("error" in result));
   if ("error" in result) error.value = result.error;
-  else await reload();
   working.value = false;
   return result;
 }
 
 /** For a `change` or `inOrder` whose next screen loads its own data, so reloading the homepage would be wasted. */
 const noReload = async () => {};
+
+/** For a `change` or `inOrder` that leaves the home screen when it succeeds, but stays on it after a refusal. */
+const reloadIfRefused = (done: boolean) => (done ? noReload() : refresh());
 
 /**
  * Makes several calls one at a time, then reloads the homepage once, or runs `reload` instead, which is told
@@ -124,8 +129,12 @@ function emptyAndDeleteTopics(categories: MyTopic["category"][]) {
 }
 
 
-/** Shows the recall or results screen for an attempt at a prompt. */
+/**
+ * Shows the recall or results screen for an attempt at a prompt. My homepage is forgotten until I come back, when
+ * it reloads, so it never shows the prompt as it was before the attempt (still offering to resume it, say).
+ */
 function openAttempt(next: "recall" | "results", started: Attempt, check: Check) {
+  home.value = null;
   attempt.value = started;
   recentCheck.value = check;
   error.value = null;
@@ -140,7 +149,7 @@ function goHome() {
 
 /** Starts an attempt at one of my prompts and opens the recall screen. */
 async function startAttempt(check: Check) {
-  const result = await change("/check/attempt", api.check.attempt({ check }), noReload);
+  const result = await change("/check/attempt", api.check.attempt({ check }), reloadIfRefused);
   if (!("error" in result)) openAttempt("recall", result.attempt, check);
 }
 
@@ -169,7 +178,7 @@ async function startPrompt(name: string, cues: MyPoint["cue"][]) {
       return result;
     },
     // Only a refusal keeps me on the home screen, where it should show any prompt made before it.
-  ], (done) => (done ? noReload() : refresh()));
+  ], reloadIfRefused);
   if (done && check && started) openAttempt("recall", started, check);
   return done;
 }
