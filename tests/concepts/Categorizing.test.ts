@@ -71,6 +71,23 @@ describe("Categorizing", () => {
     );
   });
 
+  test("placing an item in its own category and renaming a category to its own name succeed and change nothing; capitalization makes names different", async () => {
+    const { categorizing } = await setup();
+    const { category } = await categorizing.create({ creator: "a", name: "Biology" });
+    await categorizing.place({ item: "x", category });
+
+    expect(await categorizing.place({ item: "x", category })).toEqual({ item: "x" });
+    expect(await categorizing._category({ item: "x" })).toEqual([{ category }]);
+    expect(await categorizing._items({ category })).toEqual([{ item: "x" }]);
+
+    expect(await categorizing.rename({ category, name: "Biology" })).toEqual({ category });
+    expect(await categorizing.rename({ category, name: " Biology " })).toEqual({ category });
+    expect(await categorizing._get({ category })).toEqual([{ creator: "a", name: "Biology" }]);
+
+    const { category: lower } = await categorizing.create({ creator: "a", name: "biology" });
+    expect(await categorizing._get({ category: lower })).toEqual([{ creator: "a", name: "biology" }]);
+  });
+
   test("names are trimmed and must have 1 to 80 characters; unknown categories and unplaced items are refused", async () => {
     const { categorizing } = await setup();
     const { category } = await categorizing.create({ creator: "a", name: "  Spaced  " });

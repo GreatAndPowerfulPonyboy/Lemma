@@ -34,6 +34,7 @@ a set of Items with
   a Category
 
 Rule: a category's name is stored trimmed, and is never blank or longer than 80 characters.
+Rule: names are compared exactly, so two names that differ only in capitalization are different names.
 ```
 
 ## Actions

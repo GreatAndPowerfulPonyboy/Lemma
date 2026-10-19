@@ -1,4 +1,7 @@
 import {describe, expect, test} from "bun:test";
+import type {Category} from "../../src/concepts/Categorizing/Categorizing.ts";
+import type {Cue} from "../../src/concepts/Cueing/Cueing.ts";
+import type {Session} from "../../src/concepts/Sessioning/Sessioning.ts";
 import {startLemma} from "../support/app.ts";
 import {ok} from "../support/reusable/results.ts";
 
@@ -159,22 +162,252 @@ describe("Lemma", () => {
   });
 });
 
-describe("Refusals", () => {
-  const tooLong = "x".repeat(101);
+describe("Access", () => {
+  /**
+   * One call to each of the nine write endpoints as `session`, naming Matthew's real points and topics, each
+   * with its path so a failing assertion says which endpoint it was.
+   */
+  function everyWrite(api: Lemma["api"], session: Session, {newton, biology, physics}: {newton: Cue, biology: Category, physics: Category}) {
+    return [
+      ["/point/create", () => api.point.create({session, name: "A new point"})],
+      ["/point/createIn", () => api.point.createIn({session, name: "A new point", category: biology})],
+      ["/point/rename", () => api.point.rename({session, cue: newton, name: "Renamed"})],
+      ["/point/delete", () => api.point.delete({session, cue: newton})],
+      ["/point/move", () => api.point.move({session, cue: newton, incidentCategory: biology})],
+      ["/point/unplace", () => api.point.unplace({session, cue: newton})],
+      ["/topic/create", () => api.topic.create({session, name: "Chemistry"})],
+      ["/topic/rename", () => api.topic.rename({session, category: physics, newName: "Renamed"})],
+      ["/topic/delete", () => api.topic.delete({session, category: physics})],
+    ] as const;
+  }
 
-  test("a point name that is too long is refused with INVALID_NAME", async () => {
+  test("every write endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN and changes nothing", async () => {
     const lemma = await startLemma();
     const {api} = lemma;
-    const {session, newton} = await matthewWithThreePoints(lemma);
-    expect(await api.point.create({session, name: tooLong})).toEqual({error: "INVALID_NAME"});
-    expect(await api.point.rename({session, cue: newton, name: tooLong})).toEqual({error: "INVALID_NAME"});
+    const matthew = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session: matthew.session}));
+
+    ok(await api.auth.logout({session: matthew.session}));
+    for (const session of [matthew.session, "made-up-session" as Session]) {
+      for (const [path, write] of everyWrite(api, session, matthew)) {
+        expect({path, result: await write()}).toEqual({path, result: {error: "NOT_SIGNED_IN"}});
+      }
+    }
+
+    const {session} = ok(await api.auth.login({username: "Matthew", password: "correct horse"}));
+    expect(ok(await api.home({session}))).toEqual(before);
   });
 
-  test("a topic name that is too long is refused with INVALID_CATEGORY", async () => {
+  test("a point or topic Matthew deleted is NOT_FOUND for every endpoint that names it", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, mitochondria, newton, biology, physics} = await matthewWithTopics(lemma);
+    ok(await api.point.delete({session, cue: newton}));
+    ok(await api.topic.delete({session, category: physics}));
+    const before = ok(await api.home({session}));
+
+    expect(await api.point.rename({session, cue: newton, name: "Renamed"})).toEqual({error: "NOT_FOUND"});
+    expect(await api.point.delete({session, cue: newton})).toEqual({error: "NOT_FOUND"});
+    expect(await api.point.move({session, cue: newton, incidentCategory: biology})).toEqual({error: "NOT_FOUND"});
+    expect(await api.point.unplace({session, cue: newton})).toEqual({error: "NOT_FOUND"});
+    expect(await api.point.move({session, cue: mitochondria, incidentCategory: physics})).toEqual({error: "NOT_FOUND"});
+    expect(await api.point.createIn({session, name: "A new point", category: physics})).toEqual({error: "NOT_FOUND"});
+    expect(await api.topic.rename({session, category: physics, newName: "Renamed"})).toEqual({error: "NOT_FOUND"});
+    expect(await api.topic.delete({session, category: physics})).toEqual({error: "NOT_FOUND"});
+
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("IDs that were never issued are NOT_FOUND, not an error, for every endpoint that takes a point or topic", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, mitochondria, biology} = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session}));
+
+    for (const id of ["not-an-id", "", "000000000000000000000000", '{"$ne": null}']) {
+      const cue = id as Cue, category = id as Category;
+      const calls = [
+        ["/point/rename", () => api.point.rename({session, cue, name: "Renamed"})],
+        ["/point/delete", () => api.point.delete({session, cue})],
+        ["/point/move (point)", () => api.point.move({session, cue, incidentCategory: biology})],
+        ["/point/move (topic)", () => api.point.move({session, cue: mitochondria, incidentCategory: category})],
+        ["/point/unplace", () => api.point.unplace({session, cue})],
+        ["/point/createIn", () => api.point.createIn({session, name: "A new point", category})],
+        ["/topic/rename", () => api.topic.rename({session, category, newName: "Renamed"})],
+        ["/topic/delete", () => api.topic.delete({session, category})],
+      ] as const;
+      for (const [path, call] of calls) {
+        expect({path, id, result: await call()}).toEqual({path, id, result: {error: "NOT_FOUND"}});
+      }
+    }
+
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("Matthew and Jonathan can each have topics with the same names, and each sees only his own", async () => {
+    const lemma = await startLemma();
+    const {api, register} = lemma;
+    const matthew = await matthewWithTopics(lemma);
+    const matthewsHome = ok(await api.home({session: matthew.session}));
+
+    const {session} = await register("Jonathan");
+    const {category: jonathansBiology} = ok(await api.topic.create({session, name: "Biology"}));
+    const {category: jonathansPhysics} = ok(await api.topic.create({session, name: "Mechanics"}));
+    ok(await api.topic.rename({session, category: jonathansPhysics, newName: "Physics"}));
+    const {cue: jonathansPoint} = ok(await api.point.createIn({session, name: "Cells divide by mitosis", category: jonathansBiology}));
+
+    expect(ok(await api.home({session}))).toEqual({
+      myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: jonathansBiology, topicName: "Biology"}],
+      myTopics: [
+        {category: jonathansBiology, name: "Biology"},
+        {category: jonathansPhysics, name: "Physics"},
+      ],
+    });
+    expect(ok(await api.home({session: matthew.session}))).toEqual(matthewsHome);
+  });
+});
+
+describe("Refusals", () => {
+  const longest = (letter: string) => letter.repeat(80);
+  const tooLong = "x".repeat(81);
+
+  test("a point name of 80 characters is accepted and 81 is refused with INVALID_NAME, on create, createIn and rename", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, newton, biology} = await matthewWithTopics(lemma);
+
+    const {cue: created} = ok(await api.point.create({session, name: longest("a")}));
+    const {cue: createdIn} = ok(await api.point.createIn({session, name: longest("b"), category: biology}));
+    ok(await api.point.rename({session, cue: newton, name: longest("c")}));
+    const before = ok(await api.home({session}));
+    expect(before.myPoints).toEqual(expect.arrayContaining([
+      expect.objectContaining({cue: created, pointName: longest("a")}),
+      expect.objectContaining({cue: createdIn, pointName: longest("b")}),
+      expect.objectContaining({cue: newton, pointName: longest("c")}),
+    ]));
+
+    expect(await api.point.create({session, name: tooLong})).toEqual({error: "INVALID_NAME"});
+    expect(await api.point.createIn({session, name: tooLong, category: biology})).toEqual({error: "INVALID_NAME"});
+    expect(await api.point.rename({session, cue: newton, name: tooLong})).toEqual({error: "INVALID_NAME"});
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("a topic name of 80 characters is accepted and 81 is refused with INVALID_CATEGORY, on create and rename", async () => {
     const lemma = await startLemma();
     const {api} = lemma;
     const {session, biology} = await matthewWithTopics(lemma);
+
+    const {category: created} = ok(await api.topic.create({session, name: longest("a")}));
+    ok(await api.topic.rename({session, category: biology, newName: longest("b")}));
+    const before = ok(await api.home({session}));
+    expect(before.myTopics).toEqual(expect.arrayContaining([
+      {category: created, name: longest("a")},
+      {category: biology, name: longest("b")},
+    ]));
+
     expect(await api.topic.create({session, name: tooLong})).toEqual({error: "INVALID_CATEGORY"});
     expect(await api.topic.rename({session, category: biology, newName: tooLong})).toEqual({error: "INVALID_CATEGORY"});
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("blank names are refused on point create, createIn and rename and on topic create and rename", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, newton, biology} = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session}));
+
+    for (const blank of ["", "   "]) {
+      expect(await api.point.create({session, name: blank})).toEqual({error: "INVALID_NAME"});
+      expect(await api.point.createIn({session, name: blank, category: biology})).toEqual({error: "INVALID_NAME"});
+      expect(await api.point.rename({session, cue: newton, name: blank})).toEqual({error: "INVALID_NAME"});
+      expect(await api.topic.create({session, name: blank})).toEqual({error: "INVALID_CATEGORY"});
+      expect(await api.topic.rename({session, category: biology, newName: blank})).toEqual({error: "INVALID_CATEGORY"});
+    }
+
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("accepted names are stored trimmed", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, newton, biology} = await matthewWithTopics(lemma);
+
+    const {category: chemistry} = ok(await api.topic.create({session, name: "  Chemistry  "}));
+    const {cue: krebs} = ok(await api.point.create({session, name: "  Krebs cycle  "}));
+    ok(await api.point.rename({session, cue: newton, name: "  Newton's second law  "}));
+    ok(await api.topic.rename({session, category: biology, newName: "  Cell biology  "}));
+
+    const home = ok(await api.home({session}));
+    expect(home.myTopics).toEqual(expect.arrayContaining([
+      {category: chemistry, name: "Chemistry"},
+      {category: biology, name: "Cell biology"},
+    ]));
+    expect(home.myPoints).toEqual(expect.arrayContaining([
+      expect.objectContaining({cue: krebs, pointName: "Krebs cycle"}),
+      expect.objectContaining({cue: newton, pointName: "Newton's second law"}),
+    ]));
+  });
+
+  test("a topic name Matthew already uses is refused with CATEGORY_EXISTS, on create and on rename", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, physics} = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session}));
+
+    expect(await api.topic.create({session, name: "Biology"})).toEqual({error: "CATEGORY_EXISTS"});
+    expect(await api.topic.create({session, name: "  Biology "})).toEqual({error: "CATEGORY_EXISTS"});
+    expect(await api.topic.rename({session, category: physics, newName: "Biology"})).toEqual({error: "CATEGORY_EXISTS"});
+
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("topic names that differ only in capitalization are different topics", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, biology} = await matthewWithTopics(lemma);
+
+    const {category: lower} = ok(await api.topic.create({session, name: "biology"}));
+    const {category: upper} = ok(await api.topic.create({session, name: "BIOLOGY"}));
+
+    expect(ok(await api.home({session})).myTopics).toEqual(expect.arrayContaining([
+      {category: biology, name: "Biology"},
+      {category: lower, name: "biology"},
+      {category: upper, name: "BIOLOGY"},
+    ]));
+  });
+});
+
+describe("Repeating an action", () => {
+  test("moving a point into the topic it's already in succeeds quietly and changes nothing", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, mitochondria, biology} = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session}));
+
+    expect(await api.point.move({session, cue: mitochondria, incidentCategory: biology})).toEqual({cue: mitochondria});
+    expect(ok(await api.home({session}))).toEqual(before);
+  });
+
+  test("moving three points into Physics succeeds for all of them, even though one is already there", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, mitochondria, ribosomes, newton, physics} = await matthewWithTopics(lemma);
+
+    for (const cue of [mitochondria, ribosomes, newton]) {
+      expect(await api.point.move({session, cue, incidentCategory: physics})).toEqual({cue});
+    }
+    expect(ok(await api.home({session})).myPoints.map((p) => p.topicName)).toEqual(["Physics", "Physics", "Physics"]);
+  });
+
+  test("renaming a topic or a point to the name it already has succeeds quietly and changes nothing", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, newton, biology} = await matthewWithTopics(lemma);
+    const before = ok(await api.home({session}));
+
+    expect(await api.topic.rename({session, category: biology, newName: "Biology"})).toEqual({category: biology});
+    expect(await api.topic.rename({session, category: biology, newName: "  Biology  "})).toEqual({category: biology});
+    expect(await api.point.rename({session, cue: newton, name: "F = ma"})).toEqual({cue: newton});
+    expect(ok(await api.home({session}))).toEqual(before);
   });
 });
