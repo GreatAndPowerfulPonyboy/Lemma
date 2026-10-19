@@ -2,8 +2,11 @@
 import { onMounted, ref, useId } from "vue";
 import Icon from "./Icon.vue";
 
-/** A modal dialog, opened with `showModal` when it mounts. Set `dark` to show a picture on a dark backdrop that fills the screen. */
-defineProps<{ title: string; subtitle?: string; dark?: boolean }>();
+/**
+ * A modal dialog, opened with `showModal` when it mounts. Set `dark` to show a picture on a dark backdrop that fills the screen.
+ * Set `hideClose` to leave out the × button when the dialog has its own Cancel; Escape still closes it.
+ */
+defineProps<{ title: string; subtitle?: string; dark?: boolean; hideClose?: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 const dialog = ref<HTMLDialogElement | null>(null);
 const titleId = useId();
@@ -26,7 +29,7 @@ onMounted(() => dialog.value?.showModal());
           <p v-if="subtitle" class="subtitle">{{ subtitle }}</p>
         </div>
         <slot name="actions" />
-        <button type="button" class="icon-button close" aria-label="Close" @click="dialog?.close()">
+        <button v-if="!hideClose" type="button" class="icon-button close" aria-label="Close" @click="dialog?.close()">
           <Icon name="close" />
         </button>
       </header>

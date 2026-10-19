@@ -9,18 +9,28 @@ const root = ref<HTMLElement | null>(null);
 const button = ref<HTMLButtonElement | null>(null);
 const items = ref<HTMLElement | null>(null);
 
-/** How far the popover is slid sideways, in pixels, and whether it opens above the button, so it stays inside the window. */
+/** How far the popover is slid sideways, whether it opens above the button, and how tall it may be, so it stays inside the window. */
 const shift = ref(0);
 const above = ref(false);
+const maxHeight = ref<number | null>(null);
 
-/** Keeps the open popover inside the window, with an 8px margin: slides it back past either side, and opens it above the button when there's no room below. */
+/**
+ * Keeps the open popover inside the window, with an 8px margin: slides it back past either side, opens it on
+ * whichever side of the button has more room when it doesn't fit below, and if it's still too tall for that
+ * side, caps its height so it scrolls.
+ */
 function keepOnScreen() {
   const box = items.value?.getBoundingClientRect();
-  if (!box) return;
+  const anchor = button.value?.getBoundingClientRect();
+  if (!box || !anchor) return;
   const margin = 8;
   if (box.right > window.innerWidth - margin) shift.value = window.innerWidth - margin - box.right;
   else if (box.left < margin) shift.value = margin - box.left;
-  if (box.bottom > window.innerHeight - margin) above.value = true;
+  const roomBelow = window.innerHeight - margin - anchor.bottom - 6;
+  const roomAbove = anchor.top - margin - 6;
+  if (box.height > roomBelow && roomAbove > roomBelow) above.value = true;
+  const room = above.value ? roomAbove : roomBelow;
+  if (box.height > room) maxHeight.value = room;
 }
 
 /** Closes the menu when I click or move the focus outside it. */
@@ -41,6 +51,7 @@ async function toggle() {
     document.addEventListener("click", closeIfOutside);
     shift.value = 0;
     above.value = false;
+    maxHeight.value = null;
     await nextTick();
     keepOnScreen();
   } else document.removeEventListener("click", closeIfOutside);
@@ -59,7 +70,7 @@ onUnmounted(close);
     <button ref="button" type="button" class="icon-button" :aria-label="label" :aria-expanded="open" @click="toggle">
       <slot name="button"><Icon name="more" /></slot>
     </button>
-    <div v-if="open" ref="items" class="items" :class="[align, { above }]" :style="{ transform: `translateX(${shift}px)` }" @click="close">
+    <div v-if="open" ref="items" class="items" :class="[align, { above }]" :style="{ transform: `translateX(${shift}px)`, maxHeight: maxHeight === null ? undefined : `${maxHeight}px` }" @click="close">
       <slot />
     </div>
   </div>
@@ -89,6 +100,7 @@ onUnmounted(close);
   width: max-content;
   min-width: 200px;
   max-width: min(280px, calc(100vw - 16px));
+  overflow-y: auto;
   padding: 6px;
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -106,6 +118,7 @@ onUnmounted(close);
 }
 /* Each item is a button with an icon and a label, and an optional `.detail` line under the label. */
 .items :slotted(button) {
+  flex: none;
   display: flex;
   align-items: flex-start;
   gap: 10px;

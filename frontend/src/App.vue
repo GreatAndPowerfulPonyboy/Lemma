@@ -29,9 +29,11 @@ async function signOutAndReset() {
   </header>
   <main v-if="checked" class="content">
     <Home v-if="me"/>
-    <SignIn v-else icon="box" lead="Heighten your understanding with free recall">
-      <PasswordForm />
-    </SignIn>
+    <div v-else class="sign-in-page">
+      <SignIn icon="box" lead="Heighten your understanding with free recall">
+        <PasswordForm />
+      </SignIn>
+    </div>
   </main>
 </template>
 
@@ -41,6 +43,8 @@ async function signOutAndReset() {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  /* Inside #app's flex column, auto margins would shrink the bar to its contents; this keeps it full width up to the limit. */
+  width: 100%;
   max-width: 1168px;
   margin: 0 auto;
   padding: 18px 24px;
@@ -72,14 +76,20 @@ async function signOutAndReset() {
 .signed-in strong {
   color: var(--color-text);
 }
+/* Takes the window's height below the top bar, so the home screen can fill it edge to edge; the home screen sets its own gutters. */
 .content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.sign-in-page {
   padding: var(--space-2) var(--space-6) var(--space-12);
 }
 @media (max-width: 600px) {
   .topbar {
     padding: 14px 16px;
   }
-  .content {
+  .sign-in-page {
     padding: var(--space-1) var(--space-4) var(--space-8);
   }
 }

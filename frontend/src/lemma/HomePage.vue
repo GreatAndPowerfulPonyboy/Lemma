@@ -48,11 +48,17 @@ const showUnsortedCard = computed(() => unsorted.value || topicSearch.value.trim
 /** Whether I have any points at all, so the empty list can tell "none yet" apart from "none match". */
 const hasPoints = computed(() => (home.value?.myPoints.length ?? 0) > 0);
 
-/** Whether there's text in either search box, so the clear button only shows when it would do something. Unsorted isn't counted: clicking it again turns it off. */
-const filtering = computed(() => pointSearch.value.trim() !== "" || topicSearch.value.trim() !== "");
+/**
+ * Whether a search box I can see has text, so the clear button only shows when it would do something. The point
+ * box is hidden in the Topics view, so it doesn't count there. Unsorted isn't counted: clicking it again turns it off.
+ */
+const filtering = computed(
+  () => (view.value === "points" && pointSearch.value.trim() !== "") || topicSearch.value.trim() !== "",
+);
 
+/** Empties the search boxes I can see. */
 function clearFilters() {
-  pointSearch.value = "";
+  if (view.value === "points") pointSearch.value = "";
   topicSearch.value = "";
 }
 
@@ -66,12 +72,12 @@ function openTopic(topic: MyTopic | null) {
 
 <template>
   <main class="home">
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-else-if="!home">Loading…</p>
-
-    <template v-if="home">
-      <FilterRow>
-        <PointSearch v-model="pointSearch" :topic="exactTopic" />
+    <div class="tools">
+      <p v-if="error" class="error content-width">{{ error }}</p>
+      <p v-else-if="!home" class="content-width">Loading…</p>
+      <FilterRow v-if="home">
+        <!-- Searching points does nothing in the Topics view, so the box is only there in the points view. -->
+        <PointSearch v-if="view === 'points'" v-model="pointSearch" :topic="exactTopic" />
         <TopicSearch v-model="topicSearch" v-model:unsorted="unsorted" :topic="exactTopic" />
         <button type="button" class="button" :class="view === 'topics' ? 'primary' : 'outline'"
                 :aria-pressed="view === 'topics'" @click="view = view === 'topics' ? 'points' : 'topics'">Topics</button>
@@ -80,6 +86,11 @@ function openTopic(topic: MyTopic | null) {
           <Icon name="trash" />Clear filters
         </button>
       </FilterRow>
+    </div>
+
+    <template v-if="home">
+      <!-- Separates the tools above from the content below, where a selection rectangle can start. -->
+      <hr class="zone-divider" />
 
       <TopicsContainer v-if="view === 'topics'" :topics="shownTopics" :show-unsorted="showUnsortedCard" @open="openTopic" />
       <PointsContainer v-else :points="shown" :has-points="hasPoints" />
@@ -88,12 +99,27 @@ function openTopic(topic: MyTopic | null) {
 </template>
 
 <style scoped>
+/* The full width of the window and as tall as the top bar leaves, so the content area below the divider can fill it. */
 .home {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-5);
-  max-width: 1120px;
-  margin: 0 auto;
+}
+/* The tools zone above the divider keeps the page's colour; its contents keep the content width. */
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6) var(--space-5);
+}
+.zone-divider {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+@media (max-width: 600px) {
+  .tools {
+    padding-inline: var(--space-4);
+  }
 }
 /* Clear filters keeps its space while there's nothing to clear, so it appearing never moves the other controls. Hidden this way, it also leaves the tab order. */
 .unused {

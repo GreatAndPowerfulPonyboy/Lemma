@@ -52,16 +52,17 @@ async function change<T extends object>(path: Path, request: Promise<T | { error
 }
 
 /**
- * Moves each point into the topic, one at a time, then reloads the homepage once. Stops at the first
- * refusal and shows it in the banner; the points moved before it stay moved, and the reload shows them.
+ * Makes several calls one at a time, then reloads the homepage once. Stops at the first refusal and shows it in
+ * the banner; the calls made before it stay done, and the reload shows them. Returns whether every call succeeded.
+ * Each call is a function, so it only starts once the one before it has finished.
  */
-async function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
+async function inOrder(calls: (() => Promise<object>)[]) {
   working.value = true;
   let failed: string | null = null;
-  for (const cue of cues) {
-    const result = await call("/point/move", api.point.move({ cue, incidentCategory: category }));
+  for (const makeCall of calls) {
+    const result = await makeCall();
     if ("error" in result) {
-      failed = result.error;
+      failed = String(result.error);
       break;
     }
   }
@@ -71,25 +72,32 @@ async function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
   return failed === null;
 }
 
+/** Moves each point into the topic. */
+function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
+  return inOrder(cues.map((cue) => () => call("/point/move", api.point.move({ cue, incidentCategory: category }))));
+}
 
-/**
- * Takes each point out of its topic, one at a time, so it becomes Unsorted, then reloads the homepage once.
- * Like `move`, it stops at the first refusal and shows it in the banner; the points taken out before it stay out.
- */
-async function unplace(cues: MyPoint["cue"][]) {
-  working.value = true;
-  let failed: string | null = null;
-  for (const cue of cues) {
-    const result = await call("/point/unplace", api.point.unplace({ cue }));
-    if ("error" in result) {
-      failed = result.error;
-      break;
-    }
-  }
-  await refresh();
-  if (failed) error.value = failed;
-  working.value = false;
-  return failed === null;
+/** Takes each point out of its topic, so it becomes Unsorted. */
+function unplace(cues: MyPoint["cue"][]) {
+  return inOrder(cues.map((cue) => () => call("/point/unplace", api.point.unplace({ cue }))));
+}
+
+/** The points in any of these topics. */
+function pointsIn(categories: MyTopic["category"][]) {
+  return (home.value?.myPoints ?? []).filter((p) => p.category !== null && categories.includes(p.category)).map((p) => p.cue);
+}
+
+/** Empties each topic: every point in them becomes Unsorted. */
+function emptyTopics(categories: MyTopic["category"][]) {
+  return unplace(pointsIn(categories));
+}
+
+/** Empties each topic, then deletes them all, since a topic with points can't be deleted. Stops at the first refusal, so a topic is only deleted once its points are out. */
+function emptyAndDeleteTopics(categories: MyTopic["category"][]) {
+  return inOrder([
+    ...pointsIn(categories).map((cue) => () => call("/point/unplace", api.point.unplace({ cue }))),
+    ...categories.map((category) => () => call("/topic/delete", api.topic.delete({ category }))),
+  ]);
 }
 
 
@@ -102,5 +110,5 @@ function reset() {
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, move, unplace, call, reset, home};
+  return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home};
 }

@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="filter-row">
+  <div class="filter-row content-width">
     <slot />
   </div>
 </template>
