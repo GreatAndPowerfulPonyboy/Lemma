@@ -332,19 +332,6 @@ Former "the card of (cue)" — inputs (cue); bindings (name, answer); promises e
       name
 ```
 
-### the checks (user) owns
-
-Authored path: `home.showing.myChecks`.
-- Covered by [Home](../design/compositions/home.md), line 9.
-
-```former
-Former "the checks (user) owns" — inputs (user); bindings (check, name); promises exactly one record — forms:
-  each RecallChecking._checks (owner: user) has (check, name)
-    form a record of
-      check
-      name
-```
-
 ### the current attempt of (check)
 
 Authored path: `checks.showing.currentAttemptOf`.
@@ -356,6 +343,20 @@ Former "the current attempt of (check)" — inputs (check); bindings (attempt, s
     where RecallChecking._current (check) has (attempt, status)
     attempt
     status
+```
+
+### the checks (user) owns
+
+Authored path: `home.showing.myChecks`.
+- Covered by [Home](../design/compositions/home.md), line 9.
+
+```former
+Former "the checks (user) owns" — inputs (user); bindings (check, name); promises exactly one record — forms:
+  each RecallChecking._checks (owner: user) has (check, name)
+    form a record of
+      check
+      current: whether former "the current attempt of (check)" with (check)
+      name
 ```
 
 ### the points (user) owns
@@ -1474,7 +1475,7 @@ then
 
 Authored path: `home.showing.ShowHome`.
 - Covered by [Home](../design/compositions/home.md), line 3.
-- Covered by [Home](../design/compositions/home.md), line 11.
+- Covered by [Home](../design/compositions/home.md), line 12.
 
 ```reaction
 when RequestBoundary.request (path: "/home", requestId, session)
@@ -1486,7 +1487,7 @@ then
 
 Authored path: `home.showing.ShowHome`.
 - Covered by [Home](../design/compositions/home.md), line 3.
-- Covered by [Home](../design/compositions/home.md), line 11.
+- Covered by [Home](../design/compositions/home.md), line 12.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by home.showing.ShowHome

@@ -52,7 +52,7 @@ describe("Prompts", () => {
       ],
       omitted: [{cue: ribosomes, pointName: "Ribosomes build proteins"}],
     });
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra"}]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt: null, status: null}}]);
   });
 
   test("Matthew can't start a second attempt while one is unfinished, until he abandons it", async () => {
@@ -65,6 +65,7 @@ describe("Prompts", () => {
     expect(await api.check.attempt({session, check})).toEqual({error: "ATTEMPT_IN_PROGRESS"});
     ok(await api.attempt.submit({session, attempt}));
     expect(await api.check.attempt({session, check})).toEqual({error: "ATTEMPT_IN_PROGRESS"});
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt, status: "GRADED"}}]);
 
     ok(await api.attempt.abandon({session, attempt}));
     const {attempt: next} = ok(await api.check.attempt({session, check}));
@@ -129,7 +130,7 @@ describe("Prompts", () => {
     expect(await api.check.open({session, name: "   "})).toEqual({error: "INVALID_NAME"});
     expect(await api.check.open({session, name: "x".repeat(81)})).toEqual({error: "INVALID_NAME"});
     const {check} = ok(await api.check.open({session, name: "x".repeat(80)}));
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(80)}]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(80), current: {attempt: null, status: null}}]);
   });
 
   test("Deleting a prompt deletes its attempts and takes it off the home screen", async () => {

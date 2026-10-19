@@ -2,13 +2,15 @@
 import { computed, onMounted, ref } from "vue";
 import Icon from "../reusable/ui/Icon.vue";
 import FilterRow from "./FilterRow.vue";
+import HomeTabs from "./HomeTabs.vue";
 import PointsContainer from "./PointsContainer.vue";
 import PointSearch from "./PointSearch.vue";
+import PromptsContainer from "./PromptsContainer.vue";
 import TopicsContainer from "./TopicsContainer.vue";
 import TopicSearch from "./TopicSearch.vue";
-import { useHome, type MyTopic } from "./useLemma.ts";
+import { useHome, type MyTopic, type Tab } from "./useLemma.ts";
 
-const { home, error, refresh } = useHome();
+const { home, error, refresh, tab } = useHome();
 onMounted(refresh);
 
 const pointSearch = ref("");
@@ -17,8 +19,12 @@ const topicSearch = ref("");
 /** True when I'm looking only at points with no topic. */
 const unsorted = ref(false);
 
-/** Whether the main area shows my points or my topics. */
-const view = ref<"points" | "topics">("points");
+/** The tabs, in order. Each later feature that needs a tab adds one here. */
+const tabs: { id: Tab; label: string }[] = [
+  { id: "points", label: "Points" },
+  { id: "topics", label: "Topics" },
+  { id: "prompts", label: "Prompts" },
+];
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const contains = (text: string, part: string) => text.toLowerCase().includes(part.trim().toLowerCase());
@@ -49,16 +55,14 @@ const showUnsortedCard = computed(() => unsorted.value || topicSearch.value.trim
 const hasPoints = computed(() => (home.value?.myPoints.length ?? 0) > 0);
 
 /**
- * Whether a search box I can see has text, so the clear button only shows when it would do something. The point
- * box is hidden in the Topics view, so it doesn't count there. Unsorted isn't counted: clicking it again turns it off.
+ * Whether a search box on the Points tab has text, so the clear button only shows when it would do something.
+ * Unsorted isn't counted: clicking it again turns it off.
  */
-const filtering = computed(
-  () => (view.value === "points" && pointSearch.value.trim() !== "") || topicSearch.value.trim() !== "",
-);
+const filtering = computed(() => pointSearch.value.trim() !== "" || topicSearch.value.trim() !== "");
 
-/** Empties the search boxes I can see. */
+/** Empties the Points tab's search boxes. */
 function clearFilters() {
-  if (view.value === "points") pointSearch.value = "";
+  pointSearch.value = "";
   topicSearch.value = "";
 }
 
@@ -66,7 +70,7 @@ function clearFilters() {
 function openTopic(topic: MyTopic | null) {
   unsorted.value = topic === null;
   topicSearch.value = topic?.name ?? "";
-  view.value = "points";
+  tab.value = "points";
 }
 </script>
 
@@ -75,14 +79,13 @@ function openTopic(topic: MyTopic | null) {
     <div class="tools">
       <p v-if="error" class="error content-width">{{ error }}</p>
       <p v-else-if="!home" class="content-width">Loading…</p>
-      <FilterRow v-if="home">
-        <!-- Searching points does nothing in the Topics view, so the box is only there in the points view. -->
-        <PointSearch v-if="view === 'points'" v-model="pointSearch" :topic="exactTopic" />
+      <HomeTabs v-if="home" v-model="tab" :tabs="tabs" />
+      <!-- Each tab shows only the filters that apply to it; the Prompts tab has none yet. -->
+      <FilterRow v-if="home && tab !== 'prompts'">
+        <PointSearch v-if="tab === 'points'" v-model="pointSearch" :topic="exactTopic" />
         <TopicSearch v-model="topicSearch" v-model:unsorted="unsorted" :topic="exactTopic" />
-        <button type="button" class="button" :class="view === 'topics' ? 'primary' : 'outline'"
-                :aria-pressed="view === 'topics'" @click="view = view === 'topics' ? 'points' : 'topics'">Topics</button>
         <button type="button" class="button outline" disabled>Review scheduling</button>
-        <button type="button" class="button outline" :class="{ unused: !filtering }" @click="clearFilters">
+        <button v-if="tab === 'points'" type="button" class="button outline" :class="{ unused: !filtering }" @click="clearFilters">
           <Icon name="trash" />Clear filters
         </button>
       </FilterRow>
@@ -92,8 +95,12 @@ function openTopic(topic: MyTopic | null) {
       <!-- Separates the tools above from the content below, where a selection rectangle can start. -->
       <hr class="zone-divider" />
 
-      <TopicsContainer v-if="view === 'topics'" :topics="shownTopics" :show-unsorted="showUnsortedCard" @open="openTopic" />
-      <PointsContainer v-else :points="shown" :has-points="hasPoints" />
+      <!-- Switching tabs unmounts the last one, so its selection is cleared and its bar never acts on hidden items. -->
+      <div :id="`panel-${tab}`" class="panel" role="tabpanel" :aria-labelledby="`tab-${tab}`">
+        <TopicsContainer v-if="tab === 'topics'" :topics="shownTopics" :show-unsorted="showUnsortedCard" @open="openTopic" />
+        <PromptsContainer v-else-if="tab === 'prompts'" />
+        <PointsContainer v-else :points="shown" :has-points="hasPoints" />
+      </div>
     </template>
   </main>
 </template>
@@ -111,6 +118,12 @@ function openTopic(topic: MyTopic | null) {
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-6) var(--space-5);
+}
+/* The tab's content fills the rest of the window, as the content area did before there were tabs. */
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 .zone-divider {
   border: 0;

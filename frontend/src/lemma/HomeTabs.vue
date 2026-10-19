@@ -1,0 +1,60 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+/**
+ * The home screen's tabs, from `tabs` in order. The chosen one is the v-model. Only the chosen tab is in the tab
+ * order; the arrow keys (and Home and End) move to another tab and choose it. Each tab controls the panel whose
+ * id is `panel-<id>`.
+ */
+const { tabs } = defineProps<{ tabs: { id: string; label: string }[] }>();
+const chosen = defineModel<string>({ required: true });
+
+const buttons = ref<HTMLButtonElement[]>([]);
+
+function choose(index: number) {
+  const tab = tabs[(index + tabs.length) % tabs.length]!;
+  chosen.value = tab.id;
+  buttons.value.find((button) => button.id === `tab-${tab.id}`)?.focus();
+}
+
+function key(event: KeyboardEvent, index: number) {
+  const moves: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: tabs.length - 1 };
+  if (!(event.key in moves)) return;
+  event.preventDefault();
+  choose(moves[event.key]!);
+}
+</script>
+
+<template>
+  <div class="tabs content-width" role="tablist" aria-label="Home">
+    <button v-for="(tab, index) in tabs" :id="`tab-${tab.id}`" :key="tab.id" ref="buttons" type="button" role="tab"
+            :aria-selected="chosen === tab.id" :aria-controls="`panel-${tab.id}`" :tabindex="chosen === tab.id ? 0 : -1"
+            @click="chosen = tab.id" @keydown="key($event, index)">
+      {{ tab.label }}
+    </button>
+  </div>
+</template>
+
+<style scoped>
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+}
+[role="tab"] {
+  margin-bottom: -1px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+[role="tab"]:hover {
+  color: var(--color-text);
+}
+[role="tab"][aria-selected="true"] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+</style>

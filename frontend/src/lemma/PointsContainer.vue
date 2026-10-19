@@ -3,6 +3,7 @@ import {computed, ref} from 'vue';
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
 import PointCard from "./PointCard.vue";
+import RecallDialog from "./RecallDialog.vue";
 import TopicPicker from "./TopicPicker.vue";
 import {useBoxSelect, useDragTip} from "./useBoxSelect.ts";
 import {useHome, type MyPoint, type MyTopic} from "./useLemma.ts";
@@ -62,6 +63,9 @@ const sourceCount = computed(() => new Set(moving.value.map((p) => p.category)).
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
+/** True while the dialog asks what to call a prompt for the selected points. */
+const recalling = ref(false);
+
 async function confirmMove() {
   const topic = movingTo.value;
   if (!topic) return;
@@ -79,6 +83,7 @@ async function confirmMove() {
         <template #button>Move to topic</template>
         <TopicPicker :topics="home?.myTopics ?? []" @pick="pickTopic" />
       </Menu>
+      <button type="button" @click="recalling = true">Recall selected</button>
       <button type="button" @click="clear">Clear</button>
       <p v-if="dragTipShowing" class="tip">
         Tip: drag across the background to select several.
@@ -101,5 +106,6 @@ async function confirmMove() {
         <button type="button" class="button primary" :disabled="working" autofocus @click="confirmMove">Move</button>
       </div>
     </Dialog>
+    <RecallDialog v-if="recalling" :cues="selected.map((p) => p.cue)" @close="recalling = false" />
   </section>
 </template>

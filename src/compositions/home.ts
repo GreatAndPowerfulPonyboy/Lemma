@@ -2,6 +2,7 @@ import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
 import {each, former, no, whether} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
 import {ownsPoint, ownsTopic} from "./access.ts";
+import {currentAttemptOf} from "./checks.ts";
 import {textInput} from "./reusable/inputs.ts";
 
 const {Sessioning, Cueing, Categorizing, RecallChecking} = concepts;
@@ -30,12 +31,12 @@ const myTopics = former(
     .form({category, name})
 );
 
-/** The checks that a user owns, newest first */
+/** The checks that a user owns, newest first, each with its unfinished attempt so it can be resumed; both fields are null when it has none */
 const myChecks = former(
   "the checks (user) owns",
   ({user}, {check, name}) =>
     each(RecallChecking._checks({owner: user}).is({check, name}))
-    .form({check, name})
+    .form({check, name, current: whether(currentAttemptOf({check}))})
 );
 
 const ShowHome = endpoint(

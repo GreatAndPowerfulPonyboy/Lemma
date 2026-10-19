@@ -9,12 +9,30 @@ type Path = keyof Wire;
 export type Home = Wire["/home"]["output"];
 export type MyPoint= Home["myPoints"][number];
 export type MyTopic= Home["myTopics"][number];
+export type MyCheck = Home["myChecks"][number];
+export type CheckShown = Wire["/check/show"]["output"];
+export type AttemptShown = Wire["/attempt/show"]["output"];
+type Check = MyCheck["check"];
+type Attempt = Wire["/attempt/show"]["input"]["attempt"];
+
+/** The tabs of the home screen. */
+export type Tab = "points" | "topics" | "prompts";
 
 const home = ref<Home | null>(null);
 const error = ref<string | null>(null);
 
 /** True while 'change' waits for a call and the reload after it */
 const working = ref(false);
+
+/** The home screen's tab. It lives here so that coming back from an attempt lands on the tab I left. */
+const tab = ref<Tab>("points");
+
+/** Which screen shows: the home screen, an attempt I'm typing my account for, or the results of one I've submitted. */
+const screen = ref<"home" | "recall" | "results">("home");
+/** The attempt the recall or results screen shows. */
+const attempt = ref<Attempt | null>(null);
+/** The prompt of the attempt I last opened, so its row is expanded when I come back to the Prompts tab. Cleared once used. */
+const recentCheck = ref<Check | null>(null);
 
 /**
  * Waits for an endpoint call and returns its output, or `{ error }` with the sentence to show.
@@ -39,14 +57,15 @@ async function refresh() {
 
 
 /**
- * Waits for a call to an endpoint that changes my homepage, then reloads the homepage. A refusal is shown in the banner.
- * Controls are disabled until the homepage reloads, so a second click can't send the request again.
+ * Waits for a call to an endpoint that changes my homepage, then reloads the homepage, or whatever `reload` loads
+ * instead. A refusal is shown in the banner. Controls are disabled until the reload, so a second click can't send
+ * the request again.
  */
-async function change<T extends object>(path: Path, request: Promise<T | { error: string }>) {
+async function change<T extends object>(path: Path, request: Promise<T | { error: string }>, reload = refresh) {
   working.value = true;
   const result = await call(path, request);
   if ("error" in result) error.value = result.error;
-  else await refresh();
+  else await reload();
   working.value = false;
   return result;
 }
@@ -101,14 +120,91 @@ function emptyAndDeleteTopics(categories: MyTopic["category"][]) {
 }
 
 
+/** Shows the recall or results screen for an attempt at a prompt. */
+function openAttempt(next: "recall" | "results", started: Attempt, check: Check) {
+  attempt.value = started;
+  recentCheck.value = check;
+  error.value = null;
+  screen.value = next;
+}
+
+/** Goes back to the home screen, on the tab I left; it reloads when it shows. */
+function goHome() {
+  screen.value = "home";
+  attempt.value = null;
+}
+
+/** Starts an attempt at one of my prompts and opens the recall screen. */
+async function startAttempt(check: Check) {
+  const result = await change("/check/attempt", api.check.attempt({ check }));
+  if (!("error" in result)) openAttempt("recall", result.attempt, check);
+}
+
+/** Opens a prompt's unfinished attempt where I left it: the recall screen if it isn't submitted yet, otherwise the results. */
+function resume(check: Check, current: { attempt: Attempt; status: string }) {
+  openAttempt(current.status === "OPEN" ? "recall" : "results", current.attempt, check);
+}
+
+/**
+ * Opens a prompt with this name and these points, then starts an attempt at it and opens the recall screen. The
+ * calls go one at a time and stop at the first refusal, like `move`; whatever was made before it stays.
+ */
+async function startPrompt(name: string, cues: MyPoint["cue"][]) {
+  let check: Check | null = null;
+  let started: Attempt | null = null;
+  const done = await inOrder([
+    async () => {
+      const result = await call("/check/open", api.check.open({ name }));
+      if (!("error" in result)) check = result.check;
+      return result;
+    },
+    ...cues.map((cue) => () => call("/check/include", api.check.include({ check: check!, cue }))),
+    async () => {
+      const result = await call("/check/attempt", api.check.attempt({ check: check! }));
+      if (!("error" in result)) started = result.attempt;
+      return result;
+    },
+  ]);
+  if (done && check && started) openAttempt("recall", started, check);
+  return done;
+}
+
+/**
+ * Submits the attempt I'm typing, then marks each of these points as mentioned, one at a time like `move`, and
+ * opens the results screen. Only the points go to the server, never what I typed.
+ */
+async function submitAttempt(cues: MyPoint["cue"][]) {
+  const current = attempt.value;
+  if (current === null) return false;
+  const done = await inOrder([
+    () => call("/attempt/submit", api.attempt.submit({ attempt: current })),
+    ...cues.map((cue) => () => call("/attempt/mention", api.attempt.mention({ attempt: current, cue }))),
+  ]);
+  if (done) screen.value = "results";
+  return done;
+}
+
+/** Gives up the attempt, so it's never graded, and goes back to the home screen. */
+async function abandonAttempt() {
+  const current = attempt.value;
+  if (current === null) return;
+  const result = await change("/attempt/abandon", api.attempt.abandon({ attempt: current }));
+  if (!("error" in result)) goHome();
+}
+
 /** Clears my HomePage  when my session ends, so the next person to sign in on this tab doesn't see it. */
 function reset() {
   home.value = null;
   error.value = null;
+  tab.value = "points";
+  screen.value = "home";
+  attempt.value = null;
+  recentCheck.value = null;
 }
 
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home};
+  return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
+    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, goHome, submitAttempt, abandonAttempt};
 }

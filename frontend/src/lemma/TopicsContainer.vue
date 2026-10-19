@@ -3,6 +3,7 @@ import { computed, onUnmounted, ref, watch } from "vue";
 import { api } from "../api/client.ts";
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
+import RecallDialog from "./RecallDialog.vue";
 import { useBoxSelect, useDragTip } from "./useBoxSelect.ts";
 import { useHome, type MyPoint, type MyTopic } from "./useLemma.ts";
 
@@ -97,6 +98,9 @@ async function confirm() {
   confirming.value = null;
 }
 
+/** The topic whose points the dialog asks me to name a prompt for, if it's open. */
+const recalling = ref<MyTopic | null>(null);
+
 /** The selected topics have at least one point, so emptying them would do something. */
 const selectedHavePoints = computed(() => pointsIn(selected.value.map((t) => t.category)).length > 0);
 
@@ -187,6 +191,8 @@ onUnmounted(() => document.removeEventListener("click", closeIfOutside));
           </button>
           <div class="actions">
             <button type="button" class="button soft" @click="startAdding(topic.category)">Add points</button>
+            <button type="button" class="button outline" :disabled="!pointsIn([topic.category]).length"
+                    @click="recalling = topic">Recall this topic</button>
             <Menu label="Edit topic" align="start">
               <template #button><span class="edit">Edit topic</span></template>
               <button type="button" @click="startRename(topic)">Rename</button>
@@ -226,6 +232,8 @@ onUnmounted(() => document.removeEventListener("click", closeIfOutside));
         </button>
       </div>
     </Dialog>
+    <RecallDialog v-if="recalling" :cues="pointsIn([recalling.category])" :name="`Explain ${recalling.name}`"
+                  @close="recalling = null" />
   </section>
 </template>
 

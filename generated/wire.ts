@@ -271,10 +271,14 @@ export type LemmaWire = {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
-      "myChecks": {
+      "myChecks": ({
         "check": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>>;
+        "current": {
+          "attempt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["attempt"]>> | null;
+          "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>> | null;
+        };
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
-      }[];
+      })[];
       "myPoints": ({
         "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
         "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;
@@ -619,10 +623,14 @@ export type LemmaWireHttp = {
   "/home": {
     input: Record<string, never>;
     output: {
-      "myChecks": {
+      "myChecks": ({
         "check": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["check"]>>;
+        "current": {
+          "attempt": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["attempt"]>> | null;
+          "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>> | null;
+        };
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
-      }[];
+      })[];
       "myPoints": ({
         "category": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_get"]>[0], ["category"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>>>, ["category"]>]>> | null;
         "cue": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["_category"]>[0], ["item"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["_get"]>[0], ["cue"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Cueing"]["_cues"]>>>, ["cue"]>]>>;

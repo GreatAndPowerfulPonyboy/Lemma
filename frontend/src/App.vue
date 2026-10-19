@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import PasswordForm from "./reusable/PasswordForm.vue";
 import SignIn from "./reusable/SignIn.vue";
 import { useSession } from "./reusable/session.ts";
 import Avatar from "./reusable/ui/Avatar.vue";
 import Menu from "./reusable/ui/Menu.vue";
 import Home from "./lemma/HomePage.vue";
+import RecallScreen from "./lemma/RecallScreen.vue";
+import ResultsScreen from "./lemma/ResultsScreen.vue";
 import { useHome } from "./lemma/useLemma.ts";
 const { me, checked, load, signOut } = useSession();
-const { reset } = useHome();
+const { reset, screen } = useHome();
 onMounted(load);
+
+/** What I typed on the recall screen, kept here so the results screen can show it beside my points. It's never sent, and it's forgotten when I go back home. */
+const account = ref<string | null>(null);
+watch(screen, (shown) => {
+  if (shown === "home") account.value = null;
+});
 
 /** Signs out and clears my points and topics, so the next person to sign in on this tab never sees them. */
 async function signOutAndReset() {
@@ -28,7 +36,11 @@ async function signOutAndReset() {
     </Menu>
   </header>
   <main v-if="checked" class="content">
-    <Home v-if="me"/>
+    <template v-if="me">
+      <RecallScreen v-if="screen === 'recall'" @submitted="account = $event" />
+      <ResultsScreen v-else-if="screen === 'results'" :account="account" />
+      <Home v-else />
+    </template>
     <div v-else class="sign-in-page">
       <SignIn icon="box" lead="Heighten your understanding with free recall">
         <PasswordForm />

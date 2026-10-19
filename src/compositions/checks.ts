@@ -228,7 +228,7 @@ const subjectOf = former(
 );
 
 /** The check's attempt that is OPEN or GRADED, if it has one. */
-const currentAttemptOf = former(
+export const currentAttemptOf = former(
   "the current attempt of (check)",
   ({check}, {attempt, status}) =>
     where(RecallChecking._current({check}).is({attempt, status}))

@@ -7,6 +7,7 @@ The [home endpoint](reaction:home.showing.ShowHome) reads the user from the sess
 [My topics](former:home.showing.myTopics) are the topics that a user [owns](view:access.permissions.ownsTopic). These topics can be used as a filter over the points a user has created.
 
 [My checks](former:home.showing.myChecks) are the list of prompts that a user [owns](view:access.permissions.ownsCheck). These checks can be used to make another attempt on thier points, and as a way to track progress.
+Each check comes with its unfinished attempt, if it has one, so the home screen can offer to resume it instead of starting a new one.
 ```endpoints
 home.showing.ShowHome at /home
 ```
