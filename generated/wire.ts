@@ -125,6 +125,16 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "CUE_NOT_FOUND" | "INVALID_INPUT" | "INVALID_NAME" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
+  "/point/unplace": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["unplace"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["unplace"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_PLACED" | "NOT_SIGNED_IN" };
+  };
   "/topic/create": {
     input: {
       "name": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["create"]>[0], ["name"]>>;
@@ -254,6 +264,15 @@ export type LemmaWireHttp = {
     };
     output: {
       "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Cueing"]["rename"]>[0], ["cue"]>>;
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/point/unplace": {
+    input: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["unplace"]>[0], ["item"]>>;
+    };
+    output: {
+      "cue": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Categorizing"]["unplace"]>[0], ["item"]>>;
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };

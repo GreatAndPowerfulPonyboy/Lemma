@@ -11,6 +11,7 @@ const messages: Record<string, Record<string, string>> = {
   "/point/rename": { INVALID_REQUEST: pointName, NOT_FOUND: noPoint },
   "/point/delete": { NOT_FOUND: noPoint },
   "/point/move": { NOT_FOUND: "That point or topic isn't available." },
+  "/point/unplace": { INVALID_REQUEST: "That point isn't in a topic.", NOT_FOUND: noPoint },
   "/topic/create": { INVALID_REQUEST: topicName, CONFLICT: topicTaken },
   "/topic/rename": { INVALID_REQUEST: topicName, CONFLICT: topicTaken, NOT_FOUND: noTopic },
   "/topic/delete": { CONFLICT: "Move or delete this topic's points before deleting it.", NOT_FOUND: noTopic },

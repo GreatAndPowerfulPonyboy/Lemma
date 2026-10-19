@@ -95,9 +95,27 @@ export const MovePoint = endpoint(
     ),
     {validators: {input: textInput}}
 )
+
+export const UnplacePoint = endpoint(
+  "/point/unplace",
+  ({session, user, cue}) =>
+  receive({session, cue})
+    .then(Sessioning.use({session}).responds({subject: user}))
+    .then(
+      where(ownsPoint({user, cue}))
+        .then(Categorizing.unplace({item: cue}).responds({}))
+        .then(respond({cue}))
+        .named("creator"),
+      where(no(ownsPoint({user, cue})))
+        .then(respond({error: "NOT_FOUND"}))
+        .named("refused"),
+    ),
+    {validators: {input: textInput}}
+)
+
 export const composition = {
   deleting: {DeletePoint, UnplaceDeleted},
   creating: {CreatePoint,CreateAndPlace},
   renaming: {RenamePoint},
-  moving: {MovePoint}
+  moving: {MovePoint, UnplacePoint}
 }

@@ -136,6 +136,7 @@ Authored path: `access.permissions.ownsPoint`.
 - Covered by [Points](../design/compositions/points.md), line 10.
 - Covered by [Points](../design/compositions/points.md), line 16.
 - Covered by [Points](../design/compositions/points.md), line 24.
+- Covered by [Points](../design/compositions/points.md), line 30.
 
 ```view
 (user) owns point (cue) — inputs (user, cue); outputs (); bindings ()
@@ -490,6 +491,62 @@ where
   earlier, RequestBoundary.request (cue, incidentCategory, path: "/point/move", requestId, session)
   view "(user) owns point (cue)" with (cue, user)
   no view "(user) owns topic (category)" with (category: incidentCategory, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
+```
+
+### points.moving.UnplacePoint
+
+Authored path: `points.moving.UnplacePoint`.
+- Covered by [Points](../design/compositions/points.md), line 30.
+- Covered by [Points](../design/compositions/points.md), line 33.
+
+```reaction
+when RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### points.moving.UnplacePoint:creator#2
+
+Authored path: `points.moving.UnplacePoint`.
+- Covered by [Points](../design/compositions/points.md), line 30.
+- Covered by [Points](../design/compositions/points.md), line 33.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.UnplacePoint
+where
+  earlier, RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
+  view "(user) owns point (cue)" with (cue, user)
+then
+  Categorizing.unplace (item: cue)
+```
+
+### points.moving.UnplacePoint:creator#3
+
+Authored path: `points.moving.UnplacePoint`.
+- Covered by [Points](../design/compositions/points.md), line 30.
+- Covered by [Points](../design/compositions/points.md), line 33.
+
+```reaction
+when Categorizing.unplace (item: cue), asked by points.moving.UnplacePoint:creator#2
+where
+  earlier, RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
+then
+  RequestBoundary.respond (cue, requestId)
+```
+
+### points.moving.UnplacePoint:refused#2
+
+Authored path: `points.moving.UnplacePoint`.
+- Covered by [Points](../design/compositions/points.md), line 30.
+- Covered by [Points](../design/compositions/points.md), line 33.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by points.moving.UnplacePoint
+where
+  earlier, RequestBoundary.request (cue, path: "/point/unplace", requestId, session)
+  no view "(user) owns point (cue)" with (cue, user)
 then
   RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
@@ -894,6 +951,7 @@ not listed here have no explicit input contract.
 - `/point/delete` — requires `cue`, `session`
 - `/point/move` — requires `cue`, `incidentCategory`, `session`
 - `/point/rename` — requires `cue`, `name`, `session`
+- `/point/unplace` — requires `cue`, `session`
 - `/topic/create` — requires `name`, `session`
 - `/topic/delete` — requires `category`, `session`
 - `/topic/rename` — requires `category`, `newName`, `session`

@@ -26,3 +26,9 @@ In order to move a point from one topic to another, a user must [own](view:acces
 ```endpoints
 points.moving.MovePoint at /point/move
 ```
+
+When a person [owns](view:access.permissions.ownsPoint) a point, the [unplace endpoint](reaction:points.moving.UnplacePoint) takes it out of its topic via `Categorizing.unplace`, so it becomes Unsorted, and responds with the point. This lets a user empty a topic before deleting it. A point that is not in a topic is refused by Categorizing with `NOT_PLACED`, and a person who does not own the point is refused with `NOT_FOUND`.
+
+```endpoints
+points.moving.UnplacePoint at /point/unplace
+```

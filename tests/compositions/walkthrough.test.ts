@@ -105,7 +105,7 @@ describe("Lemma", () => {
     expect(await api.point.rename({session, cue: matthew.newton, name: "Wrong"})).toEqual({error: "NOT_FOUND"});
     expect(await api.topic.rename({session, category: matthew.biology, newName: "Wrong"})).toEqual({error: "NOT_FOUND"});
 
-    // There is no endpoint that only unplaces, so taking Matthew's point out of his topic means moving it.
+    expect(await api.point.unplace({session, cue: matthew.mitochondria})).toEqual({error: "NOT_FOUND"});
     expect(await api.point.move({session, cue: matthew.mitochondria, incidentCategory: jonathansTopic})).toEqual({error: "NOT_FOUND"});
     expect(await api.point.move({session, cue: matthew.mitochondria, incidentCategory: matthew.physics})).toEqual({error: "NOT_FOUND"});
     expect(await api.point.move({session, cue: jonathansPoint, incidentCategory: matthew.biology})).toEqual({error: "NOT_FOUND"});
@@ -115,6 +115,27 @@ describe("Lemma", () => {
     expect(ok(await api.home({session}))).toEqual({
       myPoints: [{cue: jonathansPoint, pointName: "Cells divide by mitosis", category: null, topicName: null}],
       myTopics: [{category: jonathansTopic, name: "Biology"}],
+    });
+  });
+
+  test("Matthew empties his Biology topic, so its points become unsorted and the topic can be deleted", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, mitochondria, ribosomes, newton, biology, physics} = await matthewWithTopics(lemma);
+
+    expect(await api.topic.delete({session, category: biology})).toEqual({error: "CATEGORY_NOT_EMPTY"});
+    ok(await api.point.unplace({session, cue: mitochondria}));
+    ok(await api.point.unplace({session, cue: ribosomes}));
+    expect(await api.point.unplace({session, cue: ribosomes})).toEqual({error: "NOT_PLACED"});
+    ok(await api.topic.delete({session, category: biology}));
+
+    expect(ok(await api.home({session}))).toEqual({
+      myPoints: [
+        {cue: newton, pointName: "F = ma", category: physics, topicName: "Physics"},
+        {cue: ribosomes, pointName: "Ribosomes build proteins", category: null, topicName: null},
+        {cue: mitochondria, pointName: "Mitochondria make ATP", category: null, topicName: null},
+      ],
+      myTopics: [{category: physics, name: "Physics"}],
     });
   });
 

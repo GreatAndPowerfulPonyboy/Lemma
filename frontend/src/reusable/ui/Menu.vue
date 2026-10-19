@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from "vue";
+import { nextTick, onUnmounted, ref } from "vue";
 import Icon from "./Icon.vue";
 
-defineProps<{ label: string }>();
+/** `align` picks which edge of the button the popover lines up with: "end" (the default) opens it leftwards from the button's right edge, "start" rightwards from its left edge. */
+withDefaults(defineProps<{ label: string; align?: "start" | "end" }>(), { align: "end" });
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
 const button = ref<HTMLButtonElement | null>(null);
+const items = ref<HTMLElement | null>(null);
+
+/** How far the popover is slid sideways, in pixels, and whether it opens above the button, so it stays inside the window. */
+const shift = ref(0);
+const above = ref(false);
+
+/** Keeps the open popover inside the window, with an 8px margin: slides it back past either side, and opens it above the button when there's no room below. */
+function keepOnScreen() {
+  const box = items.value?.getBoundingClientRect();
+  if (!box) return;
+  const margin = 8;
+  if (box.right > window.innerWidth - margin) shift.value = window.innerWidth - margin - box.right;
+  else if (box.left < margin) shift.value = margin - box.left;
+  if (box.bottom > window.innerHeight - margin) above.value = true;
+}
 
 /** Closes the menu when I click or move the focus outside it. */
 function closeIfOutside(event: Event) {
@@ -19,10 +35,15 @@ function escape() {
   button.value?.focus();
 }
 
-function toggle() {
+async function toggle() {
   open.value = !open.value;
-  if (open.value) document.addEventListener("click", closeIfOutside);
-  else document.removeEventListener("click", closeIfOutside);
+  if (open.value) {
+    document.addEventListener("click", closeIfOutside);
+    shift.value = 0;
+    above.value = false;
+    await nextTick();
+    keepOnScreen();
+  } else document.removeEventListener("click", closeIfOutside);
 }
 
 function close() {
@@ -38,7 +59,7 @@ onUnmounted(close);
     <button ref="button" type="button" class="icon-button" :aria-label="label" :aria-expanded="open" @click="toggle">
       <slot name="button"><Icon name="more" /></slot>
     </button>
-    <div v-if="open" class="items" @click="close">
+    <div v-if="open" ref="items" class="items" :class="[align, { above }]" :style="{ transform: `translateX(${shift}px)` }" @click="close">
       <slot />
     </div>
   </div>
@@ -48,6 +69,13 @@ onUnmounted(close);
 .menu {
   position: relative;
 }
+/* An icon or avatar stays a 36px circle; a text label such as "Edit point" widens the button into a pill. */
+.menu > .icon-button {
+  width: auto;
+  min-width: 36px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
 .icon-button[aria-expanded="true"] {
   color: var(--color-text);
   background: var(--color-line);
@@ -55,17 +83,26 @@ onUnmounted(close);
 .items {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
   width: max-content;
   min-width: 200px;
-  max-width: 280px;
+  max-width: min(280px, calc(100vw - 16px));
   padding: 6px;
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-popover);
+}
+.items.end {
+  right: 0;
+}
+.items.start {
+  left: 0;
+}
+.items.above {
+  top: auto;
+  bottom: calc(100% + 6px);
 }
 /* Each item is a button with an icon and a label, and an optional `.detail` line under the label. */
 .items :slotted(button) {
@@ -77,6 +114,7 @@ onUnmounted(close);
   border-radius: 8px;
   background: transparent;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 .items :slotted(button:hover) {
   background: var(--color-page);

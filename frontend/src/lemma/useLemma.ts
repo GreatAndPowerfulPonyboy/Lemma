@@ -27,11 +27,14 @@ async function call<T extends object>(path: Path, request: Promise<T | { error: 
   return { error: messageFor(path, result.error) };
 }
 
-/** Loads homepage from "/home", and repeats the label search if one is showing. */
+/** Loads my homepage from "/home". A successful load clears the banner, so an old refusal stops showing. */
 async function refresh() {
   const result = await call("/home", api.home());
   if ("error" in result) error.value = result.error;
-  else home.value = result;
+  else {
+    home.value = result;
+    error.value = null;
+  }
 }
 
 
@@ -69,6 +72,27 @@ async function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
 }
 
 
+/**
+ * Takes each point out of its topic, one at a time, so it becomes Unsorted, then reloads the homepage once.
+ * Like `move`, it stops at the first refusal and shows it in the banner; the points taken out before it stay out.
+ */
+async function unplace(cues: MyPoint["cue"][]) {
+  working.value = true;
+  let failed: string | null = null;
+  for (const cue of cues) {
+    const result = await call("/point/unplace", api.point.unplace({ cue }));
+    if ("error" in result) {
+      failed = result.error;
+      break;
+    }
+  }
+  await refresh();
+  if (failed) error.value = failed;
+  working.value = false;
+  return failed === null;
+}
+
+
 /** Clears my HomePage  when my session ends, so the next person to sign in on this tab doesn't see it. */
 function reset() {
   home.value = null;
@@ -78,5 +102,5 @@ function reset() {
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, move, call, reset, home};
+  return {error, working ,refresh, change, move, unplace, call, reset, home};
 }

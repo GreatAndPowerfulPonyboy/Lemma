@@ -4,20 +4,27 @@ import PasswordForm from "./reusable/PasswordForm.vue";
 import SignIn from "./reusable/SignIn.vue";
 import { useSession } from "./reusable/session.ts";
 import Avatar from "./reusable/ui/Avatar.vue";
-import Icon from "./reusable/ui/Icon.vue";
 import Menu from "./reusable/ui/Menu.vue";
 import Home from "./lemma/HomePage.vue";
+import { useHome } from "./lemma/useLemma.ts";
 const { me, checked, load, signOut } = useSession();
+const { reset } = useHome();
 onMounted(load);
+
+/** Signs out and clears my points and topics, so the next person to sign in on this tab never sees them. */
+async function signOutAndReset() {
+  await signOut();
+  reset();
+}
 </script>
 
 <template>
   <header v-if="me" class="topbar">
-    <span class="brand"><span class="logo"><Icon name="box" :size="20" /></span>Lemma</span>
+    <span class="brand"><span class="logo" aria-hidden="true">L</span>Lemma</span>
     <Menu label="Account">
       <template #button><Avatar :username="me.username" :size="36" /></template>
       <p class="signed-in">Signed in as <strong>{{ me.username }}</strong></p>
-      <button type="button" @click="signOut">Sign out</button>
+      <button type="button" @click="signOutAndReset">Sign out</button>
     </Menu>
   </header>
   <main v-if="checked" class="content">
@@ -53,6 +60,9 @@ onMounted(load);
   border-radius: var(--radius-sm);
   background: var(--color-accent);
   color: #ffffff;
+  font-size: var(--text-lg);
+  font-weight: 800;
+  line-height: 1;
 }
 .signed-in {
   padding: 8px 10px;
