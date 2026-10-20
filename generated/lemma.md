@@ -382,6 +382,7 @@ Former "the card of (cue)" — inputs (cue); bindings (name, answer); promises e
 
 Authored path: `cards.promoting.suggestedCards`.
 - Covered by [Cards](../design/compositions/cards.md), line 31.
+- Covered by [Home](../design/compositions/home.md), line 3.
 
 ```former
 Former "the cards suggested to (user)" — inputs (user); bindings (cue, pointName, misses); promises exactly one record — forms:
@@ -398,6 +399,7 @@ Former "the cards suggested to (user)" — inputs (user); bindings (cue, pointNa
 ### the checks (user) has due by (before)
 
 Authored path: `scheduling.showing.dueChecks`.
+- Covered by [Home](../design/compositions/home.md), line 3.
 - Covered by [Scheduling](../design/compositions/scheduling.md), line 20.
 
 ```former
@@ -429,6 +431,7 @@ Former "the current attempt of (check)" — inputs (check); bindings (attempt, s
 
 Authored path: `checks.showing.pointCountOf`.
 - Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Home](../design/compositions/home.md), line 10.
 
 ```former
 Former "the number of points in (check)" — inputs (check); bindings (item); promises exactly one record — forms:
@@ -453,6 +456,7 @@ Former "the checks (user) owns" — inputs (user); bindings (check, name); promi
 ### the checks (user) tracks
 
 Authored path: `scheduling.showing.scheduledChecks`.
+- Covered by [Home](../design/compositions/home.md), line 3.
 - Covered by [Scheduling](../design/compositions/scheduling.md), line 20.
 
 ```former

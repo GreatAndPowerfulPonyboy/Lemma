@@ -1,6 +1,6 @@
 # Cards
 
-In Lemma, a card is a point with an answer. Points start without one: a person writes an answer only after a recall attempt shows they need it, while their notes are open, and later attempts are checked against that answer instead of the notes. Answers are a reference to check against, never something shown before recall.
+In Lemma, a card is a point with an answer. Points start without one: a person writes an answer only after a recall attempt shows they need it, while their notes are open, and later attempts are checked against that answer instead of the notes. Answers are a reference to check against, never something shown during recall: the recall screen hides every point, so an answer can only be seen by flipping its card on the home screen or on the results screen afterward.
 
 ## Answering
 

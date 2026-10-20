@@ -35,6 +35,11 @@ const publicErrors = {
   NO_SUCH_USER: "INVALID_REQUEST",
   SHARE_WITH_SELF: "CONFLICT",
   EMPTY_PROMPT: "INVALID_REQUEST",
+  // The compositions check before sharing, revoking, enrolling or dropping, so these only surface if two requests race.
+  ALREADY_SHARED: "CONFLICT",
+  NOT_SHARED: "CONFLICT",
+  ALREADY_ENROLLED: "CONFLICT",
+  NOT_ENROLLED: "CONFLICT",
 } as const;
 
 /**
