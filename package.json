@@ -30,6 +30,7 @@
     "db:shell": "docker compose exec mongo mongosh -u dev -p dev",
     "db:logs": "docker compose logs mongo",
     "db:reset": "docker compose down -v",
-    "test": "bun test --timeout 60000"
+    "test": "bun test --timeout 60000",
+    "build": "bun run --cwd frontend build",
   }
 }
