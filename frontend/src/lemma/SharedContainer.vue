@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
+import EmptyState from "./EmptyState.vue";
 import { useHome, type SharedPrompt, type SharedShown } from "./useLemma.ts";
 
 const { call, error, working, copyShared } = useHome();
@@ -83,7 +84,8 @@ async function copy(check: Check) {
         </div>
       </li>
     </ul>
-    <h4 v-else class="content-width">Nothing shared with you yet.</h4>
+    <EmptyState v-else heading="Nothing shared with you yet"
+                help="When someone shares a prompt with you, it appears here to copy." />
   </section>
 </template>
 

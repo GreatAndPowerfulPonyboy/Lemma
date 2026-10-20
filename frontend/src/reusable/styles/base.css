@@ -65,9 +65,10 @@ button:disabled {
   outline-offset: 2px;
 }
 
-/* A white panel on the page, such as the sign-in form. */
+/* A panel such as a point or topic card, or a row on the Prompts or Shared tab. Its own text is dark, even on the dark zone. */
 .card {
-  background: var(--color-surface);
+  background: var(--color-card);
+  color: var(--color-text);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   /* Undoes the content area's crosshair, which is only for its empty background; `.selectable` below sets its own. */
@@ -90,6 +91,7 @@ button:disabled {
 
 /* A narrow card holding a form, such as the sign-in form. */
 .form-card {
+  background: var(--color-surface);
   width: 100%;
   max-width: 400px;
   margin: var(--space-12) auto;
@@ -142,7 +144,7 @@ button:disabled {
 }
 
 .button.primary {
-  color: #ffffff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -158,7 +160,7 @@ button:disabled {
 }
 
 .button.danger {
-  color: #ffffff;
+  color: var(--color-on-accent);
   background: var(--color-danger);
 }
 
@@ -269,7 +271,7 @@ button:disabled {
   border: 2px solid var(--color-border);
   border-radius: 50%;
   background: var(--color-surface);
-  color: #ffffff;
+  color: var(--color-on-accent);
   font-size: var(--text-xs);
   font-weight: 700;
   opacity: 0;
@@ -305,6 +307,7 @@ button:disabled {
   gap: var(--space-4);
   padding: var(--space-5) var(--space-6) 88px;
   background: var(--color-zone);
+  color: var(--color-on-zone);
   /* Shows that I can drag a selection rectangle from the empty background. Cards, the pinned bar and dialogs set the cursor back. */
   cursor: crosshair;
 }
@@ -346,8 +349,14 @@ button:disabled {
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  color: var(--color-text);
   box-shadow: var(--shadow-popover);
   cursor: auto;
+}
+
+/* A menu that opens from a card or row (Edit point, Edit topic, a prompt's menu) takes the card's colour; other menus stay white. */
+.card .menu .items {
+  background: var(--color-card);
 }
 
 /*
@@ -364,6 +373,26 @@ button:disabled {
   gap: var(--space-2);
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+/*
+ * A menu's button in the pinned bar (Move to topic, Add to prompt…) looks like the bar's other buttons, a
+ * `.button.outline`, instead of a menu's usual light pill. `button.` outranks the Menu component's own rule.
+ */
+.bulk .menu > button.icon-button {
+  min-height: 40px;
+  height: auto;
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.bulk .menu > button.icon-button:hover,
+.bulk .menu > button.icon-button[aria-expanded="true"] {
+  filter: brightness(0.95);
 }
 
 .bulk .tip .icon-button {

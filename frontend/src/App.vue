@@ -75,7 +75,7 @@ async function signOutAndReset() {
   height: 34px;
   border-radius: var(--radius-sm);
   background: var(--color-accent);
-  color: #ffffff;
+  color: var(--color-on-accent);
   font-size: var(--text-lg);
   font-weight: 800;
   line-height: 1;
@@ -96,6 +96,10 @@ async function signOutAndReset() {
 }
 .sign-in-page {
   padding: var(--space-2) var(--space-6) var(--space-12);
+}
+/* The recall screen fills the window below the top bar with the header colour. */
+.content:has(> .recall) {
+  background: var(--color-header);
 }
 @media (max-width: 600px) {
   .topbar {

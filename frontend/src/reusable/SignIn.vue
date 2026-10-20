@@ -27,7 +27,7 @@ const { error } = useSession();
   height: 44px;
   border-radius: var(--radius-md);
   background: var(--color-accent);
-  color: #ffffff;
+  color: var(--color-on-accent);
 }
 .lead {
   margin-top: 6px;

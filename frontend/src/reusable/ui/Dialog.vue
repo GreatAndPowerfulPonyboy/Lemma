@@ -53,7 +53,7 @@ dialog {
   box-shadow: var(--shadow-dialog);
 }
 dialog::backdrop {
-  background: rgba(30, 31, 43, 0.42);
+  background: var(--color-backdrop);
 }
 .body {
   display: flex;
@@ -91,8 +91,8 @@ dialog.dark {
   max-height: none;
   margin: 0;
   border-radius: 0;
-  background: #16171f;
-  color: #f3f4f9;
+  background: var(--color-dark);
+  color: var(--color-on-dark);
 }
 dialog.dark .body {
   height: 100%;
@@ -102,11 +102,11 @@ dialog.dark h2 {
   font-size: var(--text-lg);
 }
 dialog.dark .subtitle {
-  color: #a9abbf;
+  color: var(--color-on-dark-muted);
 }
 dialog.dark .close {
-  color: #f3f4f9;
-  background: #2a2b38;
+  color: var(--color-on-dark);
+  background: var(--color-dark-control);
 }
 @media (max-width: 600px) {
   dialog:not(.dark) {

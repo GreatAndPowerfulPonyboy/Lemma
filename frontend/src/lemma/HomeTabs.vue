@@ -41,20 +41,22 @@ function key(event: KeyboardEvent, index: number) {
   gap: var(--space-1);
   border-bottom: 1px solid var(--color-border);
 }
+/* A tab at rest fades to the active colour on hover. The selected tab is already that colour, with a bar under it in the zone's colour. */
 [role="tab"] {
   margin-bottom: -1px;
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
-  color: var(--color-text-muted);
+  color: var(--color-tab);
   font-weight: 600;
+  transition: color 150ms;
 }
-[role="tab"]:hover {
-  color: var(--color-text);
+[role="tab"]:hover,
+[role="tab"][aria-selected="true"] {
+  color: var(--color-tab-active);
 }
 [role="tab"][aria-selected="true"] {
-  border-bottom-color: var(--color-accent);
-  color: var(--color-text);
+  border-bottom-color: var(--color-zone);
 }
 </style>

@@ -123,8 +123,9 @@ function openTopic(topic: MyTopic | null) {
   flex: 1;
   flex-direction: column;
 }
-/* The tools zone above the divider keeps the page's colour; its contents keep the content width. */
+/* The tools zone above the divider; its contents keep the content width. */
 .tools {
+  background: var(--color-header);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

@@ -66,7 +66,7 @@ function escape(event: KeyboardEvent) {
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   background: var(--color-tip);
-  color: #f3f4f9;
+  color: var(--color-on-dark);
   font-size: var(--text-xs);
   font-weight: 400;
   line-height: 1.45;

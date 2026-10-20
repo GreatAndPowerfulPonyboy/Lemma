@@ -1,7 +1,10 @@
 :root {
   /* Palette */
   --color-page: #f3f4f9;
-  --color-surface: #F2EBE6;
+  /* Inputs, filters, the Unsorted filter toggle, buttons, dialogs, and menus that don't open from a card. */
+  --color-surface: #ffffff;
+  /* Point and topic cards, Prompts and Shared rows, and the menus that open from them. */
+  --color-card: #F2EBE6;
   --color-text: #1e1f2b;
   --color-text-muted: #646779;
   --color-line: #eeeff6;
@@ -9,17 +12,45 @@
   --color-accent: #4338ca;
   --color-accent-strong: #312a99;
   --color-accent-soft: #eceafd;
+  /* Text and icons on --color-accent or --color-danger, such as a primary button's label. */
+  --color-on-accent: #ffffff;
   --color-danger: #b42318;
   --color-danger-soft: #fdf1ef;
   --color-tip: #1e1f2b;
-  
+  /* Text on --color-tip and on the dark dialog. */
+  --color-on-dark: #f3f4f9;
+  --color-on-dark-muted: #a9abbf;
+  --color-dark: #16171f;
+  --color-dark-control: #2a2b38;
+  --color-backdrop: rgba(30, 31, 43, 0.42);
+
+  /* Zones of the home screen */
+  /* The content area below the tools zone. */
   --color-zone: #301C1E;
-  --color-header: #B4C3C8;          
-  --color-tab: #4A4D5E;             
-  --color-tab-active: #000000;      
-  --color-on-zone: #E8D9D5;         
-  --color-on-zone-muted: #B9A5A2;   
+  /* The tools zone above the content, and the whole recall screen. */
+  --color-header: #B4C3C8;
+  /* Tab text at rest, and on hover and when selected. */
+  --color-tab: #4A4D5E;
+  --color-tab-active: #000000;
+  /* Text directly on the zone, and its secondary text. */
+  --color-on-zone: #E8D9D5;
+  --color-on-zone-muted: #B9A5A2;
+  /* Empty-state panels on the zone. */
   --color-zone-panel: #3E2A2C;
+
+  /* Avatars: a background and a text color for each of six pairs. */
+  --color-avatar-1-bg: #e1e9fb;
+  --color-avatar-1-text: #1d3f8f;
+  --color-avatar-2-bg: #f7e3d2;
+  --color-avatar-2-text: #7a3a0e;
+  --color-avatar-3-bg: #e3f1e6;
+  --color-avatar-3-text: #2b6a43;
+  --color-avatar-4-bg: #f6e6f3;
+  --color-avatar-4-text: #7d2c6c;
+  --color-avatar-5-bg: #e3e1fb;
+  --color-avatar-5-text: #312a99;
+  --color-avatar-6-bg: #fbf0cf;
+  --color-avatar-6-text: #6b4e07;
   --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --text-xs: 0.8125rem;
   --text-sm: 0.875rem;

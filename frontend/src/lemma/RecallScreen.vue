@@ -50,7 +50,7 @@ async function abandon() {
 </script>
 
 <template>
-  <main class="screen content-width">
+  <main class="screen recall content-width">
     <p v-if="error" class="error">{{ error }}</p>
     <p v-if="!shown && !error">Loading…</p>
     <button v-if="!shown && error" type="button" class="button primary back" @click="goHome">Back to home</button>
@@ -82,9 +82,10 @@ h1 {
   font-size: var(--text-2xl);
   overflow-wrap: anywhere;
 }
+/* Secondary text on the header colour: --color-text-muted is too faint there for WCAG AA. */
 .muted {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-tab);
 }
 textarea {
   min-height: 50vh;

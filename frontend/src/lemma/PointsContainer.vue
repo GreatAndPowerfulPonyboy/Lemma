@@ -7,6 +7,7 @@ import PromptPicker from "./PromptPicker.vue";
 import RecallDialog from "./RecallDialog.vue";
 import TopicPicker from "./TopicPicker.vue";
 import {useBoxSelect, useDragTip} from "./useBoxSelect.ts";
+import EmptyState from "./EmptyState.vue";
 import {useHome, type MyCheck, type MyPoint, type MyTopic} from "./useLemma.ts";
 /** `hasPoints` is false when I have no points at all, and true when I have some but the filters hide them all. */
 const {points, hasPoints} = defineProps<{points: MyPoint[], hasPoints: boolean}>();
@@ -90,17 +91,17 @@ async function confirmMove() {
   <section ref="area" class="content-area" :class="{dragging: box !== null}" @pointerdown="press">
     <div v-if="selected.length" class="bulk" role="toolbar" aria-label="Selected points">
       <span>{{selected.length}} selected</span>
-      <button type="button" @click="selectAll">Select all</button>
+      <button type="button" class="button outline" @click="selectAll">Select all</button>
       <Menu label="Move selected points">
         <template #button>Move to topic</template>
         <TopicPicker :topics="home?.myTopics ?? []" @pick="pickTopic" />
       </Menu>
-      <button type="button" @click="recalling = true">Recall selected</button>
+      <button type="button" class="button primary" @click="recalling = true">Recall selected</button>
       <Menu label="Add selected points to a prompt">
         <template #button>Add to prompt…</template>
         <PromptPicker :prompts="home?.myChecks ?? []" @pick="pickPrompt" />
       </Menu>
-      <button type="button" @click="clear">Clear</button>
+      <button type="button" class="button outline" @click="clear">Clear</button>
       <p v-if="dragTipShowing" class="tip">
         Tip: drag across the background to select several.
         <button type="button" class="icon-button" aria-label="Dismiss tip" @click="hideDragTip">×</button>
@@ -113,8 +114,8 @@ async function confirmMove() {
                    :touched="touched.has(point.cue)" @toggle="toggle(point.cue)"></PointCard>
       </li>
     </ul>
-    <h4 v-else-if="hasPoints" class="content-width">No points match.</h4>
-    <h4 v-else class="content-width">No points yet. Type one above to capture it.</h4>
+    <EmptyState v-else-if="hasPoints" heading="No points match" help="Try a different search, or clear the filters." />
+    <EmptyState v-else heading="No points yet" help="Type one in the box above to capture it." />
     <div v-if="box" class="selection-box" :style="boxStyle" aria-hidden="true"></div>
     <Dialog v-if="movingTo" hide-close @close="movingTo = null"
             :title="`Move ${plural(moving.length, 'point')} from ${plural(sourceCount, 'topic')} to ${movingTo.name}?`">
@@ -130,6 +131,6 @@ async function confirmMove() {
 <style scoped>
 .added {
   font-size: var(--text-sm);
-  color: var(--color-accent-strong);
+  color: var(--color-on-zone);
 }
 </style>

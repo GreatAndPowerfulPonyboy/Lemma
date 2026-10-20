@@ -5,6 +5,7 @@ import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
 import RecallDialog from "./RecallDialog.vue";
 import { useBoxSelect, useDragTip } from "./useBoxSelect.ts";
+import EmptyState from "./EmptyState.vue";
 import { useHome, type MyPoint, type MyTopic } from "./useLemma.ts";
 
 /** `topics` are the topics the filters leave, chosen by HomePage; `showUnsorted` says whether the Unsorted card is one of them. */
@@ -145,17 +146,18 @@ onUnmounted(() => document.removeEventListener("click", closeIfOutside));
   <section ref="area" class="content-area" :class="{ dragging: box !== null }" @pointerdown="press">
     <div v-if="selected.length" class="bulk" role="toolbar" aria-label="Selected topics">
       <span>{{ plural(selected.length, "topic") }} selected</span>
-      <button type="button" :disabled="!selectedHavePoints"
+      <button type="button" class="button outline" :disabled="!selectedHavePoints"
               @click="confirming = { action: 'empty', topics: selected }">Empty</button>
-      <button type="button" @click="confirming = { action: 'delete', topics: selected }">Empty and delete</button>
-      <button type="button" @click="clear">Clear</button>
+      <button type="button" class="button danger" @click="confirming = { action: 'delete', topics: selected }">Empty and delete</button>
+      <button type="button" class="button outline" @click="clear">Clear</button>
       <p v-if="dragTipShowing" class="tip">
         Tip: drag across the background to select several.
         <button type="button" class="icon-button" aria-label="Dismiss tip" @click="hideDragTip">×</button>
       </p>
     </div>
 
-    <h4 v-if="!showUnsorted && !topics.length" class="content-width">No topics match.</h4>
+    <EmptyState v-if="!showUnsorted && !topics.length" heading="No topics match"
+                help="Try a different topic search, or turn off Unsorted." />
     <ul v-else class="card-grid content-width">
       <li v-if="showUnsorted">
         <div class="Topic card" :class="{ adding: adding === 'unsorted' }">

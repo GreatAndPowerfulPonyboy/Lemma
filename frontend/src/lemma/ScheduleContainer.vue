@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import EmptyState from "./EmptyState.vue";
 import { useHome, type ScheduledCheck } from "./useLemma.ts";
 
 const { home, working, startOrResume } = useHome();
@@ -26,9 +27,10 @@ const date = (due: string) => new Date(due).toLocaleDateString(undefined, { week
 <template>
   <section class="content-area">
     <div v-if="due.length || upcoming.length" class="schedule content-width">
-      <div v-if="due.length">
+      <div>
         <h3>Due now</h3>
-        <ul class="rows">
+        <EmptyState v-if="!due.length" heading="Nothing due" help="Tracked prompts come back here when it's time to review them." />
+        <ul v-else class="rows">
           <li v-for="prompt in due" :key="prompt.check" class="card row">
             <span class="name">{{ prompt.name }}<span class="when">due {{ date(prompt.due) }}</span></span>
             <button type="button" class="button primary" :disabled="working" @click="start(prompt)">
@@ -46,7 +48,7 @@ const date = (due: string) => new Date(due).toLocaleDateString(undefined, { week
         </ul>
       </div>
     </div>
-    <h4 v-else class="content-width">Nothing scheduled yet. Choose Track in a prompt's menu on the Prompts tab.</h4>
+    <EmptyState v-else heading="Nothing scheduled yet" help="Choose Track in a prompt's menu on the Prompts tab." />
   </section>
 </template>
 
@@ -63,7 +65,7 @@ const date = (due: string) => new Date(due).toLocaleDateString(undefined, { week
 h3 {
   margin-bottom: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-on-zone-muted);
 }
 /* One prompt per row, like the Prompts tab. */
 .rows {

@@ -3,15 +3,8 @@ import { computed } from "vue";
 
 const props = withDefaults(defineProps<{ username: string; size?: number }>(), { size: 28 });
 
-/** Pairs of background and text colors; a username always maps to the same pair. */
-const colors = [
-  ["#e1e9fb", "#1d3f8f"],
-  ["#f7e3d2", "#7a3a0e"],
-  ["#e3f1e6", "#2b6a43"],
-  ["#f6e6f3", "#7d2c6c"],
-  ["#e3e1fb", "#312a99"],
-  ["#fbf0cf", "#6b4e07"],
-];
+/** Pairs of background and text colors, defined in tokens.css; a username always maps to the same pair. */
+const colors = [1, 2, 3, 4, 5, 6].map((n) => [`var(--color-avatar-${n}-bg)`, `var(--color-avatar-${n}-text)`]);
 
 const style = computed(() => {
   const sum = [...props.username].reduce((total, letter) => total + letter.charCodeAt(0), 0);

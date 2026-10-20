@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import AnswerDialog from "./AnswerDialog.vue";
+import EmptyState from "./EmptyState.vue";
 import { useHome, type SuggestedCard } from "./useLemma.ts";
 
 /** The promotion queue: points I keep missing, which have earned an answer. Writing one makes the point a card. */
@@ -21,7 +22,7 @@ const writing = ref<SuggestedCard | null>(null);
         </li>
       </ul>
     </template>
-    <h4 v-else class="content-width">No suggestions yet. Points you miss in three attempts show up here.</h4>
+    <EmptyState v-else heading="No suggestions yet" help="Points you miss in three attempts show up here." />
     <AnswerDialog v-if="writing" :cue="writing.cue" :point-name="writing.pointName" :answer="null" @close="writing = null" />
   </section>
 </template>
@@ -33,7 +34,7 @@ const writing = ref<SuggestedCard | null>(null);
 }
 .intro {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--color-on-zone-muted);
 }
 /* One point per row, like the Prompts tab. */
 .rows {
