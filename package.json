@@ -31,6 +31,6 @@
     "db:logs": "docker compose logs mongo",
     "db:reset": "docker compose down -v",
     "test": "bun test --timeout 60000",
-    "build": "bun run --cwd frontend build",
+    "build": "bun run --cwd frontend build"
   }
 }
