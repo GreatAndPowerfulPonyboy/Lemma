@@ -4,7 +4,8 @@ All about Lemma, my personal project for 6.1040
 [My public Design decisions](DesignNotebook/ProblemFraming.md)
 [My private Design decisions](https://github.com/GreatAndPowerfulPonyboy/6.1040/tree/main/DesignNotebook)
 [A video of my User Journey](https://youtu.be/sUGFLZlyrLI)
-![My visual design study](./Victor Visual Design Study.pdf)
+![My visual design study](./Victor Visual Design Study_page-0001.jpg)
+![Other image](./Victor Visual Design Study_page-0002.jpg)
 ## Tests
 
 The tests cover each concept on its own (`tests/concepts/`) and the app's endpoints and reactions working together
