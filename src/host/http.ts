@@ -34,6 +34,7 @@ const publicErrors = {
   FINISHED: "CONFLICT",
   NO_SUCH_USER: "INVALID_REQUEST",
   SHARE_WITH_SELF: "CONFLICT",
+  EMPTY_PROMPT: "INVALID_REQUEST",
 } as const;
 
 /**

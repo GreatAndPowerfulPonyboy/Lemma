@@ -74,6 +74,22 @@ describe("Scheduling", () => {
     expect(home.scheduledChecks).toEqual([]);
   });
 
+  test("A tracked prompt with no points isn't due, and comes back once it has a point", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, check, mitochondria, ribosomes, newton} = await matthewWithPrompt(lemma);
+    ok(await api.check.track({session, check}));
+
+    for (const cue of [mitochondria, ribosomes, newton]) ok(await api.point.delete({session, cue}));
+    const home = ok(await api.home({session}));
+    expect(home.dueChecks).toEqual([]);
+    expect(home.scheduledChecks.map((c) => c.check)).toEqual([check]);
+
+    const {cue} = ok(await api.point.create({session, name: "Dijkstra's invariant"}));
+    ok(await api.check.include({session, check, cue}));
+    expect(ok(await api.home({session})).dueChecks.map((c) => c.check)).toEqual([check]);
+  });
+
   test("Jonathan can't track or untrack Matthew's prompt, and Matthew's due prompts never include Jonathan's", async () => {
     const lemma = await startLemma();
     const {api, register} = lemma;

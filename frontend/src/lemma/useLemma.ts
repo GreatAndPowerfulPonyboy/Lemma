@@ -109,6 +109,22 @@ function move(cues: MyPoint["cue"][], category: MyTopic["category"]) {
   return inOrder(cues.map((cue) => () => call("/point/move", api.point.move({ cue, incidentCategory: category }))));
 }
 
+/**
+ * Includes each point in one of my prompts, one at a time like `move`. Points already in it are skipped, so the
+ * count says how many were really added. Returns that count, or null after a refusal.
+ */
+async function addToPrompt(cues: MyPoint["cue"][], check: Check) {
+  const shown = await call("/check/show", api.check.show({ check }));
+  if ("error" in shown) {
+    error.value = shown.error;
+    return null;
+  }
+  const already = new Set(shown.subject.map((point) => point.cue));
+  const adding = cues.filter((cue) => !already.has(cue));
+  const done = await inOrder(adding.map((cue) => () => call("/check/include", api.check.include({ check, cue }))));
+  return done ? adding.length : null;
+}
+
 /** Takes each point out of its topic, so it becomes Unsorted. */
 function unplace(cues: MyPoint["cue"][]) {
   return inOrder(cues.map((cue) => () => call("/point/unplace", api.point.unplace({ cue }))));
@@ -274,6 +290,6 @@ function reset() {
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, move, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
+  return {error, working ,refresh, change, move, addToPrompt, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
     tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, startOrResume, goHome, submitAttempt, abandonAttempt, copyShared};
 }

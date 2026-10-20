@@ -1,7 +1,7 @@
 import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
 import {compute, each, former, no, reaction, when, where, whether} from "@mit-sdg/sync-engine/language";
 import {computations, concepts} from "../concepts.ts";
-import {ownsCheck} from "./access.ts";
+import {hasPoints, ownsCheck} from "./access.ts";
 import {textInput} from "./reusable/inputs.ts";
 
 const {RecallChecking, Sessioning, SpacedRepetition} = concepts;
@@ -77,7 +77,8 @@ export const dueChecks = former(
   "the checks (user) has due by (before)",
   ({user, before}, {check, name, due}) =>
     each(SpacedRepetition._due({before}).is({item: check, due}))
-      .where(ownsCheck({user, check}), RecallChecking._get({check}).is({name}))
+      // An empty prompt stays enrolled but isn't due: there'd be nothing to recall.
+      .where(ownsCheck({user, check}), hasPoints({check}), RecallChecking._get({check}).is({name}))
       .form({check, name, due}),
 );
 

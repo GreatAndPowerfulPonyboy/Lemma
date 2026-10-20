@@ -44,7 +44,7 @@ describe("Prompts", () => {
       ],
       omitted: [{cue: ribosomes, pointName: "Ribosomes build proteins", answer: null}],
     });
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt: null, status: null}}]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt: null, status: null}, pointCount: 3}]);
   });
 
   test("Matthew can't start a second attempt while one is unfinished, until he abandons it", async () => {
@@ -57,7 +57,7 @@ describe("Prompts", () => {
     expect(await api.check.attempt({session, check})).toEqual({error: "ATTEMPT_IN_PROGRESS"});
     ok(await api.attempt.submit({session, attempt}));
     expect(await api.check.attempt({session, check})).toEqual({error: "ATTEMPT_IN_PROGRESS"});
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt, status: "GRADED"}}]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt, status: "GRADED"}, pointCount: 3}]);
 
     ok(await api.attempt.abandon({session, attempt}));
     const {attempt: next} = ok(await api.check.attempt({session, check}));
@@ -122,7 +122,7 @@ describe("Prompts", () => {
     expect(await api.check.open({session, name: "   "})).toEqual({error: "INVALID_NAME"});
     expect(await api.check.open({session, name: "x".repeat(201)})).toEqual({error: "INVALID_NAME"});
     const {check} = ok(await api.check.open({session, name: "x".repeat(200)}));
-    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(200), current: {attempt: null, status: null}}]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "x".repeat(200), current: {attempt: null, status: null}, pointCount: 0}]);
   });
 
   test("Deleting a prompt deletes its attempts and takes it off the home screen", async () => {
@@ -135,6 +135,37 @@ describe("Prompts", () => {
     expect(await api.attempt.show({session, attempt})).toEqual({error: "NOT_FOUND"});
     expect(await api.check.show({session, check})).toEqual({error: "NOT_FOUND"});
     expect(ok(await api.home({session})).myChecks).toEqual([]);
+  });
+
+  test("Deleting every point of a prompt leaves it on the home screen as empty, and it can't be started until it has a point", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, check, mitochondria, ribosomes, newton} = await matthewWithPrompt(lemma);
+
+    for (const cue of [mitochondria, ribosomes, newton]) ok(await api.point.delete({session, cue}));
+
+    expect(ok(await api.home({session})).myChecks).toEqual([
+      {check, name: "Explain Dijkstra", current: {attempt: null, status: null}, pointCount: 0},
+    ]);
+    expect(ok(await api.check.show({session, check})).subject).toEqual([]);
+    expect(await api.check.attempt({session, check})).toEqual({error: "EMPTY_PROMPT"});
+
+    const {cue} = ok(await api.point.create({session, name: "Dijkstra's invariant"}));
+    ok(await api.check.include({session, check, cue}));
+    expect(await api.check.attempt({session, check})).toHaveProperty("attempt");
+  });
+
+  test("An attempt started before its prompt's points were deleted can still be submitted and closed", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, check, mitochondria, ribosomes, newton} = await matthewWithPrompt(lemma);
+    const {attempt} = ok(await api.check.attempt({session, check}));
+
+    for (const cue of [mitochondria, ribosomes, newton]) ok(await api.point.delete({session, cue}));
+
+    ok(await api.attempt.submit({session, attempt}));
+    ok(await api.attempt.mention({session, attempt, cue: newton}));
+    expect(await api.attempt.close({session, attempt})).toEqual({credit: 1 / 3});
   });
 });
 

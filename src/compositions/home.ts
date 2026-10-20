@@ -2,7 +2,7 @@ import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
 import {each, former, no, now, where, whether} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
 import {ownsPoint, ownsTopic} from "./access.ts";
-import {currentAttemptOf} from "./checks.ts";
+import {currentAttemptOf, pointCountOf} from "./checks.ts";
 import {dueChecks, scheduledChecks} from "./scheduling.ts";
 import {suggestedCards} from "./cards.ts";
 import {textInput} from "./reusable/inputs.ts";
@@ -38,7 +38,7 @@ const myChecks = former(
   "the checks (user) owns",
   ({user}, {check, name}) =>
     each(RecallChecking._checks({owner: user}).is({check, name}))
-    .form({check, name, current: whether(currentAttemptOf({check}))})
+    .form({check, name, current: whether(currentAttemptOf({check})), pointCount: pointCountOf({check})})
 );
 
 /** `instant` is when the request arrived, so "due" means due by then. */

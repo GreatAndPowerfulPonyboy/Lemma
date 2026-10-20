@@ -46,7 +46,7 @@ describe("Sharing", () => {
     const copied = await copy(lemma, jonathan.session, matthew.check);
 
     const home = ok(await api.home({session: jonathan.session}));
-    expect(home.myChecks).toEqual([{check: copied, name: "Explain Dijkstra", current: {attempt: null, status: null}}]);
+    expect(home.myChecks).toEqual([{check: copied, name: "Explain Dijkstra", current: {attempt: null, status: null}, pointCount: 3}]);
     expect(home.myPoints.map(({pointName, category}) => ({pointName, category}))).toEqual([
       {pointName: "F = ma", category: null},
       {pointName: "Ribosomes build proteins", category: null},

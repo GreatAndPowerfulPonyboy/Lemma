@@ -269,6 +269,13 @@ Defined in [SpacedRepetition](../design/concepts/SpacedRepetition.md), line 1.
 
 _Views name reusable conditions. Multiple `where` blocks are alternatives._
 
+### (check) has points
+
+```view
+(check) has points — inputs (check); outputs (); bindings ()
+  where RecallChecking._subject (check)
+```
+
 ### (check) is shared with (user)
 
 Authored path: `access.permissions.sharedWith`.
@@ -397,6 +404,7 @@ Authored path: `scheduling.showing.dueChecks`.
 Former "the checks (user) has due by (before)" — inputs (user, before); bindings (check, name, due); promises exactly one record — forms:
   each SpacedRepetition._due (before) has (due, item: check)
     where view "(user) owns check (check)" with (check, user)
+    where view "(check) has points" with (check)
     where RecallChecking._get (check) has (name)
     form a record of
       check
@@ -417,6 +425,16 @@ Former "the current attempt of (check)" — inputs (check); bindings (attempt, s
     status
 ```
 
+### the number of points in (check)
+
+Authored path: `checks.showing.pointCountOf`.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+
+```former
+Former "the number of points in (check)" — inputs (check); bindings (item); promises exactly one record — forms:
+  the count of RecallChecking._subject (check) has (item)
+```
+
 ### the checks (user) owns
 
 Authored path: `home.showing.myChecks`.
@@ -429,6 +447,7 @@ Former "the checks (user) owns" — inputs (user); bindings (check, name); promi
       check
       current: whether former "the current attempt of (check)" with (check)
       name
+      pointCount: former "the number of points in (check)" with (check)
 ```
 
 ### the checks (user) tracks
@@ -1072,6 +1091,22 @@ then
   Sessioning.use (session)
 ```
 
+### checks.attempting.StartAttempt:empty#2
+
+Authored path: `checks.attempting.StartAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 12.
+- Covered by [Checks](../design/compositions/checks.md), line 18.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
+where
+  earlier, RequestBoundary.request (check, path: "/check/attempt", requestId, session)
+  view "(user) owns check (check)" with (check, user)
+  no view "(check) has points" with (check)
+then
+  RequestBoundary.respond (error: "EMPTY_PROMPT", requestId)
+```
+
 ### checks.attempting.StartAttempt:owner#2
 
 Authored path: `checks.attempting.StartAttempt`.
@@ -1083,6 +1118,7 @@ when Sessioning.use (session, subject: user), asked by checks.attempting.StartAt
 where
   earlier, RequestBoundary.request (check, path: "/check/attempt", requestId, session)
   view "(user) owns check (check)" with (check, user)
+  view "(check) has points" with (check)
 then
   RecallChecking.attempt (check)
 ```

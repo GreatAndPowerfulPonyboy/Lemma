@@ -3,14 +3,15 @@ import {computed, ref} from 'vue';
 import Dialog from "../reusable/ui/Dialog.vue";
 import Menu from "../reusable/ui/Menu.vue";
 import PointCard from "./PointCard.vue";
+import PromptPicker from "./PromptPicker.vue";
 import RecallDialog from "./RecallDialog.vue";
 import TopicPicker from "./TopicPicker.vue";
 import {useBoxSelect, useDragTip} from "./useBoxSelect.ts";
-import {useHome, type MyPoint, type MyTopic} from "./useLemma.ts";
+import {useHome, type MyCheck, type MyPoint, type MyTopic} from "./useLemma.ts";
 /** `hasPoints` is false when I have no points at all, and true when I have some but the filters hide them all. */
 const {points, hasPoints} = defineProps<{points: MyPoint[], hasPoints: boolean}>();
 
-const {home, working, move} = useHome();
+const {home, working, move, addToPrompt} = useHome();
 
 /** The points I've ticked. Points hidden by a search stay ticked but aren't moved until they show again. */
 const ticked = ref(new Set<MyPoint["cue"]>());
@@ -63,6 +64,17 @@ const sourceCount = computed(() => new Set(moving.value.map((p) => p.category)).
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
+/** What the last "Add to prompt…" did, such as "Added 3 points to Explain Dijkstra.", until the next one. */
+const added = ref<string | null>(null);
+
+/** Adds the selected points to a prompt, then says how many were new to it and clears the selection. */
+async function pickPrompt(prompt: MyCheck) {
+  const count = await addToPrompt(selected.value.map((p) => p.cue), prompt.check);
+  if (count === null) return;
+  added.value = `Added ${plural(count, "point")} to ${prompt.name}.`;
+  clear();
+}
+
 /** True while the dialog asks what to call a prompt for the selected points. */
 const recalling = ref(false);
 
@@ -84,12 +96,17 @@ async function confirmMove() {
         <TopicPicker :topics="home?.myTopics ?? []" @pick="pickTopic" />
       </Menu>
       <button type="button" @click="recalling = true">Recall selected</button>
+      <Menu label="Add selected points to a prompt">
+        <template #button>Add to prompt…</template>
+        <PromptPicker :prompts="home?.myChecks ?? []" @pick="pickPrompt" />
+      </Menu>
       <button type="button" @click="clear">Clear</button>
       <p v-if="dragTipShowing" class="tip">
         Tip: drag across the background to select several.
         <button type="button" class="icon-button" aria-label="Dismiss tip" @click="hideDragTip">×</button>
       </p>
     </div>
+    <p v-if="added" class="added content-width" role="status">{{ added }}</p>
     <ul v-if="points.length" class="card-grid content-width">
       <li v-for="point in points" :key="point.cue" :data-key="point.cue">
         <PointCard :row="point" :selected="ticked.has(point.cue)" :selecting="selected.length > 0"
@@ -109,3 +126,10 @@ async function confirmMove() {
     <RecallDialog v-if="recalling" :points="selected" @close="recalling = false" />
   </section>
 </template>
+
+<style scoped>
+.added {
+  font-size: var(--text-sm);
+  color: var(--color-accent-strong);
+}
+</style>

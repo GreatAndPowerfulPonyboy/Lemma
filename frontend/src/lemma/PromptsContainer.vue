@@ -121,7 +121,10 @@ async function confirmDelete() {
                     :aria-controls="`prompt-${prompt.check}`" @click="toggle(prompt.check)">
               {{ prompt.name }}
             </button>
-            <button type="button" class="button primary" :disabled="working" @click="startOrResume(prompt)">
+            <!-- An empty prompt can be neither started nor resumed until it has points again. -->
+            <button type="button" class="button primary" :disabled="working || !prompt.pointCount"
+                    :title="!prompt.pointCount ? 'This prompt has no points, so there is nothing to recall yet.' : undefined"
+                    @click="startOrResume(prompt)">
               {{ prompt.current.attempt === null ? "Start" : "Resume" }}
             </button>
             <Menu label="Edit prompt">
@@ -131,6 +134,7 @@ async function confirmDelete() {
               <button type="button" @click="deleting = prompt">Delete</button>
             </Menu>
           </div>
+          <p v-if="!prompt.pointCount" class="muted">No points. Add some from the Points tab.</p>
           <div v-if="expanded.has(prompt.check)" :id="`prompt-${prompt.check}`" class="details">
             <p v-if="!details.has(prompt.check)" class="muted">Loading…</p>
             <template v-else>

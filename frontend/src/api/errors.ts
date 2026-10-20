@@ -26,7 +26,11 @@ const messages: Record<string, Record<string, string>> = {
   "/check/delete": { NOT_FOUND: noPrompt },
   "/check/include": { NOT_FOUND: "That prompt or point isn't available." },
   "/check/exclude": { NOT_FOUND: "That prompt or point isn't available." },
-  "/check/attempt": { CONFLICT: "Finish or abandon the current attempt first.", NOT_FOUND: noPrompt },
+  "/check/attempt": {
+    CONFLICT: "Finish or abandon the current attempt first.",
+    INVALID_REQUEST: "Add points to this prompt before starting it.",
+    NOT_FOUND: noPrompt,
+  },
   "/check/show": { NOT_FOUND: noPrompt },
   "/attempt/submit": { CONFLICT: "This attempt has already been submitted.", NOT_FOUND: noAttempt },
   "/attempt/mention": { CONFLICT: notCorrectable, INVALID_REQUEST: "That point isn't part of this attempt.", NOT_FOUND: noAttempt },

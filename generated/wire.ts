@@ -180,13 +180,13 @@ export type LemmaWire = {
   };
   "/check/attempt": {
     input: {
-      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>[0], ["check"]>>;
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>[0], ["check"]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "attempt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>>, ["attempt"]>>;
     };
-    error: { error: AppWideError | "ATTEMPT_IN_PROGRESS" | "CHECK_NOT_FOUND" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "ATTEMPT_IN_PROGRESS" | "CHECK_NOT_FOUND" | "EMPTY_PROMPT" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
   };
   "/check/delete": {
     input: {
@@ -333,7 +333,7 @@ export type LemmaWire = {
     };
     output: {
       "dueChecks": {
-        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
         "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["due"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
       }[];
@@ -344,6 +344,7 @@ export type LemmaWire = {
           "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>> | null;
         };
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
+        "pointCount": number;
       })[];
       "myPoints": ({
         "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;
@@ -645,7 +646,7 @@ export type LemmaWireHttp = {
   };
   "/check/attempt": {
     input: {
-      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>[0], ["check"]>>;
+      "check": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>[0], ["check"]>]>>;
     };
     output: {
       "attempt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["attempt"]>>, ["attempt"]>>;
@@ -785,7 +786,7 @@ export type LemmaWireHttp = {
     input: Record<string, never>;
     output: {
       "dueChecks": {
-        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
+        "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["item"]>]>>;
         "due": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["SpacedRepetition"]["_due"]>>>, ["due"]>>;
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>>>, ["name"]>>;
       }[];
@@ -796,6 +797,7 @@ export type LemmaWireHttp = {
           "status": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_current"]>>>, ["status"]>> | null;
         };
         "name": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_checks"]>>>, ["name"]>>;
+        "pointCount": number;
       })[];
       "myPoints": ({
         "answer": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Flashcarding"]["_answer"]>>>, ["answer"]>> | null;

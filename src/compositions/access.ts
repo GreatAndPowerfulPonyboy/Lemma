@@ -33,6 +33,15 @@ export const sharedWith = view("(check) is shared with (user)", ( {user, check} 
   where(Sharing._recipients({item: check}).is({recipient: user})),
 ).holds();
 
+/**
+ * Whether a check has at least one point. It isn't an access rule, but it's shared by checks.ts and scheduling.ts,
+ * which import each other's formers. A predicate holds once, however many points there are.
+ */
+
+export const hasPoints = view("(check) has points", ( {check} ) =>
+  where(RecallChecking._subject({check})),
+).holds();
+
 export const composition = {
   permissions: {ownsTopic, ownsPoint, ownsCheck, ownsAttempt, sharedWith},
 };

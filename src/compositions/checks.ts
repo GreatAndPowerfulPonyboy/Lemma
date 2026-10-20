@@ -1,7 +1,7 @@
 import {endpoint, receive, respond} from "@mit-sdg/sync-engine/boundary";
 import {each, former, no, reaction, when, where, whether} from "@mit-sdg/sync-engine/language";
 import {concepts} from "../concepts.ts";
-import {ownsAttempt, ownsCheck, ownsPoint} from "./access.ts";
+import {hasPoints, ownsAttempt, ownsCheck, ownsPoint} from "./access.ts";
 import {recipientsOf} from "./sharing.ts";
 import {scheduleOf} from "./scheduling.ts";
 import {textInput} from "./reusable/inputs.ts";
@@ -119,16 +119,20 @@ const RelabelRenamed = reaction(({cue, name}) =>
     .then(RecallChecking.relabel({item: cue, name})),
 );
 
+/** A check with no points can't be attempted: its attempt could never be closed, since there'd be nothing to credit. */
 export const StartAttempt = endpoint(
   "/check/attempt",
   ({session, user, check, attempt}) =>
     receive({session, check})
       .then(Sessioning.use({session}).responds({subject: user}))
       .then(
-        where(ownsCheck({user, check}))
+        where(ownsCheck({user, check}), hasPoints({check}))
           .then(RecallChecking.attempt({check}).responds({attempt}))
           .then(respond({attempt}))
           .named("owner"),
+        where(ownsCheck({user, check}), no(hasPoints({check})))
+          .then(respond({error: "EMPTY_PROMPT"}))
+          .named("empty"),
         where(no(ownsCheck({user, check})))
           .then(respond({error: "NOT_FOUND"}))
           .named("refused"),
@@ -219,6 +223,13 @@ export const AbandonAttempt = endpoint(
           .named("refused"),
       ),
   {validators: {input: textInput}},
+);
+
+/** How many points a check covers. */
+export const pointCountOf = former(
+  "the number of points in (check)",
+  ({check}, {item}) =>
+    each(RecallChecking._subject({check}).is({item})).count(),
 );
 
 /** The points a check covers, in the order they were included. */
@@ -328,5 +339,5 @@ export const composition = {
   deleting: {DeleteCheck},
   subjects: {IncludePoint, ExcludePoint, ExcludeDeleted, RelabelRenamed},
   attempting: {StartAttempt, SubmitAttempt, MentionPoint, OmitPoint, CloseAttempt, AbandonAttempt},
-  showing: {ShowCheck, ShowAttempt, subjectOf, currentAttemptOf, attemptsOf, attemptPoints, mentionedIn, omittedIn},
+  showing: {ShowCheck, ShowAttempt, subjectOf, pointCountOf, currentAttemptOf, attemptsOf, attemptPoints, mentionedIn, omittedIn},
 };

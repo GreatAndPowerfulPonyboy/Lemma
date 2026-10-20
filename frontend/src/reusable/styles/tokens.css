@@ -1,8 +1,7 @@
 :root {
   /* Palette */
   --color-page: #f3f4f9;
-  --color-zone: #eceef6;
-  --color-surface: #ffffff;
+  --color-surface: #F2EBE6;
   --color-text: #1e1f2b;
   --color-text-muted: #646779;
   --color-line: #eeeff6;
@@ -13,8 +12,14 @@
   --color-danger: #b42318;
   --color-danger-soft: #fdf1ef;
   --color-tip: #1e1f2b;
-
-  /* Typography */
+  
+  --color-zone: #301C1E;
+  --color-header: #B4C3C8;          
+  --color-tab: #4A4D5E;             
+  --color-tab-active: #000000;      
+  --color-on-zone: #E8D9D5;         
+  --color-on-zone-muted: #B9A5A2;   
+  --color-zone-panel: #3E2A2C;
   --font-sans: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --text-xs: 0.8125rem;
   --text-sm: 0.875rem;
