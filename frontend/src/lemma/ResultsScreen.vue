@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
 import { useHome, type AttemptShown, type CheckShown } from "./useLemma.ts";
 
@@ -15,7 +15,10 @@ async function abandon() {
 
 const shown = ref<AttemptShown | null>(null);
 
-/** Loads the attempt's points, split into mentioned and missed. */
+/**
+ * Loads the attempt's points, split into mentioned and missed. A closed attempt waits for its prompt's schedule
+ * too, so the finished buttons appear together instead of "Track this prompt" arriving a moment later.
+ */
 async function load() {
   if (attempt.value === null) return;
   const result = await call("/attempt/show", api.attempt.show({ attempt: attempt.value }));
@@ -23,7 +26,10 @@ async function load() {
   if ("error" in result) {
     error.value = result.error;
     shown.value = null;
-  } else shown.value = result;
+    return;
+  }
+  if (result.status === "CLOSED") await loadSchedule(result.check);
+  shown.value = result;
 }
 onMounted(load);
 
@@ -49,21 +55,18 @@ function finish() {
 const finished = computed(() => shown.value?.status === "CLOSED" || shown.value?.status === "ABANDONED");
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
-/** The prompt's schedule, loaded once the attempt is closed, so an untracked prompt can offer to be tracked. */
+/** The prompt's schedule, loaded with a closed attempt, so an untracked prompt can offer to be tracked. */
 const schedule = ref<CheckShown["schedule"] | null>(null);
 
-async function loadSchedule() {
-  if (!shown.value) return;
-  const result = await call("/check/show", api.check.show({ check: shown.value.check }));
+async function loadSchedule(check: AttemptShown["check"]) {
+  const result = await call("/check/show", api.check.show({ check }));
   if ("error" in result) error.value = result.error;
   else schedule.value = result.schedule;
 }
-watch(() => shown.value?.status, (status) => {
-  if (status === "CLOSED" && schedule.value === null) loadSchedule();
-});
 
 function track() {
-  if (shown.value) change("/check/track", api.check.track({ check: shown.value.check }), loadSchedule);
+  const check = shown.value?.check;
+  if (check) change("/check/track", api.check.track({ check }), () => loadSchedule(check));
 }
 </script>
 
