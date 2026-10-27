@@ -269,8 +269,22 @@ async function abandonAttempt() {
 }
 
 /**
- * Copies a prompt someone shared with me into my own prompts: opens a prompt with its name, then creates each of
- * its points (Unsorted) and includes it, one call at a time like `move`. The copy is mine; nothing links it to the
+ * The name for a copy: the shared prompt's own name, or if one of my prompts already has it, the first of
+ * "<name> (from <owner>)", "<name> (from <owner>) 2", and so on that none has.
+ */
+function copyName(name: string, ownerUsername: string) {
+  const taken = new Set((home.value?.myChecks ?? []).map((prompt) => prompt.name));
+  if (!taken.has(name)) return name;
+  const base = `${name} (from ${ownerUsername})`;
+  let candidate = base;
+  for (let count = 2; taken.has(candidate); count++) candidate = `${base} ${count}`;
+  return candidate;
+}
+
+/**
+ * Copies a prompt someone shared with me into my own prompts: opens a prompt named by `copyName`, then creates
+ * each of its points (Unsorted) and includes it, one call at a time like `move`, then takes it off my Shared tab.
+ * A refusal partway stops before that, so it stays there to try again. The copy is mine; nothing links it to the
  * original. Returns whether every call succeeded.
  */
 async function copyShared(shared: SharedPrompt["check"]) {
@@ -279,10 +293,11 @@ async function copyShared(shared: SharedPrompt["check"]) {
     error.value = original.error;
     return false;
   }
+  const name = copyName(original.name, original.ownerUsername);
   let check: Check | null = null;
   return inOrder([
     async () => {
-      const result = await call("/check/open", api.check.open({ name: original.name }));
+      const result = await call("/check/open", api.check.open({ name }));
       if (!("error" in result)) check = result.check;
       return result;
     },
@@ -297,6 +312,7 @@ async function copyShared(shared: SharedPrompt["check"]) {
         () => call("/check/include", api.check.include({ check: check!, cue: cue! })),
       ];
     }),
+    () => call("/shared/dismiss", api.shared.dismiss({ check: shared })),
   ]);
 }
 

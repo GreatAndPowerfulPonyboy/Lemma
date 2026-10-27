@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
+import Menu from "../reusable/ui/Menu.vue";
 import EmptyState from "./EmptyState.vue";
 import { useHome, type SharedPrompt, type SharedShown } from "./useLemma.ts";
 
-const { call, error, working, copyShared } = useHome();
+const { call, change, error, working, copyShared } = useHome();
 
 type Check = SharedPrompt["check"];
 
@@ -47,18 +48,30 @@ function clickRow(event: MouseEvent, check: Check) {
   if (!onControl(event)) toggle(check);
 }
 
-/** The prompts I've copied since opening the tab, so each says where its copy went. */
-const copied = ref(new Set<Check>());
+/** True from clicking Copy until the list has reloaded, so a second click can't make a second copy. */
+const copying = ref(false);
+/** Whether my last action here was a copy that worked, so the tab says where it went once its row is gone. */
+const copied = ref(false);
 
 async function copy(check: Check) {
-  if (await copyShared(check)) copied.value = new Set(copied.value).add(check);
-  // A refusal may mean it was unshared or deleted in the meantime, so the list is reloaded to show that.
-  else await loadShared();
+  copying.value = true;
+  copied.value = false;
+  copied.value = await copyShared(check);
+  // A copied prompt has left my Shared tab, and a refusal may mean it was unshared or deleted in the meantime.
+  await loadShared();
+  copying.value = false;
+}
+
+/** Takes a prompt off my Shared tab. Nothing of mine is deleted, so it doesn't ask first. */
+function remove(check: Check) {
+  copied.value = false;
+  change("/shared/dismiss", api.shared.dismiss({ check }), loadShared);
 }
 </script>
 
 <template>
   <section class="content-area">
+    <p v-if="copied" class="copied content-width" role="status">Copied to your Prompts. Its points are in Unsorted.</p>
     <p v-if="!shared" class="content-width">Loading…</p>
     <ul v-else-if="shared.length" class="prompts content-width">
       <li v-for="prompt in shared" :key="prompt.check">
@@ -69,9 +82,11 @@ async function copy(check: Check) {
               {{ prompt.name }}
               <span class="from">from {{ prompt.ownerUsername }}</span>
             </button>
-            <button type="button" class="button primary" :disabled="working" @click="copy(prompt.check)">Copy to my prompts</button>
+            <button type="button" class="button primary" :disabled="working || copying" @click="copy(prompt.check)">Copy to my prompts</button>
+            <Menu label="Shared prompt actions">
+              <button type="button" @click="remove(prompt.check)">Remove from Shared</button>
+            </Menu>
           </div>
-          <p v-if="copied.has(prompt.check)" class="copied">Copied. It's in your Prompts, and its points are in Unsorted.</p>
           <div v-if="expanded.has(prompt.check)" :id="`shared-${prompt.check}`" class="details">
             <p v-if="!details.has(prompt.check)" class="muted">Loading…</p>
             <div v-else>
@@ -140,7 +155,7 @@ async function copy(check: Check) {
 }
 .copied {
   font-size: var(--text-sm);
-  color: var(--color-accent-strong);
+  color: var(--color-on-zone);
 }
 .details {
   cursor: auto;

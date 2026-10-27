@@ -452,6 +452,16 @@ export type LemmaWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
+  "/shared/dismiss": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
+  };
   "/shared/show": {
     input: {
       "check": Jsonify<AllOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_get"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["_subject"]>[0], ["check"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["_recipients"]>[0], ["item"]>]>>;
@@ -900,6 +910,15 @@ export type LemmaWireHttp = {
       }[];
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/shared/dismiss": {
+    input: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+    };
+    output: {
+      "check": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sharing"]["revoke"]>[0], ["item"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/shared/show": {
     input: {

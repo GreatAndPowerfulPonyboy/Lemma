@@ -50,6 +50,7 @@ const messages: Record<string, Record<string, string>> = {
   "/check/track": { NOT_FOUND: noPrompt },
   "/check/untrack": { NOT_FOUND: noPrompt },
   "/shared/show": { NOT_FOUND: "That prompt isn't shared with you anymore." },
+  "/shared/dismiss": { NOT_FOUND: "That prompt isn't shared with you any more." },
 };
 
 /** The sentence to show when the endpoint at `path` returns `error`. */

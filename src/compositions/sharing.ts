@@ -74,6 +74,24 @@ export const UnshareCheck = endpoint(
   {validators: {input: textInput}},
 );
 
+/** A recipient takes a prompt off their Shared tab by revoking their own share. Their copies are their own and stay. */
+export const DismissShared = endpoint(
+  "/shared/dismiss",
+  ({session, user, check}) =>
+    receive({session, check})
+      .then(Sessioning.use({session}).responds({subject: user}))
+      .then(
+        where(sharedWith({user, check}))
+          .then(Sharing.revoke({item: check, recipient: user}).responds({}))
+          .then(respond({check}))
+          .named("recipient"),
+        where(no(sharedWith({user, check})))
+          .then(respond({error: "NOT_FOUND"}))
+          .named("refused"),
+      ),
+  {validators: {input: textInput}},
+);
+
 /** The usernames a check is shared with, in the order it was shared with them. */
 export const recipientsOf = former(
   "the recipients of (check)",
@@ -140,7 +158,7 @@ const RevokeDeleted = reaction(({check, recipient}) =>
 );
 
 export const composition = {
-  sharing: {ShareCheck, UnshareCheck},
+  sharing: {ShareCheck, UnshareCheck, DismissShared},
   showing: {ShowShared, ShowSharedCheck, recipientsOf, sharedWithMe, sharedPoints},
   revoking: {RevokeDeleted},
 };

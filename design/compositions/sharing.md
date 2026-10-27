@@ -17,4 +17,10 @@ sharing.showing.ShowSharedCheck at /shared/show
 
 Copying a shared prompt needs no endpoint of its own. The user [opens a prompt](reaction:checks.opening.OpenCheck) with the shared prompt's name, [creates a point](reaction:points.creating.CreatePoint) for each of its points, and [includes](reaction:checks.subjects.IncludePoint) each new point in the new prompt. The new prompt and points belong to the user who copied them, and the points start out Unsorted. Because the copy is made of new prompts and points, it keeps working after the original is changed, unshared, or deleted.
 
+A recipient can [dismiss](reaction:sharing.sharing.DismissShared) a prompt shared with them, which revokes their own share so it leaves their Shared tab; their copies stay, and the owner can share it with them again. Dismissing a prompt that isn't shared with them responds with `NOT_FOUND`. <!-- review -->
+
+```endpoints
+sharing.sharing.DismissShared at /shared/dismiss
+```
+
 When a prompt is deleted, every share of it is [revoked](reaction:sharing.revoking.RevokeDeleted), so it disappears from what is shared with each recipient.

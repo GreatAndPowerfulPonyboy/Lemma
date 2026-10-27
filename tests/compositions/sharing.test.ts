@@ -130,6 +130,58 @@ describe("Sharing", () => {
     expect(ok(await api.shared({session: ada.session})).shared).toEqual([]);
   });
 
+  test("Jonathan copies Matthew's prompt and dismisses it, so it leaves his Shared tab and Matthew's recipients, and his copy stays", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {matthew, jonathan} = await matthewSharesWithJonathan(lemma);
+    const copied = await copy(lemma, jonathan.session, matthew.check);
+    const before = ok(await api.check.show({session: jonathan.session, check: copied}));
+
+    expect(await api.shared.dismiss({session: jonathan.session, check: matthew.check})).toEqual({check: matthew.check});
+
+    expect(ok(await api.shared({session: jonathan.session})).shared).toEqual([]);
+    expect(ok(await api.check.show({session: matthew.session, check: matthew.check})).recipients).toEqual([]);
+    expect(ok(await api.check.show({session: jonathan.session, check: copied}))).toEqual(before);
+  });
+
+  test("Dismissing a prompt that isn't shared with you is NOT_FOUND and changes nothing", async () => {
+    const lemma = await startLemma();
+    const {api, register} = lemma;
+    const {matthew, jonathan} = await matthewSharesWithJonathan(lemma);
+    const ada = await register("Ada");
+    const before = ok(await api.check.show({session: matthew.session, check: matthew.check}));
+
+    expect(await api.shared.dismiss({session: ada.session, check: matthew.check})).toEqual({error: "NOT_FOUND"});
+    expect(await api.shared.dismiss({session: matthew.session, check: matthew.check})).toEqual({error: "NOT_FOUND"});
+
+    expect(ok(await api.check.show({session: matthew.session, check: matthew.check}))).toEqual(before);
+    expect(ok(await api.shared({session: jonathan.session})).shared.map((s) => s.check)).toEqual([matthew.check]);
+  });
+
+  test("After Jonathan dismisses the prompt, Matthew can share it with him again", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {matthew, jonathan} = await matthewSharesWithJonathan(lemma);
+    ok(await api.shared.dismiss({session: jonathan.session, check: matthew.check}));
+
+    expect(await api.check.share({session: matthew.session, check: matthew.check, username: "Jonathan"})).toEqual({check: matthew.check});
+
+    expect(ok(await api.shared({session: jonathan.session})).shared.map((s) => s.check)).toEqual([matthew.check]);
+    expect(ok(await api.check.show({session: matthew.session, check: matthew.check})).recipients).toEqual([{username: "Jonathan"}]);
+  });
+
+  test("Dismissing with a signed-out or made-up session is refused with NOT_SIGNED_IN", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {matthew, jonathan} = await matthewSharesWithJonathan(lemma);
+    ok(await api.auth.logout({session: jonathan.session}));
+
+    for (const session of [jonathan.session, "made-up-session" as Session]) {
+      expect(await api.shared.dismiss({session, check: matthew.check})).toEqual({error: "NOT_SIGNED_IN"});
+    }
+    expect(ok(await api.check.show({session: matthew.session, check: matthew.check})).recipients).toEqual([{username: "Jonathan"}]);
+  });
+
   test("every new sharing endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN", async () => {
     const lemma = await startLemma();
     const {api} = lemma;

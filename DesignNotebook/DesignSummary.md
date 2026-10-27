@@ -29,4 +29,10 @@ Specs at P1: [ProblemFraming.md @ mvp](https://github.com/GreatAndPowerfulPonybo
 - **Tabs over Buttons**: My initial P3 UI utilized buttons as a way to move between working with points, topics, and prompts to align with the initial usage of buttons to create points and topics. With the shift to creating points and topics through the search bar, this UI synchronicity was no longer necessary, and a more familiar tabbing was used.
 - **Additional Help Text**: With some playing around, it was clear to see that it was not obvious that recalling on points was what created prompts, nor that cards would be suggested after they were missed in three recall attempts. Thus, the empty prompts/scheduling states were amended with some help text to make it clearer.
 
-
+## Behavioral changes from P3
+-**Renaming 'Track' to 'Add to Scheduling'***: It was not clear to a user what tracking a prompt meant, even with the hint text. Changed it to 'Add To Scheduling' to improve learnability.
+-**Changing Abandoning Behavior**: For a user, abandoning a prompt on the first time they attempt it should discard it from their history, but as of P3 the prompt would be saved anyway. This was even more confusing with the original track wording, because a user would expect an abandoned prompt that they never tracked to not be saved in anyway. This was amended such that abandoning an attempt of a prompt that has no previous attempts discards the prompt entirely, with some text for the user explaining that being the case.
+-**No Duplicate prompt names**: Users in P3 could create prompts with the same name, confusing themselves in the scheduling screen. This was changed with a new refusal and amended behavior for sharing.
+-**Removing copied prompts from shared**: Users in P3 would copy prompts, only to see the prompt back in their shared tab, clogging it. This was changed to copying a prompt removing it from the shared tab.
+## No Orel Recall
+Recall remained typed, instead of oral. This was a result of noticing that the Web Speech API has not yet been implemented on the stable build of Firefox, my primary browser. I didn't want to handle special casing recall checks based on the user's browser, so I kept things typed. I could've also utilized a local download of Whisper via webassembly, but I wasn't comfortable with asking users to make a 40-150MB download to use my app.

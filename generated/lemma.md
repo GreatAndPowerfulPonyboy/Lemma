@@ -2478,7 +2478,7 @@ then
 ### sharing.revoking.RevokeDeleted
 
 Authored path: `sharing.revoking.RevokeDeleted`.
-- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+- Covered by [Sharing](../design/compositions/sharing.md), line 26.
 
 ```reaction
 when RecallChecking.delete (check)
@@ -2486,6 +2486,62 @@ where
   Sharing._recipients (item: check) has (recipient)
 then
   Sharing.revoke (item: check, recipient)
+```
+
+### sharing.sharing.DismissShared
+
+Authored path: `sharing.sharing.DismissShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+- Covered by [Sharing](../design/compositions/sharing.md), line 23.
+
+```reaction
+when RequestBoundary.request (check, path: "/shared/dismiss", requestId, session)
+then
+  Sessioning.use (session)
+```
+
+### sharing.sharing.DismissShared:recipient#2
+
+Authored path: `sharing.sharing.DismissShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+- Covered by [Sharing](../design/compositions/sharing.md), line 23.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.DismissShared
+where
+  earlier, RequestBoundary.request (check, path: "/shared/dismiss", requestId, session)
+  view "(check) is shared with (user)" with (check, user)
+then
+  Sharing.revoke (item: check, recipient: user)
+```
+
+### sharing.sharing.DismissShared:recipient#3
+
+Authored path: `sharing.sharing.DismissShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+- Covered by [Sharing](../design/compositions/sharing.md), line 23.
+
+```reaction
+when Sharing.revoke (item: check, recipient: user), asked by sharing.sharing.DismissShared:recipient#2
+where
+  earlier, RequestBoundary.request (check, path: "/shared/dismiss", requestId, session)
+then
+  RequestBoundary.respond (check, requestId)
+```
+
+### sharing.sharing.DismissShared:refused#2
+
+Authored path: `sharing.sharing.DismissShared`.
+- Covered by [Sharing](../design/compositions/sharing.md), line 20.
+- Covered by [Sharing](../design/compositions/sharing.md), line 23.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by sharing.sharing.DismissShared
+where
+  earlier, RequestBoundary.request (check, path: "/shared/dismiss", requestId, session)
+  no view "(check) is shared with (user)" with (check, user)
+then
+  RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
 ### sharing.sharing.ShareCheck
@@ -2949,6 +3005,7 @@ not listed here have no explicit input contract.
 - `/point/rename` — requires `cue`, `name`, `session`
 - `/point/unplace` — requires `cue`, `session`
 - `/shared` — requires `session`
+- `/shared/dismiss` — requires `check`, `session`
 - `/shared/show` — requires `check`, `session`
 - `/topic/create` — requires `name`, `session`
 - `/topic/delete` — requires `category`, `session`
