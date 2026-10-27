@@ -13,7 +13,7 @@ import TopicsContainer from "./TopicsContainer.vue";
 import TopicSearch from "./TopicSearch.vue";
 import { useHome, type MyTopic, type Tab } from "./useLemma.ts";
 
-const { home, error, refresh, tab } = useHome();
+const { home, error, notice, refresh, tab } = useHome();
 onMounted(refresh);
 
 const pointSearch = ref("");
@@ -89,6 +89,7 @@ function openTopic(topic: MyTopic | null) {
       <p v-if="error" class="error content-width">{{ error }}</p>
       <p v-else-if="!home" class="content-width">Loading…</p>
       <HomeTabs v-if="home" v-model="tab" :tabs="tabs" />
+      <p v-if="home && notice" class="notice content-width" role="status">{{ notice }}</p>
       <!-- Each tab shows only the filters that apply to it; only Points and Topics have any yet. -->
       <FilterRow v-if="home && (tab === 'points' || tab === 'topics')">
         <PointSearch v-if="tab === 'points'" v-model="pointSearch" :topic="exactTopic" />
@@ -136,6 +137,10 @@ function openTopic(topic: MyTopic | null) {
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+/* What my last action did, such as discarding a prompt. */
+.notice {
+  font-size: var(--text-sm);
 }
 .zone-divider {
   border: 0;

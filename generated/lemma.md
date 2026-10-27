@@ -290,7 +290,7 @@ Authored path: `access.permissions.sharedWith`.
 
 Authored path: `access.permissions.ownsCheck`.
 - Covered by [Access](../design/compositions/access.md), line 8.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
 - Covered by [Home](../design/compositions/home.md), line 9.
 - Covered by [Scheduling](../design/compositions/scheduling.md), line 4.
 - Covered by [Sharing](../design/compositions/sharing.md), line 4.
@@ -304,7 +304,7 @@ Authored path: `access.permissions.ownsCheck`.
 
 Authored path: `access.permissions.ownsAttempt`.
 - Covered by [Access](../design/compositions/access.md), line 8.
-- Covered by [Checks](../design/compositions/checks.md), line 14.
+- Covered by [Checks](../design/compositions/checks.md), line 15.
 
 ```view
 (user) owns attempt (attempt) — inputs (user, attempt); outputs (); bindings (check)
@@ -353,7 +353,7 @@ _the authored explanation; this section records the generated shape._
 ### the attempts of (check)
 
 Authored path: `checks.showing.attemptsOf`.
-- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 29.
 
 ```former
 Former "the attempts of (check)" — inputs (check); bindings (attempt, status, credit); promises exactly one record — forms:
@@ -417,7 +417,7 @@ Former "the checks (user) has due by (before)" — inputs (user, before); bindin
 ### the current attempt of (check)
 
 Authored path: `checks.showing.currentAttemptOf`.
-- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 29.
 
 ```former
 Former "the current attempt of (check)" — inputs (check); bindings (attempt, status); promises at most one record — forms:
@@ -430,7 +430,7 @@ Former "the current attempt of (check)" — inputs (check); bindings (attempt, s
 ### the number of points in (check)
 
 Authored path: `checks.showing.pointCountOf`.
-- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 29.
 - Covered by [Home](../design/compositions/home.md), line 10.
 
 ```former
@@ -509,7 +509,7 @@ Former "the points (user) owns" — inputs (user); bindings (category, cue, poin
 ### the points mentioned in (attempt)
 
 Authored path: `checks.showing.mentionedIn`.
-- Covered by [Checks](../design/compositions/checks.md), line 15.
+- Covered by [Checks](../design/compositions/checks.md), line 16.
 
 ```former
 Former "the points mentioned in (attempt)" — inputs (attempt); bindings (cue, pointName, answer); promises exactly one record — forms:
@@ -524,7 +524,7 @@ Former "the points mentioned in (attempt)" — inputs (attempt); bindings (cue, 
 ### the points of (attempt)
 
 Authored path: `checks.showing.attemptPoints`.
-- Covered by [Checks](../design/compositions/checks.md), line 15.
+- Covered by [Checks](../design/compositions/checks.md), line 16.
 
 ```former
 Former "the points of (attempt)" — inputs (attempt); bindings (cue, pointName); promises exactly one record — forms:
@@ -549,7 +549,7 @@ Former "the points of shared (check)" — inputs (check); bindings (pointName); 
 ### the points omitted from (attempt)
 
 Authored path: `checks.showing.omittedIn`.
-- Covered by [Checks](../design/compositions/checks.md), line 15.
+- Covered by [Checks](../design/compositions/checks.md), line 16.
 
 ```former
 Former "the points omitted from (attempt)" — inputs (attempt); bindings (cue, pointName, answer); promises exactly one record — forms:
@@ -591,7 +591,7 @@ Former "the schedule of (check)" — inputs (check); bindings (due, tracked); pr
 ### the subject of (check)
 
 Authored path: `checks.showing.subjectOf`.
-- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 29.
 
 ```former
 Former "the subject of (check)" — inputs (check); bindings (cue, pointName); promises exactly one record — forms:
@@ -863,7 +863,7 @@ then
 
 Authored path: `checks.attempting.AbandonAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 13.
-- Covered by [Checks](../design/compositions/checks.md), line 24.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
 
 ```reaction
 when RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
@@ -875,13 +875,15 @@ then
 
 Authored path: `checks.attempting.AbandonAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 13.
-- Covered by [Checks](../design/compositions/checks.md), line 24.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.AbandonAttempt
 where
   earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
   view "(user) owns attempt (attempt)" with (attempt, user)
+  RecallChecking._attempt (attempt) has (check)
+  RecallChecking._attempts (check) has (status: "CLOSED")
 then
   RecallChecking.abandon (attempt)
 ```
@@ -890,21 +892,21 @@ then
 
 Authored path: `checks.attempting.AbandonAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 13.
-- Covered by [Checks](../design/compositions/checks.md), line 24.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
 
 ```reaction
 when RecallChecking.abandon (attempt), asked by checks.attempting.AbandonAttempt:owner#2
 where
   earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
 then
-  RequestBoundary.respond (attempt, requestId)
+  RequestBoundary.respond (attempt, deleted: false, requestId)
 ```
 
 ### checks.attempting.AbandonAttempt:refused#2
 
 Authored path: `checks.attempting.AbandonAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 13.
-- Covered by [Checks](../design/compositions/checks.md), line 24.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.AbandonAttempt
@@ -915,11 +917,42 @@ then
   RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
+### checks.attempting.AbandonAttempt:unfinished#2
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
+
+```reaction
+when Sessioning.use (session, subject: user), asked by checks.attempting.AbandonAttempt
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+  view "(user) owns attempt (attempt)" with (attempt, user)
+  RecallChecking._attempt (attempt) has (check)
+  no RecallChecking._attempts (check) has (status: "CLOSED")
+then
+  RecallChecking.abandon (attempt)
+```
+
+### checks.attempting.AbandonAttempt:unfinished#3
+
+Authored path: `checks.attempting.AbandonAttempt`.
+- Covered by [Checks](../design/compositions/checks.md), line 13.
+- Covered by [Checks](../design/compositions/checks.md), line 25.
+
+```reaction
+when RecallChecking.abandon (attempt), asked by checks.attempting.AbandonAttempt:unfinished#2
+where
+  earlier, RequestBoundary.request (attempt, path: "/attempt/abandon", requestId, session)
+then
+  RequestBoundary.respond (attempt, deleted: true, requestId)
+```
+
 ### checks.attempting.CloseAttempt
 
 Authored path: `checks.attempting.CloseAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 23.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
 
 ```reaction
 when RequestBoundary.request (attempt, path: "/attempt/close", requestId, session)
@@ -931,7 +964,7 @@ then
 
 Authored path: `checks.attempting.CloseAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 23.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.CloseAttempt
@@ -946,7 +979,7 @@ then
 
 Authored path: `checks.attempting.CloseAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 23.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
 
 ```reaction
 when RecallChecking.close (attempt, credit), asked by checks.attempting.CloseAttempt:owner#2
@@ -960,7 +993,7 @@ then
 
 Authored path: `checks.attempting.CloseAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 23.
+- Covered by [Checks](../design/compositions/checks.md), line 24.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.CloseAttempt
@@ -971,11 +1004,25 @@ then
   RequestBoundary.respond (error: "NOT_FOUND", requestId)
 ```
 
+### checks.attempting.DeleteUnfinished
+
+Authored path: `checks.attempting.DeleteUnfinished`.
+- Covered by [Checks](../design/compositions/checks.md), line 14.
+
+```reaction
+when RecallChecking.abandon (attempt)
+where
+  RecallChecking._attempt (attempt) has (check)
+  no RecallChecking._attempts (check) has (status: "CLOSED")
+then
+  RecallChecking.delete (check)
+```
+
 ### checks.attempting.MentionPoint
 
 Authored path: `checks.attempting.MentionPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 21.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
 
 ```reaction
 when RequestBoundary.request (attempt, cue, path: "/attempt/mention", requestId, session)
@@ -987,7 +1034,7 @@ then
 
 Authored path: `checks.attempting.MentionPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 21.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.MentionPoint
@@ -1002,7 +1049,7 @@ then
 
 Authored path: `checks.attempting.MentionPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 21.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
 
 ```reaction
 when RecallChecking.mention (attempt, item: cue), asked by checks.attempting.MentionPoint:owner#2
@@ -1016,7 +1063,7 @@ then
 
 Authored path: `checks.attempting.MentionPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 21.
+- Covered by [Checks](../design/compositions/checks.md), line 22.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.MentionPoint
@@ -1031,7 +1078,7 @@ then
 
 Authored path: `checks.attempting.OmitPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 22.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
 
 ```reaction
 when RequestBoundary.request (attempt, cue, path: "/attempt/omit", requestId, session)
@@ -1043,7 +1090,7 @@ then
 
 Authored path: `checks.attempting.OmitPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 22.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.OmitPoint
@@ -1058,7 +1105,7 @@ then
 
 Authored path: `checks.attempting.OmitPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 22.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
 
 ```reaction
 when RecallChecking.omit (attempt, item: cue), asked by checks.attempting.OmitPoint:owner#2
@@ -1072,7 +1119,7 @@ then
 
 Authored path: `checks.attempting.OmitPoint`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 22.
+- Covered by [Checks](../design/compositions/checks.md), line 23.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.OmitPoint
@@ -1087,7 +1134,7 @@ then
 
 Authored path: `checks.attempting.StartAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 18.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
 
 ```reaction
 when RequestBoundary.request (check, path: "/check/attempt", requestId, session)
@@ -1099,7 +1146,7 @@ then
 
 Authored path: `checks.attempting.StartAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 18.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
@@ -1115,7 +1162,7 @@ then
 
 Authored path: `checks.attempting.StartAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 18.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
@@ -1131,7 +1178,7 @@ then
 
 Authored path: `checks.attempting.StartAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 18.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
 
 ```reaction
 when RecallChecking.attempt (check, attempt), asked by checks.attempting.StartAttempt:owner#2
@@ -1145,7 +1192,7 @@ then
 
 Authored path: `checks.attempting.StartAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 18.
+- Covered by [Checks](../design/compositions/checks.md), line 19.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.StartAttempt
@@ -1160,7 +1207,7 @@ then
 
 Authored path: `checks.attempting.SubmitAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 19.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
 
 ```reaction
 when RequestBoundary.request (attempt, path: "/attempt/submit", requestId, session)
@@ -1172,7 +1219,7 @@ then
 
 Authored path: `checks.attempting.SubmitAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 19.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.SubmitAttempt
@@ -1187,7 +1234,7 @@ then
 
 Authored path: `checks.attempting.SubmitAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 19.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
 
 ```reaction
 when RecallChecking.submit (attempt), asked by checks.attempting.SubmitAttempt:owner#2
@@ -1201,7 +1248,7 @@ then
 
 Authored path: `checks.attempting.SubmitAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 19.
+- Covered by [Checks](../design/compositions/checks.md), line 20.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.attempting.SubmitAttempt
@@ -1215,8 +1262,8 @@ then
 ### checks.deleting.DeleteCheck
 
 Authored path: `checks.deleting.DeleteCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 32.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
 
 ```reaction
 when RequestBoundary.request (check, path: "/check/delete", requestId, session)
@@ -1227,8 +1274,8 @@ then
 ### checks.deleting.DeleteCheck:owner#2
 
 Authored path: `checks.deleting.DeleteCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 32.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.deleting.DeleteCheck
@@ -1242,8 +1289,8 @@ then
 ### checks.deleting.DeleteCheck:owner#3
 
 Authored path: `checks.deleting.DeleteCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 32.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
 
 ```reaction
 when RecallChecking.delete (check), asked by checks.deleting.DeleteCheck:owner#2
@@ -1256,8 +1303,8 @@ then
 ### checks.deleting.DeleteCheck:refused#2
 
 Authored path: `checks.deleting.DeleteCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 32.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 33.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.deleting.DeleteCheck
@@ -1314,8 +1361,8 @@ then
 ### checks.renaming.RenameCheck
 
 Authored path: `checks.renaming.RenameCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 31.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
 
 ```reaction
 when RequestBoundary.request (check, name, path: "/check/rename", requestId, session)
@@ -1326,8 +1373,8 @@ then
 ### checks.renaming.RenameCheck:owner#2
 
 Authored path: `checks.renaming.RenameCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 31.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.renaming.RenameCheck
@@ -1341,8 +1388,8 @@ then
 ### checks.renaming.RenameCheck:owner#3
 
 Authored path: `checks.renaming.RenameCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 31.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
 
 ```reaction
 when RecallChecking.rename (check, name), asked by checks.renaming.RenameCheck:owner#2
@@ -1355,8 +1402,8 @@ then
 ### checks.renaming.RenameCheck:refused#2
 
 Authored path: `checks.renaming.RenameCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 31.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 32.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.renaming.RenameCheck
@@ -1371,7 +1418,7 @@ then
 
 Authored path: `checks.showing.ShowAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 20.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
 
 ```reaction
 when RequestBoundary.request (attempt, path: "/attempt/show", requestId, session)
@@ -1383,7 +1430,7 @@ then
 
 Authored path: `checks.showing.ShowAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 20.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.showing.ShowAttempt
@@ -1400,7 +1447,7 @@ then
 
 Authored path: `checks.showing.ShowAttempt`.
 - Covered by [Checks](../design/compositions/checks.md), line 12.
-- Covered by [Checks](../design/compositions/checks.md), line 20.
+- Covered by [Checks](../design/compositions/checks.md), line 21.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.showing.ShowAttempt
@@ -1414,8 +1461,8 @@ then
 ### checks.showing.ShowCheck
 
 Authored path: `checks.showing.ShowCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 33.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 34.
 
 ```reaction
 when RequestBoundary.request (check, path: "/check/show", requestId, session)
@@ -1426,8 +1473,8 @@ then
 ### checks.showing.ShowCheck:owner#2
 
 Authored path: `checks.showing.ShowCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 33.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 34.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.showing.ShowCheck
@@ -1442,8 +1489,8 @@ then
 ### checks.showing.ShowCheck:refused#2
 
 Authored path: `checks.showing.ShowCheck`.
-- Covered by [Checks](../design/compositions/checks.md), line 27.
-- Covered by [Checks](../design/compositions/checks.md), line 33.
+- Covered by [Checks](../design/compositions/checks.md), line 28.
+- Covered by [Checks](../design/compositions/checks.md), line 34.
 
 ```reaction
 when Sessioning.use (session, subject: user), asked by checks.showing.ShowCheck

@@ -1,15 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
+import Dialog from "../reusable/ui/Dialog.vue";
 import { useHome, type AttemptShown, type CheckShown } from "./useLemma.ts";
 
 /** What I typed on the recall screen, or null when I resumed an attempt, since it isn't saved anywhere. */
 const { account } = defineProps<{ account: string | null }>();
 
-const { attempt, call, change, error, working, abandonAttempt, goHome } = useHome();
+const { attempt, call, change, error, working, hasResults, abandonAttempt, goHome } = useHome();
+
+/** True while the dialog asks me to confirm discarding a prompt that has never been finished. */
+const confirming = ref(false);
+
+/** Abandons the attempt, first asking when that would discard the prompt too. */
+async function abandon() {
+  if (!shown.value) return;
+  const kept = await hasResults(shown.value.check);
+  if (kept === false) confirming.value = true;
+  else if (kept) await discard();
+}
 
 /** A refusal usually means another tab finished the attempt, so reloading it shows where it stands now. */
-async function abandon() {
+async function discard() {
+  confirming.value = false;
   if (!(await abandonAttempt())) await load();
 }
 
@@ -17,7 +30,7 @@ const shown = ref<AttemptShown | null>(null);
 
 /**
  * Loads the attempt's points, split into mentioned and missed. A closed attempt waits for its prompt's schedule
- * too, so the finished buttons appear together instead of "Track this prompt" arriving a moment later.
+ * too, so the finished buttons appear together instead of "Add to Scheduling" arriving a moment later.
  */
 async function load() {
   if (attempt.value === null) return;
@@ -108,14 +121,21 @@ function track() {
         <p v-if="shown.status === 'ABANDONED'" class="summary">This attempt was abandoned in another tab.</p>
         <p v-else class="summary">You recalled {{ shown.mentioned.length }} of {{ plural(shown.subject.length, "point") }}</p>
         <button v-if="schedule && !schedule.tracked" type="button" class="button outline" :disabled="working"
-                @click="track">Track this prompt</button>
-        <span v-else-if="schedule?.tracked" class="muted">Tracked</span>
+                @click="track">Add to Scheduling</button>
+        <span v-else-if="schedule?.tracked" class="muted">In Scheduling</span>
         <button type="button" class="button primary" @click="goHome">Back to home</button>
       </div>
       <div v-else class="buttons">
         <button type="button" class="button outline" :disabled="working" @click="abandon">Abandon</button>
         <button type="button" class="button primary" :disabled="working" @click="finish">Finish</button>
       </div>
+      <Dialog v-if="confirming" title="Discard this prompt?" :subtitle="shown.checkName" @close="confirming = false">
+        <p>You haven't finished it yet, so it won't be saved.</p>
+        <div class="dialog-buttons">
+          <button type="button" class="button outline" @click="confirming = false">Cancel</button>
+          <button type="button" class="button danger" :disabled="working" @click="discard">Discard</button>
+        </div>
+      </Dialog>
     </template>
   </main>
 </template>

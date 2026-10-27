@@ -51,6 +51,10 @@ describe("Prompts", () => {
     const lemma = await startLemma();
     const {api} = lemma;
     const {session, check} = await matthewWithPrompt(lemma);
+    // A closed attempt first, so abandoning the next one keeps the prompt.
+    const {attempt: first} = ok(await api.check.attempt({session, check}));
+    ok(await api.attempt.submit({session, attempt: first}));
+    ok(await api.attempt.close({session, attempt: first}));
 
     const {attempt} = ok(await api.check.attempt({session, check}));
     expect(ok(await api.check.show({session, check})).current).toEqual({attempt, status: "OPEN"});
@@ -64,6 +68,7 @@ describe("Prompts", () => {
     expect(ok(await api.check.show({session, check})).attempts).toEqual([
       {attempt: next, status: "OPEN", credit: 0},
       {attempt, status: "ABANDONED", credit: 0},
+      {attempt: first, status: "CLOSED", credit: 0},
     ]);
   });
 
@@ -166,6 +171,52 @@ describe("Prompts", () => {
     ok(await api.attempt.submit({session, attempt}));
     ok(await api.attempt.mention({session, attempt, cue: newton}));
     expect(await api.attempt.close({session, attempt})).toEqual({credit: 1 / 3});
+  });
+});
+
+describe("Abandoning a prompt", () => {
+  test("Matthew opens a prompt, attempts it and abandons it, so the prompt is deleted", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, check} = await matthewWithPrompt(lemma);
+    const {attempt} = ok(await api.check.attempt({session, check}));
+
+    expect(await api.attempt.abandon({session, attempt})).toEqual({attempt, deleted: true});
+    expect(ok(await api.home({session})).myChecks).toEqual([]);
+    expect(await api.check.show({session, check})).toEqual({error: "NOT_FOUND"});
+  });
+
+  test("Matthew closes an attempt, then abandons the next one, and the prompt stays with both in its history", async () => {
+    const lemma = await startLemma();
+    const {api} = lemma;
+    const {session, check} = await matthewWithPrompt(lemma);
+    const {attempt: first} = ok(await api.check.attempt({session, check}));
+    ok(await api.attempt.submit({session, attempt: first}));
+    ok(await api.attempt.close({session, attempt: first}));
+    const {attempt: second} = ok(await api.check.attempt({session, check}));
+
+    expect(await api.attempt.abandon({session, attempt: second})).toEqual({attempt: second, deleted: false});
+    expect(ok(await api.check.show({session, check})).attempts).toEqual([
+      {attempt: second, status: "ABANDONED", credit: 0},
+      {attempt: first, status: "CLOSED", credit: 0},
+    ]);
+    expect(ok(await api.home({session})).myChecks).toEqual([{check, name: "Explain Dijkstra", current: {attempt: null, status: null}, pointCount: 3}]);
+  });
+
+  test("Abandoning a new prompt that was shared and added to Scheduling takes it off Jonathan's Shared tab and the schedule", async () => {
+    const lemma = await startLemma();
+    const {api, register} = lemma;
+    const {session, check} = await matthewWithPrompt(lemma);
+    const jonathan = await register("Jonathan");
+    ok(await api.check.share({session, check, username: "Jonathan"}));
+    ok(await api.check.track({session, check}));
+    expect(ok(await api.shared({session: jonathan.session})).shared.map((s) => s.check)).toEqual([check]);
+    expect(ok(await api.home({session})).dueChecks.map((c) => c.check)).toEqual([check]);
+    const {attempt} = ok(await api.check.attempt({session, check}));
+
+    expect(await api.attempt.abandon({session, attempt})).toEqual({attempt, deleted: true});
+    expect(ok(await api.shared({session: jonathan.session})).shared).toEqual([]);
+    expect(ok(await api.home({session})).dueChecks).toEqual([]);
   });
 });
 

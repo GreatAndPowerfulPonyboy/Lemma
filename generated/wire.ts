@@ -21,8 +21,12 @@ export type LemmaWire = {
     };
     output: {
       "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["attempt"]>>;
+      "deleted": false;
+    } | {
+      "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["attempt"]>>;
+      "deleted": true;
     };
-    error: { error: AppWideError | "ATTEMPT_NOT_FOUND" | "FINISHED" | "INVALID_INPUT" | "NOT_FOUND" | "NOT_SIGNED_IN" };
+    error: { error: AppWideError | "ATTEMPT_NOT_FOUND" | "CHECK_NOT_FOUND" | "FINISHED" | "INVALID_INPUT" | "NOT_ENROLLED" | "NOT_FOUND" | "NOT_SHARED" | "NOT_SIGNED_IN" };
   };
   "/attempt/close": {
     input: {
@@ -504,6 +508,10 @@ export type LemmaWireHttp = {
     };
     output: {
       "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["attempt"]>>;
+      "deleted": false;
+    } | {
+      "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["RecallChecking"]["abandon"]>[0], ["attempt"]>>;
+      "deleted": true;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };

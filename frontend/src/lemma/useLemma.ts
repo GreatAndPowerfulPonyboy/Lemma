@@ -24,6 +24,8 @@ export type Tab = "points" | "topics" | "prompts" | "shared" | "scheduling" | "s
 
 const home = ref<Home | null>(null);
 const error = ref<string | null>(null);
+/** A sentence about what my last action did, shown on the home screen. The next change clears it. */
+const notice = ref<string | null>(null);
 
 /** True while 'change' waits for a call and the reload after it */
 const working = ref(false);
@@ -69,6 +71,7 @@ async function refresh() {
 async function change<T extends object>(path: Path, request: Promise<T | { error: string }>,
                                         reload: (done: boolean) => Promise<void> = refresh) {
   working.value = true;
+  notice.value = null;
   const result = await call(path, request);
   await reload(!("error" in result));
   if ("error" in result) error.value = result.error;
@@ -90,6 +93,7 @@ const reloadIfRefused = (done: boolean) => (done ? noReload() : refresh());
  */
 async function inOrder(calls: (() => Promise<object>)[], reload: (done: boolean) => Promise<void> = refresh) {
   working.value = true;
+  notice.value = null;
   let failed: string | null = null;
   for (const makeCall of calls) {
     const result = await makeCall();
@@ -234,7 +238,25 @@ async function submitAttempt(cues: MyPoint["cue"][]) {
   return submitted;
 }
 
-/** Gives up the attempt, so it's never graded, and goes back to the home screen. Returns whether it was abandoned. */
+/**
+ * Whether a prompt has a closed attempt. Without one, abandoning its attempt deletes the prompt, so the screen asks
+ * first. Returns null after a refusal, which is shown in the banner. Controls are disabled while it waits.
+ */
+async function hasResults(check: Check) {
+  working.value = true;
+  const result = await call("/check/show", api.check.show({ check }));
+  working.value = false;
+  if ("error" in result) {
+    error.value = result.error;
+    return null;
+  }
+  return result.attempts.some((a) => a.status === "CLOSED");
+}
+
+/**
+ * Gives up the attempt, so it's never graded, and goes back to the home screen, which says whether the prompt was
+ * discarded with it. Returns whether it was abandoned.
+ */
 async function abandonAttempt() {
   const current = attempt.value;
   if (current === null) return false;
@@ -242,6 +264,7 @@ async function abandonAttempt() {
   const result = await change("/attempt/abandon", api.attempt.abandon({ attempt: current }), noReload);
   if ("error" in result) return false;
   goHome();
+  notice.value = result.deleted ? "Prompt discarded." : "Attempt discarded; your earlier results are kept.";
   return true;
 }
 
@@ -281,6 +304,7 @@ async function copyShared(shared: SharedPrompt["check"]) {
 function reset() {
   home.value = null;
   error.value = null;
+  notice.value = null;
   tab.value = "points";
   screen.value = "home";
   attempt.value = null;
@@ -290,6 +314,6 @@ function reset() {
 /** my topics and points, and the functiosn that load and change them, shared by every component. */
 
 export function useHome() {
-  return {error, working ,refresh, change, move, addToPrompt, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
-    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, startOrResume, goHome, submitAttempt, abandonAttempt, copyShared};
+  return {error, notice, working ,refresh, change, move, addToPrompt, unplace, pointsIn, emptyTopics, emptyAndDeleteTopics, call, reset, home,
+    tab, screen, attempt, recentCheck, startPrompt, startAttempt, resume, startOrResume, goHome, submitAttempt, hasResults, abandonAttempt, copyShared};
 }

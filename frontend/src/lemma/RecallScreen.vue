@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { api } from "../api/client.ts";
+import Dialog from "../reusable/ui/Dialog.vue";
 import { mentions } from "./matching.ts";
 import { useHome, type AttemptShown } from "./useLemma.ts";
 
 /** `submitted` hands what I typed to the results screen, through App. It never goes to the server. */
 const emit = defineEmits<{ submitted: [account: string] }>();
 
-const { attempt, screen, call, error, working, submitAttempt, abandonAttempt, goHome } = useHome();
+const { attempt, screen, call, error, working, submitAttempt, hasResults, abandonAttempt, goHome } = useHome();
 
 /** The attempt's prompt and points. The points stay hidden here; they're only used to guess which ones I mentioned. */
 const shown = ref<AttemptShown | null>(null);
@@ -44,7 +45,19 @@ async function submit() {
   if (!(await submitAttempt(cues))) await load();
 }
 
+/** True while the dialog asks me to confirm discarding a prompt that has never been finished. */
+const confirming = ref(false);
+
+/** Abandons the attempt, first asking when that would discard the prompt too. */
 async function abandon() {
+  if (!shown.value) return;
+  const kept = await hasResults(shown.value.check);
+  if (kept === false) confirming.value = true;
+  else if (kept) await discard();
+}
+
+async function discard() {
+  confirming.value = false;
   if (!(await abandonAttempt())) await load();
 }
 </script>
@@ -67,6 +80,13 @@ async function abandon() {
         <button type="button" class="button outline" :disabled="working" @click="abandon">Abandon</button>
         <button type="button" class="button primary" :disabled="working" @click="submit">Submit</button>
       </div>
+      <Dialog v-if="confirming" title="Discard this prompt?" :subtitle="shown.checkName" @close="confirming = false">
+        <p>You haven't finished it yet, so it won't be saved.</p>
+        <div class="dialog-buttons">
+          <button type="button" class="button outline" @click="confirming = false">Cancel</button>
+          <button type="button" class="button danger" :disabled="working" @click="discard">Discard</button>
+        </div>
+      </Dialog>
     </template>
   </main>
 </template>

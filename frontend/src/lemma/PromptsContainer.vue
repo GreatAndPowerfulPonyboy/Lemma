@@ -9,7 +9,7 @@ import { useHome, type CheckShown, type MyCheck } from "./useLemma.ts";
 
 const { home, working, call, change, error, recentCheck, startOrResume, tab } = useHome();
 
-/** Whether a prompt is on my schedule, so its menu offers Track or Untrack. */
+/** Whether a prompt is on my schedule, so its menu offers Add to Scheduling or Remove from Scheduling. */
 const isTracked = (check: Check) => (home.value?.scheduledChecks ?? []).some((s) => s.check === check);
 
 function track(prompt: MyCheck) {
@@ -131,7 +131,7 @@ async function confirmDelete() {
             <Menu label="Edit prompt">
               <button type="button" @click="startRename(prompt)">Rename</button>
               <button type="button" @click="sharing = prompt">Share…</button>
-              <button type="button" @click="track(prompt)">{{ isTracked(prompt.check) ? "Untrack" : "Track" }}</button>
+              <button type="button" @click="track(prompt)">{{ isTracked(prompt.check) ? "Remove from Scheduling" : "Add to Scheduling" }}</button>
               <button type="button" @click="deleting = prompt">Delete</button>
             </Menu>
           </div>

@@ -29,7 +29,7 @@ const date = (due: string) => new Date(due).toLocaleDateString(undefined, { week
     <div v-if="due.length || upcoming.length" class="schedule content-width">
       <div>
         <h3>Due now</h3>
-        <EmptyState v-if="!due.length" heading="Nothing due" help="Tracked prompts come back here when it's time to review them." />
+        <EmptyState v-if="!due.length" heading="Nothing due" help="Prompts in Scheduling come back here when it's time to review them." />
         <ul v-else class="rows">
           <li v-for="prompt in due" :key="prompt.check" class="card row">
             <span class="name">{{ prompt.name }}<span class="when">due {{ date(prompt.due) }}</span></span>
@@ -48,7 +48,7 @@ const date = (due: string) => new Date(due).toLocaleDateString(undefined, { week
         </ul>
       </div>
     </div>
-    <EmptyState v-else heading="Nothing scheduled yet" help="Choose Track in a prompt's menu on the Prompts tab." />
+    <EmptyState v-else heading="Nothing scheduled yet" help="Choose Add to Scheduling in a prompt's menu on the Prompts tab." />
   </section>
 </template>
 

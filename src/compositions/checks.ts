@@ -208,21 +208,44 @@ export const CloseAttempt = endpoint(
   {validators: {input: textInput}},
 );
 
+/** The response says whether DeleteUnfinished deleted the prompt, so the screen can say which happened. */
 export const AbandonAttempt = endpoint(
   "/attempt/abandon",
-  ({session, user, attempt}) =>
+  ({session, user, attempt, check}) =>
     receive({session, attempt})
       .then(Sessioning.use({session}).responds({subject: user}))
       .then(
-        where(ownsAttempt({user, attempt}))
+        where(
+          ownsAttempt({user, attempt}),
+          RecallChecking._attempt({attempt}).is({check}),
+          no(RecallChecking._attempts({check}).is({status: "CLOSED"})),
+        )
           .then(RecallChecking.abandon({attempt}).responds({}))
-          .then(respond({attempt}))
+          .then(respond({attempt, deleted: true}))
+          .named("unfinished"),
+        where(
+          ownsAttempt({user, attempt}),
+          RecallChecking._attempt({attempt}).is({check}),
+          RecallChecking._attempts({check}).is({status: "CLOSED"}),
+        )
+          .then(RecallChecking.abandon({attempt}).responds({}))
+          .then(respond({attempt, deleted: false}))
           .named("owner"),
         where(no(ownsAttempt({user, attempt})))
           .then(respond({error: "NOT_FOUND"}))
           .named("refused"),
       ),
   {validators: {input: textInput}},
+);
+
+/**
+ * Abandoning the attempt of a prompt that has never been finished deletes the prompt, so it isn't kept as if saved.
+ * Its shares and schedule entry go through the reactions on RecallChecking.delete. A prompt with a closed attempt stays.
+ */
+const DeleteUnfinished = reaction(({attempt, check}) =>
+  when(RecallChecking.abandon({attempt}).responds({}))
+    .where(RecallChecking._attempt({attempt}).is({check}), no(RecallChecking._attempts({check}).is({status: "CLOSED"})))
+    .then(RecallChecking.delete({check})),
 );
 
 /** How many points a check covers. */
@@ -338,6 +361,6 @@ export const composition = {
   renaming: {RenameCheck},
   deleting: {DeleteCheck},
   subjects: {IncludePoint, ExcludePoint, ExcludeDeleted, RelabelRenamed},
-  attempting: {StartAttempt, SubmitAttempt, MentionPoint, OmitPoint, CloseAttempt, AbandonAttempt},
+  attempting: {StartAttempt, SubmitAttempt, MentionPoint, OmitPoint, CloseAttempt, AbandonAttempt, DeleteUnfinished},
   showing: {ShowCheck, ShowAttempt, subjectOf, pointCountOf, currentAttemptOf, attemptsOf, attemptPoints, mentionedIn, omittedIn},
 };
