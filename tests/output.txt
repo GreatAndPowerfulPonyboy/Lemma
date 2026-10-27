@@ -1,7 +1,149 @@
 $ bun test --timeout 60000
 bun test v1.4.2 (744846f84)
 
+tests/compositions/promoting.test.ts:
+(pass) Promoting points to cards > A point Matthew misses in three closed attempts is suggested as a card until he writes its answer [4134.86ms]
+(pass) Promoting points to cards > An attempt's points carry their answers, so Matthew can grade against them [1865.01ms]
+(pass) Promoting points to cards > Deleting a suggested point takes it off the queue, and Jonathan never sees Matthew's suggestions [2027.96ms]
+
+tests/compositions/checks.test.ts:
+(pass) Prompts > Matthew attempts Explain Dijkstra, marks two of three points mentioned, and closes it with 2/3 credit [1931.53ms]
+(pass) Prompts > Matthew can't start a second attempt while one is unfinished, until he abandons it [1913.65ms]
+(pass) Prompts > Deleting a point takes it out of every prompt, but an earlier attempt still lists it by name [1867.01ms]
+(pass) Prompts > Renaming a point renames it in the prompt, while an attempt already begun keeps the old name [1779.48ms]
+(pass) Prompts > Marking a point before submitting is NOT_GRADED, and marking one outside the attempt is NOT_IN_SUBJECT [1904.83ms]
+(pass) Prompts > A prompt's name must have 1 to 200 characters once trimmed [2041.18ms]
+(pass) Prompts > Deleting a prompt deletes its attempts and takes it off the home screen [1690.76ms]
+(pass) Prompts > Deleting every point of a prompt leaves it on the home screen as empty, and it can't be started until it has a point [1706.22ms]
+(pass) Prompts > An attempt started before its prompt's points were deleted can still be submitted and closed [1644.64ms]
+(pass) Abandoning a prompt > Matthew opens a prompt, attempts it and abandons it, so the prompt is deleted [1592.12ms]
+(pass) Abandoning a prompt > Matthew closes an attempt, then abandons the next one, and the prompt stays with both in its history [1690.95ms]
+(pass) Abandoning a prompt > Abandoning a new prompt that was shared and added to Scheduling takes it off Jonathan's Shared tab and the schedule [2523.18ms]
+(pass) Prompt access > Jonathan gets NOT_FOUND for everything he tries with Matthew's prompt and attempt, and nothing changes [1999.06ms]
+(pass) Prompt access > every new prompt endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN [1835.46ms]
+(pass) Repeating a prompt action > including a point twice, or excluding one that isn't there, succeeds quietly and changes nothing [1673.92ms]
+
+tests/compositions/sharing.test.ts:
+(pass) Sharing > Matthew shares Explain Dijkstra with Jonathan, who reads it and copies it into his own prompts [2096.10ms]
+(pass) Sharing > Matthew renames the prompt and adds a point after Jonathan copies it, and Jonathan's copy doesn't change [2133.14ms]
+(pass) Sharing > When Matthew stops sharing, Jonathan loses the shared prompt but keeps his copy [2044.94ms]
+(pass) Sharing > Sharing refuses unknown usernames and Matthew's own, and repeats succeed quietly [2204.61ms]
+(pass) Sharing > Jonathan can't share, unshare or see the recipients of Matthew's prompt, and Ada can't read it [2215.75ms]
+(pass) Sharing > Deleting a shared prompt takes it off every recipient's shared list [2239.65ms]
+(pass) Sharing > Jonathan copies Matthew's prompt and dismisses it, so it leaves his Shared tab and Matthew's recipients, and his copy stays [1888.61ms]
+(pass) Sharing > Dismissing a prompt that isn't shared with you is NOT_FOUND and changes nothing [2151.08ms]
+(pass) Sharing > After Jonathan dismisses the prompt, Matthew can share it with him again [2041.60ms]
+(pass) Sharing > Dismissing with a signed-out or made-up session is refused with NOT_SIGNED_IN [2023.09ms]
+(pass) Sharing > every new sharing endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN [1964.91ms]
+
+tests/compositions/signing-in.test.ts:
+(pass) Signing in > a 5-character password is refused before `ben` is registered, so Ben can sign up again [570.97ms]
+(pass) Signing in > Registering with a taken username is refused [604.55ms]
+(pass) Signing in > a username nobody has gets the same refusal as a wrong password [802.31ms]
+
+tests/compositions/walkthrough.test.ts:
+(pass) Lemma > Matthew adds points, files them under topics, renames some, then deletes all his points and topics [2064.41ms]
+(pass) Lemma > Jonathan cannot delete, rename, or move Matthew's points and topics, or add to Matthew's topics [2479.54ms]
+(pass) Lemma > Matthew empties his Biology topic, so its points become unsorted and the topic can be deleted [2128.81ms]
+(pass) Lemma > after Matthew signs out, his session has ended and only his own password signs him back in [2947.39ms]
+(pass) Access > every write endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN and changes nothing [2167.91ms]
+(pass) Access > a point or topic Matthew deleted is NOT_FOUND for every endpoint that names it [2385.59ms]
+(pass) Access > IDs that were never issued are NOT_FOUND, not an error, for every endpoint that takes a point or topic [2222.51ms]
+(pass) Access > Matthew and Jonathan can each have topics with the same names, and each sees only his own [2133.66ms]
+(pass) Refusals > a point name of 80 characters is accepted and 81 is refused with INVALID_NAME, on create, createIn and rename [3532.20ms]
+(pass) Refusals > a topic name of 80 characters is accepted and 81 is refused with INVALID_CATEGORY, on create and rename [1257.29ms]
+(pass) Refusals > blank names are refused on point create, createIn and rename and on topic create and rename [1303.69ms]
+(pass) Refusals > accepted names are stored trimmed [1864.23ms]
+(pass) Refusals > a topic name Matthew already uses is refused with CATEGORY_EXISTS, on create and on rename [1133.14ms]
+(pass) Refusals > topic names that differ only in capitalization are different topics [1278.14ms]
+(pass) Repeating an action > moving a point into the topic it's already in succeeds quietly and changes nothing [1105.38ms]
+(pass) Repeating an action > moving three points into Physics succeeds for all of them, even though one is already there [1093.50ms]
+(pass) Repeating an action > renaming a topic or a point to the name it already has succeeds quietly and changes nothing [1762.97ms]
+
+tests/compositions/scheduling.test.ts:
+(pass) Scheduling > Matthew tracks a prompt, it's due straight away, and recalling all of it moves it into the future [2256.23ms]
+(pass) Scheduling > Closing an attempt at an untracked prompt schedules nothing [1712.06ms]
+(pass) Scheduling > Tracking twice lists the prompt once, untracking takes it off, and untracking again succeeds [2075.81ms]
+(pass) Scheduling > Deleting a tracked prompt drops it from the schedule without an error [2137.90ms]
+(pass) Scheduling > A tracked prompt with no points isn't due, and comes back once it has a point [2085.22ms]
+(pass) Scheduling > Jonathan can't track or untrack Matthew's prompt, and Matthew's due prompts never include Jonathan's [2208.66ms]
+(pass) Scheduling > every new scheduling endpoint refuses a signed-out or made-up session with NOT_SIGNED_IN [1782.05ms]
+
+tests/compositions/cards.test.ts:
+(pass) Cards > Matthew answers a point he missed, reads it back, revises it, and removes it [1074.09ms]
+(pass) Cards > a second answer, a blank one, and revising a point without one are refused [1082.88ms]
+(pass) Cards > deleting a point removes its answer [1275.23ms]
+(pass) Cards > nobody else can read, write, or remove Matthew's answers [1388.38ms]
+
+tests/concepts/Sessioning.test.ts:
+(pass) Sessioning > its principle: Maya stays signed in until she signs out, leaves a session unused for a week, or reaches 90 days [242.07ms]
+(pass) Sessioning > a session's identity is 32 random bytes in base64url [133.10ms]
+(pass) Sessioning > every use sets lastUsed to now, so the week of idleness counts from the latest use [150.78ms]
+(pass) Sessioning > a refused use or end changes no session [156.29ms]
+(pass) Sessioning > Sessioning refuses to use or end an unknown or ended session [143.14ms]
+(pass) Sessioning > of two ends of one session at once, Sessioning accepts one and refuses the other with NOT_SIGNED_IN [156.74ms]
+
+tests/concepts/SpacedRepetition.test.ts:
+(pass) SpacedRepetition > its principle: passing reviews push an item further out, and a failing one brings it back the next day with slower growth [469.49ms]
+(pass) SpacedRepetition > credit scales the growth, and one half is the least that passes [470.06ms]
+(pass) SpacedRepetition > growth never falls below 1.3, however many lapses [418.40ms]
+(pass) SpacedRepetition > enrolling twice, reviewing or dropping what isn't enrolled, and credit outside 0 to 1 are refused [441.82ms]
+(pass) SpacedRepetition > _due lists what is due by then, earliest first [439.95ms]
+
+tests/concepts/Registering.test.ts:
+(pass) Registering > its principle: Sam finds Maya by her username, and Ben registers another when hers is taken [186.31ms]
+(pass) Registering > a username must have 3 to 32 ASCII letters, digits, underscores, or hyphens [139.24ms]
+(pass) Registering > usernames are case-sensitive, so `Maya` is a different username from `maya` [164.55ms]
+(pass) Registering > of two registrations of one username at once, one succeeds and the other is refused with USERNAME_TAKEN [139.38ms]
+(pass) Registering > _username and _byUsername return no row for an unknown user or username [2.20ms]
+
+tests/concepts/Sharing.test.ts:
+(pass) Sharing > its principle: Maya shares beach.jpg with Sam and Ada, and revoking Sam's access leaves Ada's [181.32ms]
+(pass) Sharing > _sharedWith returns every item shared with a person [132.76ms]
+(pass) Sharing > Sharing refuses to share the same thing with the same person twice [168.13ms]
+(pass) Sharing > of two shares of one thing with one person at once, Sharing accepts one and refuses the other with ALREADY_SHARED [120.73ms]
+(pass) Sharing > Sharing refuses to revoke access nobody gave or someone already took back [189.60ms]
+(pass) Sharing > of two revokes of one access at once, Sharing accepts one and refuses the other with NOT_SHARED [181.57ms]
+
+tests/concepts/Flashcarding.test.ts:
+(pass) Flashcarding > its principle: Matthew writes an answer after missing a point, checks against it, revises it, and removes it [112.37ms]
+(pass) Flashcarding > an item has at most one answer, and the first one stays [90.78ms]
+(pass) Flashcarding > an answer must have 1 to 5000 characters, and spaces alone don't count [125.41ms]
+(pass) Flashcarding > revising or removing an item without an answer is refused, before the new answer is looked at [124.79ms]
+
+tests/concepts/RecallChecking.test.ts:
+(pass) RecallChecking > its principle: Matthew attempts a check, corrects the split, closes it, and attempts it again later [640.95ms]
+(pass) RecallChecking > a rating replaces the share mentioned, and an attempt with no items must be rated [577.82ms]
+(pass) RecallChecking > an attempt keeps the subject it began with, while the check's subject changes [586.36ms]
+(pass) RecallChecking > relabeling renames an item in every check that includes it, while attempts keep the names they began with [546.32ms]
+(pass) RecallChecking > an item omitted from enough closed attempts at the owner's checks counts as missed [654.29ms]
+(pass) RecallChecking > a check has one unfinished attempt at a time, and an abandoned one frees it [586.28ms]
+(pass) RecallChecking > each step refuses an attempt in the wrong status [571.80ms]
+(pass) RecallChecking > names, subjects, and unknown checks and attempts are refused [572.35ms]
+(pass) RecallChecking > deleting a check deletes its attempts, and each owner sees only their own checks [619.19ms]
+
+tests/concepts/Cueing.test.ts:
+(pass) Cueing > its principle: Matthew names cues, finds them again, and a renamed cue stays the same cue [173.32ms]
+(pass) Cueing > names are stored trimmed and must have 1 to 80 characters [146.23ms]
+(pass) Cueing > renaming or deleting an unknown cue is refused, and an unknown cue comes before a bad name [156.22ms]
+(pass) Cueing > each creator sees only their own cues [169.01ms]
+(pass) Cueing > search matches text literally, and blank text returns every cue [140.27ms]
+
+tests/concepts/Categorizing.test.ts:
+(pass) Categorizing > its principle: moving an item takes it out of its first category, so every placed item is in exactly one [284.04ms]
+(pass) Categorizing > a category with items can't be deleted until they are moved or unplaced [268.10ms]
+(pass) Categorizing > a creator can't have two categories with the same name, even when both are created at once [174.00ms]
+(pass) Categorizing > placing an item in its own category and renaming a category to its own name succeed and change nothing; capitalization makes names different [258.62ms]
+(pass) Categorizing > names are trimmed and must have 1 to 80 characters; unknown categories and unplaced items are refused [202.66ms]
+
+tests/concepts/Authenticating.test.ts:
+(pass) Authenticating > its principle: Ben authenticates with his password, and Leo can neither guess it nor set a new one [787.94ms]
+(pass) Authenticating > a user with no password, such as one who signed in with Commons, is refused like a wrong password [0.87ms]
+(pass) Authenticating > Authenticating stores an argon2id hash, never the password [282.02ms]
+(pass) Authenticating > a password must have 8 to 128 characters, and _acceptable returns the same answer as set [0.93ms]
+(pass) Authenticating > of two passwords set for one user at once, one is set and the other is refused with PASSWORD_SET [393.54ms]
+
  110 pass
  0 fail
  630 expect() calls
-Ran 110 tests across 16 files. [120.86s]
+Ran 110 tests across 16 files. [129.05s]

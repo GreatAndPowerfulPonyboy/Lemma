@@ -1,54 +1,79 @@
-# Readme
-All about Lemma, my personal project for 6.1040
+# Lemma
 
-[My public Design decisions](DesignNotebook/ProblemFraming.md)
-[My private Design decisions](https://github.com/GreatAndPowerfulPonyboy/6.1040/tree/main/DesignNotebook)
-[A video of my User Journey](https://youtu.be/sUGFLZlyrLI)
-![My visual design study](img/Study2.jpg)
-![Other image](img/Study2.jpg)
+Lemma is a free-recall study app for technical subjects. You capture short points, organize them into topics later, and test yourself by explaining a prompt from memory and checking which points you covered; prompts come back on a spaced-repetition schedule, and points you keep missing are suggested as flashcards.
+
+**Deployed app:** <https://lemma.mit-sdg.dev/>
+**Demo video (P4):** <https://youtu.be/wkhgukMKRZc>
+
+## Project materials
+
+| | |
+|---|---|
+| Design summary (P4) | [DesignNotebook/DesignSummary.md](DesignNotebook/DesignSummary.md) |
+| Problem framing and initial concept design (P1) | [DesignNotebook/ProblemFraming.md](DesignNotebook/ProblemFraming.md) |
+| User journey | [DesignNotebook/UserJourney.md](DesignNotebook/UserJourney.md) · [video](https://youtu.be/sUGFLZlyrLI) |
+| Visual design study (P3) | [page 1](img/Study1.jpg) · [page 2](img/Study2.jpg) |
+| Concept specifications | [design/concepts/](design/concepts/) |
+| Reactions and endpoints (compositions) | [design/compositions/](design/compositions/) |
+| How concepts are instantiated | [design/types.md](design/types.md) |
+
+Code: concepts in [`src/concepts/`](src/concepts/), compositions in [`src/compositions/`](src/compositions/), the Vue frontend in [`frontend/src/`](frontend/src/).
+
+## Running locally
+
+You need [Bun](https://bun.sh) (1.4.2, as pinned in `package.json`) and [Docker](https://www.docker.com/) for the database.
+
+1. Install dependencies. Installing the frontend's dependencies also builds it.
+
+   ```sh
+   bun install
+   bun install --cwd frontend
+   ```
+
+2. Start MongoDB and tell the app where it is. Create a `.env` file in the repo root:
+
+   ```sh
+   bun run db:up
+   echo 'MONGODB_URI=mongodb://dev:dev@127.0.0.1:27017/lemma?authSource=admin' > .env
+   ```
+
+   Without `MONGODB_URI`, the server falls back to an in-memory database and loses everything when it stops.
+
+3. Run it, either for development (with reloading) or as it runs when deployed:
+
+   ```sh
+   # development: two terminals
+   bun run dev                    # backend on :3000
+   bun run --cwd frontend dev     # frontend at http://localhost:5173
+
+   # or, built
+   bun run build && bun run start # http://localhost:3000
+   ```
+
+   `bun run db:reset` deletes all local data.
+
 ## Tests
 
-The tests cover each concept on its own (`tests/concepts/`) and the app's endpoints and reactions working together
-(`tests/compositions/`):
+You need only Bun: the tests start their own in-memory MongoDB, with a fresh database for every test (the first run downloads a MongoDB binary of about 100 MB).
+
+```sh
+bun run test     # concept and composition tests
+bun run check    # specs against code, generated files, and TypeScript
+```
+
+The latest full run is saved in [`tests/output.txt`](tests/output.txt).
 
 | File | What it tests |
 |---|---|
-| `tests/concepts/*.test.ts` | Each concept's operational principle, refusals and queries, against its spec in `design/concepts/` |
-| `tests/compositions/walkthrough.test.ts` | Points and topics end to end: creating, moving, renaming, deleting, who can do what, and refusals |
+| `tests/concepts/*.test.ts` | Each concept's operational principle, refusals and queries, against its spec |
+| `tests/compositions/walkthrough.test.ts` | Points and topics end to end, who can do what, refusals |
 | `tests/compositions/signing-in.test.ts` | Registering, signing in and out |
-| `tests/compositions/checks.test.ts` | Prompts and recall attempts: starting, submitting, correcting, closing, abandoning, empty prompts |
-| `tests/compositions/scheduling.test.ts` | Tracking prompts, reviews when an attempt closes, what's due |
-| `tests/compositions/sharing.test.ts` | Sharing prompts by username, copying them as snapshots, unsharing |
+| `tests/compositions/checks.test.ts` | Prompts and attempts: starting, grading, closing, abandoning, empty prompts |
+| `tests/compositions/scheduling.test.ts` | Adding prompts to Scheduling, reviews when an attempt closes, what's due |
+| `tests/compositions/sharing.test.ts` | Sharing prompts by username, copying them as snapshots, removing them from Shared, unsharing |
 | `tests/compositions/cards.test.ts` | Writing, revising and removing answers |
 | `tests/compositions/promoting.test.ts` | Suggesting cards for points missed in at least three attempts |
 
-### Running them
+## Built with
 
-You need [Bun](https://bun.sh). No database setup is needed: the tests start their own in-memory MongoDB
-(with `mongodb-memory-server`) and give every test a fresh, empty database.
-
-```sh
-bun install
-bun run test
-```
-
-The first run downloads a MongoDB binary (about 100 MB, cached afterwards), so it needs an internet connection
-and takes longer than later runs.
-
-To check the design documents and generated files as well:
-
-```sh
-bun run check
-```
-
-The output of the latest full run is saved in [`tests/output.txt`](tests/output.txt).
-
-### Running the app (not needed for the tests)
-
-The app itself uses MongoDB in Docker:
-
-```sh
-bun run db:up                  # start MongoDB
-bun run dev                    # backend
-bun run --cwd frontend dev     # frontend, at http://localhost:5173
-```
+[sync-engine](https://github.com/mit-sdg/sync-engine); the Authenticating, Registering, Sessioning and Sharing concepts are reused from [ConceptBox](https://github.com/GreatAndPowerfulPonyboy/conceptbox). Built with help from Claude Code: I wrote the composition documents and directed tests; Claude Code implemented from them.
