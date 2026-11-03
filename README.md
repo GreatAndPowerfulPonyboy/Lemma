@@ -9,6 +9,7 @@ Lemma is a free-recall study app for technical subjects. You capture short point
 
 | | |
 |---|---|
+| User Testing (P5) | [Task list](DesignNotebook/tasklist.md) [P1 Report summary](UserTesting/report1.md) [P2 report summary](UserTesting/report2.md) [Flaws and Improvements](UserTesting/flawsandimprovements.md)|
 | Design summary (P4) | [DesignNotebook/DesignSummary.md](DesignNotebook/DesignSummary.md) |
 | Problem framing and initial concept design (P1) | [DesignNotebook/ProblemFraming.md](DesignNotebook/ProblemFraming.md) |
 | User journey | [DesignNotebook/UserJourney.md](DesignNotebook/UserJourney.md) · [video](https://youtu.be/sUGFLZlyrLI) |
